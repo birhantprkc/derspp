@@ -1,0 +1,56 @@
+name: derspp
+description: "ultimate ders app"
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  pdfrx: ^2.2.18
+
+  provider: ^6.1.5+1
+
+  http: ^1.6.0
+
+  image_picker: ^1.2.1
+
+  skeletonizer: ^2.1.2
+
+  file_picker: ^10.3.8
+
+  dynamic_color: ^1.8.1
+  window_manager: ^0.5.1
+  drift: ^2.30.0
+  drift_flutter: ^0.2.8
+  path_provider: ^2.1.5
+  crop_image: ^1.0.16
+  image: ^4.7.2
+  path: ^1.9.0
+  xml: ^6.5.0
+  
+  media_kit: ^1.1.11
+  media_kit_video: ^1.2.5
+  media_kit_libs_video: ^1.0.7
+  youtube_player_iframe: ^5.2.2
+  universal_io: ^2.3.1
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.30.0
+  build_runner: ^2.10.4
+
+flutter:
+
+  uses-material-design: true
+
