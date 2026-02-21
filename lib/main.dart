@@ -10,6 +10,7 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'providers/theme_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/source_provider.dart';
+import 'providers/saved_questions_provider.dart';
 import 'database/database.dart';
 import 'ui/navi_bar.dart';
 
@@ -45,6 +46,9 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => ThemeProvider(database)),
         ChangeNotifierProvider(create: (context) => BookProvider(database)),
         ChangeNotifierProvider(create: (context) => SourceProvider(database)),
+        ChangeNotifierProvider(
+          create: (context) => SavedQuestionsProvider(database),
+        ),
       ],
       child: const MainApp(),
     ),

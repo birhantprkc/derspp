@@ -8,12 +8,16 @@ import 'package:provider/provider.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../database/database.dart';
 import '../../models/animation_model.dart';
+import '../../models/question.dart';
 import '../widgets/drawing_canvas.dart';
 import '../widgets/player_controls.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/saved_questions_provider.dart';
+import '../../providers/source_provider.dart';
 
 class PlayerScreen extends StatefulWidget {
   final AnimationModel animationData;
+  final Question? question;
   final VoidCallback? onNextVideo;
   final VoidCallback? onPreviousVideo;
   final bool hasNextVideo;
@@ -22,6 +26,7 @@ class PlayerScreen extends StatefulWidget {
   const PlayerScreen({
     super.key,
     required this.animationData,
+    this.question,
     this.onNextVideo,
     this.onPreviousVideo,
     this.hasNextVideo = false,
@@ -432,6 +437,78 @@ class _PlayerScreenState extends State<PlayerScreen> {
     });
   }
 
+  void _showSaveDialog(BuildContext context) {
+    final savedProvider = context.read<SavedQuestionsProvider>();
+    final sourceProvider = context.read<SourceProvider>();
+    final question = widget.question;
+
+    if (question == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Soru verisi bulunamadı.')));
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Klasör Seç'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Consumer<SavedQuestionsProvider>(
+              builder: (context, provider, child) {
+                if (provider.folders.isEmpty) {
+                  return const Text(
+                    'Henüz klasör oluşturulmamış. Lütfen "Kaydedilenler" sekmesinden klasör oluşturun.',
+                  );
+                }
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: provider.folders.length,
+                  itemBuilder: (context, index) {
+                    final folder = provider.folders[index];
+                    return ListTile(
+                      leading: const Icon(Icons.folder),
+                      title: Text(folder.name),
+                      onTap: () async {
+                        await provider.saveQuestion(
+                          folderId: folder.id,
+                          baseUrl: sourceProvider.baseUrl ?? '',
+                          scraperType: sourceProvider.currentSourceType,
+                          bookId: sourceProvider.navigationStack.isNotEmpty
+                              ? sourceProvider.navigationStack.first.id
+                              : '',
+                          chapterId: sourceProvider.currentCategoryId,
+                          breadcrumbs: sourceProvider.breadcrumbs,
+                          question: question,
+                        );
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Soru başarıyla kaydedildi'),
+                            ),
+                          );
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Kapat'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -528,6 +605,19 @@ class _PlayerScreenState extends State<PlayerScreen> {
               child: const Icon(Icons.arrow_back),
             ),
           ),
+          if (widget.question != null)
+            Positioned(
+              top: 40,
+              right: 16,
+              child: FloatingActionButton(
+                mini: true,
+                heroTag: 'save_question',
+                backgroundColor: Colors.black.withOpacity(0.5),
+                foregroundColor: Colors.white,
+                onPressed: () => _showSaveDialog(context),
+                child: const Icon(Icons.bookmark_add),
+              ),
+            ),
           Positioned(
             left: 0,
             right: 0,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/solution_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/review_screen.dart';
 
 class NaviBar extends StatefulWidget {
   const NaviBar({super.key});
@@ -12,7 +13,11 @@ class NaviBar extends StatefulWidget {
 class _NaviBarState extends State<NaviBar> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [SolutionScreen(), SettingsScreen()];
+  final List<Widget> _screens = const [
+    SolutionScreen(),
+    ReviewScreen(),
+    SettingsScreen(),
+  ];
 
   bool get _isTablet {
     final width = MediaQuery.of(context).size.width;
@@ -52,6 +57,14 @@ class _NaviBarState extends State<NaviBar> {
                     label: Padding(
                       padding: EdgeInsets.only(top: 5),
                       child: Text('Video Çözüm'),
+                    ),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.collections_bookmark_outlined),
+                    selectedIcon: Icon(Icons.collections_bookmark),
+                    label: Padding(
+                      padding: EdgeInsets.only(top: 5),
+                      child: Text('Kaydedilenler'),
                     ),
                   ),
                   NavigationRailDestination(
@@ -105,6 +118,11 @@ class _NaviBarState extends State<NaviBar> {
               icon: Icon(Icons.play_circle_outline),
               selectedIcon: Icon(Icons.play_circle),
               label: 'Video Çözüm',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.collections_bookmark_outlined),
+              selectedIcon: Icon(Icons.collections_bookmark),
+              label: 'Kaydedilenler',
             ),
             NavigationDestination(
               icon: Icon(Icons.settings_outlined),

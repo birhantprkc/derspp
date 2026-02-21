@@ -112,6 +112,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
 
             final mp4Player = PlayerScreen(
               animationData: animationData,
+              question: question,
               hasNextVideo: hasNext,
               hasPreviousVideo: hasPrevious,
               onNextVideo: hasNext
@@ -147,8 +148,8 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
       }
 
       if (question.videoUrl != null &&
-              (question.videoUrl!.contains('youtube.com') ||
-                  question.videoUrl!.contains('youtu.be'))) {
+          (question.videoUrl!.contains('youtube.com') ||
+              question.videoUrl!.contains('youtu.be'))) {
         if (mounted) {
           Navigator.pop(context);
 
@@ -164,6 +165,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
 
           final player = PlayerScreen(
             animationData: animationData,
+            question: question,
             hasNextVideo: hasNext,
             hasPreviousVideo: hasPrevious,
             onNextVideo: hasNext
@@ -206,6 +208,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
 
         final newPlayer = PlayerScreen(
           animationData: animationData,
+          question: question,
           hasNextVideo: hasNext,
           hasPreviousVideo: hasPrevious,
           onNextVideo: hasNext
@@ -462,8 +465,6 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
               id: 'sk_$index',
               name: '',
               order: (index + 1).toString(),
-              solvedId: '',
-              solvedType: '',
               swfUrl: '',
             ),
           )

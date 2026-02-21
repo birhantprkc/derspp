@@ -36,4 +36,11 @@ class Question {
   bool get hasVideo => videoUrl != null && videoUrl!.isNotEmpty;
   bool get hasAudio => audioUrl != null && audioUrl!.isNotEmpty;
   bool get hasPdf => swfUrl != null && swfUrl!.isNotEmpty;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'swf': swfUrl,
+    'video': videoUrl,
+    'audio': audioUrl,
+  };
 }

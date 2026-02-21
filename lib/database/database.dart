@@ -33,12 +33,48 @@ class Settings extends Table {
   Set<Column> get primaryKey => {key};
 }
 
-@DriftDatabase(tables: [Books, Publishers, Settings])
+class QuestionFolders extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+class SavedQuestions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get folderId => integer().references(QuestionFolders, #id)();
+  TextColumn get baseUrl => text()();
+  TextColumn get scraperType => text()();
+  TextColumn get bookId => text()();
+  TextColumn get chapterId => text()();
+  TextColumn get questionId => text()();
+  TextColumn get breadcrumbs => text()();
+  TextColumn get rawJson => text()();
+  DateTimeColumn get savedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+@DriftDatabase(
+  tables: [Books, Publishers, Settings, QuestionFolders, SavedQuestions],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (m) async {
+        await m.createAll();
+      },
+      onUpgrade: (m, from, to) async {
+        if (from < 2) {
+          await m.createTable(questionFolders);
+          await m.createTable(savedQuestions);
+        }
+      },
+    );
+  }
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
