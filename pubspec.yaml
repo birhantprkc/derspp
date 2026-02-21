@@ -1,7 +1,7 @@
 name: derspp
 description: "ultimate ders app"
 
-publish_to: 'none'
+publish_to: 'none' 
 
 version: 1.0.0+1
 
@@ -34,8 +34,8 @@ dependencies:
   path: ^1.9.0
   xml: ^6.5.0
   
-  media_kit: ^1.1.11
-  media_kit_video: ^1.2.5
+  media_kit: ^1.2.6
+  media_kit_video: ^2.0.1
   media_kit_libs_video: ^1.0.7
   youtube_player_iframe: ^5.2.2
   universal_io: ^2.3.1

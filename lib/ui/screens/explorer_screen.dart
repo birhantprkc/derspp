@@ -146,10 +146,9 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
         }
       }
 
-      if (question.solvedType == 'youtube' ||
-          (question.videoUrl != null &&
+      if (question.videoUrl != null &&
               (question.videoUrl!.contains('youtube.com') ||
-                  question.videoUrl!.contains('youtu.be')))) {
+                  question.videoUrl!.contains('youtu.be'))) {
         if (mounted) {
           Navigator.pop(context);
 
@@ -427,7 +426,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
             1,
             (index) => SourceItem(
               id: 'skeleton_$index',
-              name: 'Kategori Adı Buraya Gelecek',
+              name: '',
               isParent: true,
               parentId: '0',
             ),
@@ -461,7 +460,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
             10,
             (index) => Question(
               id: 'sk_$index',
-              name: 'Örnek Soru Başlığı Buraya Uzun Bir Şekilde Gelecek',
+              name: '',
               order: (index + 1).toString(),
               solvedId: '',
               solvedType: '',

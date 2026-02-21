@@ -182,7 +182,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
       await _player.open(Media(url));
 
       await _player.setRate(_playbackSpeed);
-      await _player.setVolume(100.0);
 
       if (mounted) {
         setState(() {
@@ -237,7 +236,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
       await _player.open(Media(path));
 
       await _player.setRate(_playbackSpeed);
-      await _player.setVolume(320.0);
 
       if (mounted) {
         setState(() {

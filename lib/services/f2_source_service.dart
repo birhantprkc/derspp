@@ -168,8 +168,6 @@ class F2SourceService implements SourceService {
         id: qId,
         name: item.name,
         order: item.name.split('.')[0].trim(),
-        solvedId: qId,
-        solvedType: 'f2',
         swfUrl: '',
         videoUrl: qId,
       );
