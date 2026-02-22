@@ -7,6 +7,8 @@ import '../../models/question.dart';
 import '../../database/database.dart';
 import '../../services/download_service.dart';
 import '../../services/source_factory.dart';
+import '../../services/f2_source_service.dart';
+import '../../models/animation_model.dart';
 import 'player_screen.dart';
 import 'explorer_screen.dart';
 
@@ -127,7 +129,46 @@ class _ReviewScreenState extends State<ReviewScreen> {
       final question = Question.fromJson(questionData);
       final sourceService = SourceFactory.getSourceService(sq.scraperType);
 
-      final animationData = await DownloadService.prepareQuestionData(
+      AnimationModel? animationData;
+
+      // Handle MP4 for f2source
+      if (sq.scraperType == 'f2source' && sourceService is F2SourceService) {
+        final contentType = await sourceService.detectContentType(
+          sq.baseUrl,
+          question.videoUrl ?? question.id,
+        );
+
+        if (contentType['type'] == 'mp4' && contentType['url'] != null) {
+          animationData = AnimationModel(
+            objects: [],
+            totalDuration: Duration.zero,
+            videoUrl: contentType['url'],
+            canvasWidth: 0,
+            canvasHeight: 0,
+            pdfDefaultScale: 1.0,
+            pdfOffset: Offset.zero,
+          );
+        }
+      }
+
+      // Handle YouTube
+      if (animationData == null &&
+          question.videoUrl != null &&
+          (question.videoUrl!.contains('youtube.com') ||
+              question.videoUrl!.contains('youtu.be'))) {
+        animationData = AnimationModel(
+          objects: [],
+          totalDuration: Duration.zero,
+          videoUrl: question.videoUrl,
+          canvasWidth: 1920,
+          canvasHeight: 1080,
+          pdfDefaultScale: 1.0,
+          pdfOffset: Offset.zero,
+        );
+      }
+
+      // Default to DownloadService for others (SWF, PDF, etc.)
+      animationData ??= await DownloadService.prepareQuestionData(
         question,
         sourceService,
         sq.baseUrl,
@@ -140,7 +181,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           context,
           MaterialPageRoute(
             builder: (_) =>
-                PlayerScreen(animationData: animationData, question: question),
+                PlayerScreen(animationData: animationData!, question: question),
           ),
         );
       }
