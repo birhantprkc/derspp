@@ -8,6 +8,7 @@ import '../database/database.dart';
 class SourceProvider extends ChangeNotifier {
   final AppDatabase _db;
   BookContent? _currentBookContent;
+  SourceItem? _currentTestItem;
   String? _baseUrl;
   String _currentSourceType = 'fsource';
   String _currentCategoryId = '5';
@@ -33,7 +34,13 @@ class SourceProvider extends ChangeNotifier {
   List<Publisher> get savedPubs => _savedPubs;
   bool get loadingPubs => _loadingPubs;
 
-  String get breadcrumbs => _navigationStack.map((e) => e.name).join(' > ');
+  String get breadcrumbs {
+    final path = _navigationStack.map((e) => e.name).toList();
+    if (_currentTestItem != null) {
+      path.add(_currentTestItem!.name);
+    }
+    return path.join(' > ');
+  }
 
   SourceProvider(this._db) {
     _init();
@@ -50,6 +57,7 @@ class SourceProvider extends ChangeNotifier {
     _currentCategoryId = rootId;
     _navigationStack.clear();
     _currentBookContent = null;
+    _currentTestItem = null;
     _currentItems = [];
     _categoryCache.clear();
     _errorMessage = null;
@@ -78,6 +86,7 @@ class SourceProvider extends ChangeNotifier {
     _categoryCache.clear();
     _errorMessage = null;
     _currentBookContent = null;
+    _currentTestItem = null;
     loadCategory(sourceId);
   }
 
@@ -187,6 +196,7 @@ class SourceProvider extends ChangeNotifier {
       final content = await sourceService.fetchBookContent(item.id, _baseUrl!);
 
       _currentBookContent = content;
+      _currentTestItem = item;
       _currentItems = [];
       _isLoading = false;
       _errorMessage = null;
@@ -200,6 +210,7 @@ class SourceProvider extends ChangeNotifier {
   void navigateBack({String? initialSourceId, required VoidCallback onPop}) {
     if (_currentBookContent != null) {
       _currentBookContent = null;
+      _currentTestItem = null;
       _currentItems = [];
       final targetId = _navigationStack.isEmpty
           ? _rootCategoryId
@@ -233,6 +244,7 @@ class SourceProvider extends ChangeNotifier {
 
   void clearCurrentBookContent() {
     _currentBookContent = null;
+    _currentTestItem = null;
     notifyListeners();
   }
 }
