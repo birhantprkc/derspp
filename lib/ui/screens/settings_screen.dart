@@ -64,7 +64,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: theme.colorScheme.surface,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(title: const Text('Ayarlar'), centerTitle: false),
+          SliverAppBar.large(
+            title: const Text('Ayarlar'),
+            titleTextStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              fontSize: 20,
+            ),
+            centerTitle: false,
+          ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -322,8 +329,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Slider(
                   value: _defaultPlaybackSpeed,
                   min: 0.5,
-                  max: 4.0,
-                  divisions: 7,
+                  max: 2.0,
+                  divisions: 6,
                   label: '${_defaultPlaybackSpeed}x',
                   onChanged: (value) {
                     _saveDefaultPlaybackSpeed(value);

@@ -37,6 +37,8 @@ class QuestionFolders extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get parentId =>
+      integer().nullable().references(QuestionFolders, #id)();
 }
 
 class SavedQuestions extends Table {
@@ -49,17 +51,35 @@ class SavedQuestions extends Table {
   TextColumn get questionId => text()();
   TextColumn get breadcrumbs => text()();
   TextColumn get rawJson => text()();
+  TextColumn get notes => text().nullable()();
   DateTimeColumn get savedAt => dateTime().withDefault(currentDateAndTime)();
+
+  DateTimeColumn get nextReviewDate =>
+      dateTime().withDefault(currentDateAndTime)();
+  IntColumn get reviewStep => integer().withDefault(const Constant(0))();
+}
+
+class ReviewLogs extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get date => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get type => integer().withDefault(const Constant(0))();
 }
 
 @DriftDatabase(
-  tables: [Books, Publishers, Settings, QuestionFolders, SavedQuestions],
+  tables: [
+    Books,
+    Publishers,
+    Settings,
+    QuestionFolders,
+    SavedQuestions,
+    ReviewLogs,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -72,13 +92,27 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(questionFolders);
           await m.createTable(savedQuestions);
         }
+        if (from < 3) {
+          await m.addColumn(savedQuestions, savedQuestions.nextReviewDate);
+          await m.addColumn(savedQuestions, savedQuestions.reviewStep);
+        }
+        if (from < 4) {
+          await m.addColumn(questionFolders, questionFolders.parentId);
+        }
+        if (from < 5) {
+          await m.createTable(reviewLogs);
+        }
+        if (from < 6) {
+          await m.addColumn(savedQuestions, savedQuestions.notes);
+          await m.addColumn(reviewLogs, reviewLogs.type);
+        }
       },
     );
   }
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
-      name: 'derspp_v2',
+      name: 'derspp_v3',
       web: DriftWebOptions(
         sqlite3Wasm: Uri.parse('sqlite3.wasm'),
         driftWorker: Uri.parse('drift_worker.js'),

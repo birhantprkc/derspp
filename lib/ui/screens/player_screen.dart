@@ -18,6 +18,7 @@ import '../../providers/source_provider.dart';
 class PlayerScreen extends StatefulWidget {
   final AnimationModel animationData;
   final Question? question;
+  final SavedQuestion? savedQuestion;
   final VoidCallback? onNextVideo;
   final VoidCallback? onPreviousVideo;
   final bool hasNextVideo;
@@ -27,6 +28,7 @@ class PlayerScreen extends StatefulWidget {
     super.key,
     required this.animationData,
     this.question,
+    this.savedQuestion,
     this.onNextVideo,
     this.onPreviousVideo,
     this.hasNextVideo = false,
@@ -438,7 +440,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   void _showSaveDialog(BuildContext context) {
-    final savedProvider = context.read<SavedQuestionsProvider>();
     final sourceProvider = context.read<SourceProvider>();
     final question = widget.question;
 
@@ -449,53 +450,55 @@ class _PlayerScreenState extends State<PlayerScreen> {
       return;
     }
 
+    final noteController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Klasör Seç'),
+          title: const Text('Soruyu Kaydet'),
           content: SizedBox(
             width: double.maxFinite,
-            child: Consumer<SavedQuestionsProvider>(
-              builder: (context, provider, child) {
-                if (provider.folders.isEmpty) {
-                  return const Text(
-                    'Henüz klasör oluşturulmamış. Lütfen "Kaydedilenler" sekmesinden klasör oluşturun.',
-                  );
-                }
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: provider.folders.length,
-                  itemBuilder: (context, index) {
-                    final folder = provider.folders[index];
-                    return ListTile(
-                      leading: const Icon(Icons.folder),
-                      title: Text(folder.name),
-                      onTap: () async {
-                        await provider.saveQuestion(
-                          folderId: folder.id,
-                          baseUrl: sourceProvider.baseUrl ?? '',
-                          scraperType: sourceProvider.currentSourceType,
-                          bookId: sourceProvider.navigationStack.isNotEmpty
-                              ? sourceProvider.navigationStack.first.id
-                              : '',
-                          chapterId: sourceProvider.currentCategoryId,
-                          breadcrumbs: sourceProvider.breadcrumbs,
-                          question: question,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: noteController,
+                  decoration: const InputDecoration(
+                    labelText: 'Not Ekle (Opsiyonel)',
+                    hintText: 'Soru ile ilgili bir not yazın...',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Klasör Seç:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Consumer<SavedQuestionsProvider>(
+                    builder: (context, provider, child) {
+                      if (provider.folders.isEmpty) {
+                        return const Text(
+                          'Henüz klasör oluşturulmamış. Lütfen "Kaydedilenler" sekmesinden klasör oluşturun.',
                         );
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Soru başarıyla kaydedildi'),
-                            ),
-                          );
-                        }
-                      },
-                    );
-                  },
-                );
-              },
+                      }
+                      return SingleChildScrollView(
+                        child: _buildRecursiveFolderPicker(
+                          context,
+                          provider,
+                          null,
+                          sourceProvider,
+                          question,
+                          noteController,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           actions: [
@@ -505,6 +508,131 @@ class _PlayerScreenState extends State<PlayerScreen> {
             ),
           ],
         );
+      },
+    );
+  }
+
+  Widget _buildRecursiveFolderPicker(
+    BuildContext context,
+    SavedQuestionsProvider provider,
+    int? parentId,
+    SourceProvider sourceProvider,
+    Question question,
+    TextEditingController noteController,
+  ) {
+    final folders = provider.folders
+        .where((f) => f.parentId == parentId)
+        .toList();
+    if (folders.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      children: folders.map((folder) {
+        final hasChildren = provider.folders.any(
+          (f) => f.parentId == folder.id,
+        );
+
+        return ExpansionTile(
+          key: PageStorageKey<int>(folder.id),
+          controlAffinity: ListTileControlAffinity.leading,
+          leading: const Icon(Icons.folder_outlined),
+          title: InkWell(
+            onTap: () async {
+              await provider.saveQuestion(
+                folderId: folder.id,
+                baseUrl: sourceProvider.baseUrl ?? '',
+                scraperType: sourceProvider.currentSourceType,
+                bookId: sourceProvider.navigationStack.isNotEmpty
+                    ? sourceProvider.navigationStack.first.id
+                    : '',
+                chapterId: sourceProvider.currentCategoryId,
+                breadcrumbs: sourceProvider.breadcrumbs,
+                question: question,
+                notes: noteController.text.trim().isNotEmpty
+                    ? noteController.text.trim()
+                    : null,
+              );
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Soru başarıyla kaydedildi')),
+                );
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              width: double.maxFinite,
+              child: Text(folder.name),
+            ),
+          ),
+          trailing: hasChildren ? null : const SizedBox.shrink(),
+          children: [
+            if (hasChildren)
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0),
+                child: _buildRecursiveFolderPicker(
+                  context,
+                  provider,
+                  folder.id,
+                  sourceProvider,
+                  question,
+                  noteController,
+                ),
+              ),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  void _showReviewDialog(BuildContext context) {
+    final provider = context.read<SavedQuestionsProvider>();
+    final sq = widget.savedQuestion!;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Bu soruyu ne zaman tekrar etmek istersin?',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            _buildReviewOption(context, provider, sq, '1 Gün', 1),
+            _buildReviewOption(context, provider, sq, '3 Gün', 3),
+            _buildReviewOption(context, provider, sq, '7 Gün', 7),
+            _buildReviewOption(context, provider, sq, '14 Gün', 14),
+            _buildReviewOption(context, provider, sq, '30 Gün', 30),
+            const SizedBox(height: 20),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildReviewOption(
+    BuildContext context,
+    SavedQuestionsProvider provider,
+    SavedQuestion sq,
+    String label,
+    int days,
+  ) {
+    return ListTile(
+      title: Text(label),
+      leading: const Icon(Icons.calendar_today_outlined),
+      onTap: () async {
+        final nextDate = DateTime.now().add(Duration(days: days));
+        await provider.updateReviewStatus(sq.id, nextDate, sq.reviewStep + 1);
+        if (context.mounted) {
+          Navigator.pop(context);
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Soru $label sonraya ertelendi.')),
+          );
+        }
       },
     );
   }
@@ -611,11 +739,17 @@ class _PlayerScreenState extends State<PlayerScreen> {
               right: 16,
               child: FloatingActionButton(
                 mini: true,
-                heroTag: 'save_question',
+                heroTag: 'save_or_review',
                 backgroundColor: Colors.black.withOpacity(0.5),
                 foregroundColor: Colors.white,
-                onPressed: () => _showSaveDialog(context),
-                child: const Icon(Icons.bookmark_add),
+                onPressed: () => widget.savedQuestion != null
+                    ? _showReviewDialog(context)
+                    : _showSaveDialog(context),
+                child: Icon(
+                  widget.savedQuestion != null
+                      ? Icons.check_box
+                      : Icons.bookmark_add,
+                ),
               ),
             ),
           Positioned(

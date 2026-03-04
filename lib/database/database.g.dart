@@ -1165,8 +1165,22 @@ class $QuestionFoldersTable extends QuestionFolders
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _parentIdMeta = const VerificationMeta(
+    'parentId',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name, createdAt];
+  late final GeneratedColumn<int> parentId = GeneratedColumn<int>(
+    'parent_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES question_folders (id)',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, createdAt, parentId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1196,6 +1210,12 @@ class $QuestionFoldersTable extends QuestionFolders
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('parent_id')) {
+      context.handle(
+        _parentIdMeta,
+        parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta),
+      );
+    }
     return context;
   }
 
@@ -1217,6 +1237,10 @@ class $QuestionFoldersTable extends QuestionFolders
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      parentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}parent_id'],
+      ),
     );
   }
 
@@ -1230,10 +1254,12 @@ class QuestionFolder extends DataClass implements Insertable<QuestionFolder> {
   final int id;
   final String name;
   final DateTime createdAt;
+  final int? parentId;
   const QuestionFolder({
     required this.id,
     required this.name,
     required this.createdAt,
+    this.parentId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1241,6 +1267,9 @@ class QuestionFolder extends DataClass implements Insertable<QuestionFolder> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || parentId != null) {
+      map['parent_id'] = Variable<int>(parentId);
+    }
     return map;
   }
 
@@ -1249,6 +1278,9 @@ class QuestionFolder extends DataClass implements Insertable<QuestionFolder> {
       id: Value(id),
       name: Value(name),
       createdAt: Value(createdAt),
+      parentId: parentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentId),
     );
   }
 
@@ -1261,6 +1293,7 @@ class QuestionFolder extends DataClass implements Insertable<QuestionFolder> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      parentId: serializer.fromJson<int?>(json['parentId']),
     );
   }
   @override
@@ -1270,20 +1303,27 @@ class QuestionFolder extends DataClass implements Insertable<QuestionFolder> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'parentId': serializer.toJson<int?>(parentId),
     };
   }
 
-  QuestionFolder copyWith({int? id, String? name, DateTime? createdAt}) =>
-      QuestionFolder(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        createdAt: createdAt ?? this.createdAt,
-      );
+  QuestionFolder copyWith({
+    int? id,
+    String? name,
+    DateTime? createdAt,
+    Value<int?> parentId = const Value.absent(),
+  }) => QuestionFolder(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    createdAt: createdAt ?? this.createdAt,
+    parentId: parentId.present ? parentId.value : this.parentId,
+  );
   QuestionFolder copyWithCompanion(QuestionFoldersCompanion data) {
     return QuestionFolder(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      parentId: data.parentId.present ? data.parentId.value : this.parentId,
     );
   }
 
@@ -1292,45 +1332,52 @@ class QuestionFolder extends DataClass implements Insertable<QuestionFolder> {
     return (StringBuffer('QuestionFolder(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('parentId: $parentId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, createdAt);
+  int get hashCode => Object.hash(id, name, createdAt, parentId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is QuestionFolder &&
           other.id == this.id &&
           other.name == this.name &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.parentId == this.parentId);
 }
 
 class QuestionFoldersCompanion extends UpdateCompanion<QuestionFolder> {
   final Value<int> id;
   final Value<String> name;
   final Value<DateTime> createdAt;
+  final Value<int?> parentId;
   const QuestionFoldersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.parentId = const Value.absent(),
   });
   QuestionFoldersCompanion.insert({
     this.id = const Value.absent(),
     required String name,
     this.createdAt = const Value.absent(),
+    this.parentId = const Value.absent(),
   }) : name = Value(name);
   static Insertable<QuestionFolder> custom({
     Expression<int>? id,
     Expression<String>? name,
     Expression<DateTime>? createdAt,
+    Expression<int>? parentId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (createdAt != null) 'created_at': createdAt,
+      if (parentId != null) 'parent_id': parentId,
     });
   }
 
@@ -1338,11 +1385,13 @@ class QuestionFoldersCompanion extends UpdateCompanion<QuestionFolder> {
     Value<int>? id,
     Value<String>? name,
     Value<DateTime>? createdAt,
+    Value<int?>? parentId,
   }) {
     return QuestionFoldersCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       createdAt: createdAt ?? this.createdAt,
+      parentId: parentId ?? this.parentId,
     );
   }
 
@@ -1358,6 +1407,9 @@ class QuestionFoldersCompanion extends UpdateCompanion<QuestionFolder> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (parentId.present) {
+      map['parent_id'] = Variable<int>(parentId.value);
+    }
     return map;
   }
 
@@ -1366,7 +1418,8 @@ class QuestionFoldersCompanion extends UpdateCompanion<QuestionFolder> {
     return (StringBuffer('QuestionFoldersCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('parentId: $parentId')
           ..write(')'))
         .toString();
   }
@@ -1480,6 +1533,15 @@ class $SavedQuestionsTable extends SavedQuestions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _savedAtMeta = const VerificationMeta(
     'savedAt',
   );
@@ -1492,6 +1554,31 @@ class $SavedQuestionsTable extends SavedQuestions
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _nextReviewDateMeta = const VerificationMeta(
+    'nextReviewDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> nextReviewDate =
+      GeneratedColumn<DateTime>(
+        'next_review_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+        defaultValue: currentDateAndTime,
+      );
+  static const VerificationMeta _reviewStepMeta = const VerificationMeta(
+    'reviewStep',
+  );
+  @override
+  late final GeneratedColumn<int> reviewStep = GeneratedColumn<int>(
+    'review_step',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1503,7 +1590,10 @@ class $SavedQuestionsTable extends SavedQuestions
     questionId,
     breadcrumbs,
     rawJson,
+    notes,
     savedAt,
+    nextReviewDate,
+    reviewStep,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1590,10 +1680,31 @@ class $SavedQuestionsTable extends SavedQuestions
     } else if (isInserting) {
       context.missing(_rawJsonMeta);
     }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
     if (data.containsKey('saved_at')) {
       context.handle(
         _savedAtMeta,
         savedAt.isAcceptableOrUnknown(data['saved_at']!, _savedAtMeta),
+      );
+    }
+    if (data.containsKey('next_review_date')) {
+      context.handle(
+        _nextReviewDateMeta,
+        nextReviewDate.isAcceptableOrUnknown(
+          data['next_review_date']!,
+          _nextReviewDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('review_step')) {
+      context.handle(
+        _reviewStepMeta,
+        reviewStep.isAcceptableOrUnknown(data['review_step']!, _reviewStepMeta),
       );
     }
     return context;
@@ -1641,9 +1752,21 @@ class $SavedQuestionsTable extends SavedQuestions
         DriftSqlType.string,
         data['${effectivePrefix}raw_json'],
       )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
       savedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}saved_at'],
+      )!,
+      nextReviewDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_review_date'],
+      )!,
+      reviewStep: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}review_step'],
       )!,
     );
   }
@@ -1664,7 +1787,10 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
   final String questionId;
   final String breadcrumbs;
   final String rawJson;
+  final String? notes;
   final DateTime savedAt;
+  final DateTime nextReviewDate;
+  final int reviewStep;
   const SavedQuestion({
     required this.id,
     required this.folderId,
@@ -1675,7 +1801,10 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     required this.questionId,
     required this.breadcrumbs,
     required this.rawJson,
+    this.notes,
     required this.savedAt,
+    required this.nextReviewDate,
+    required this.reviewStep,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1689,7 +1818,12 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     map['question_id'] = Variable<String>(questionId);
     map['breadcrumbs'] = Variable<String>(breadcrumbs);
     map['raw_json'] = Variable<String>(rawJson);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
     map['saved_at'] = Variable<DateTime>(savedAt);
+    map['next_review_date'] = Variable<DateTime>(nextReviewDate);
+    map['review_step'] = Variable<int>(reviewStep);
     return map;
   }
 
@@ -1704,7 +1838,12 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
       questionId: Value(questionId),
       breadcrumbs: Value(breadcrumbs),
       rawJson: Value(rawJson),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
       savedAt: Value(savedAt),
+      nextReviewDate: Value(nextReviewDate),
+      reviewStep: Value(reviewStep),
     );
   }
 
@@ -1723,7 +1862,10 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
       questionId: serializer.fromJson<String>(json['questionId']),
       breadcrumbs: serializer.fromJson<String>(json['breadcrumbs']),
       rawJson: serializer.fromJson<String>(json['rawJson']),
+      notes: serializer.fromJson<String?>(json['notes']),
       savedAt: serializer.fromJson<DateTime>(json['savedAt']),
+      nextReviewDate: serializer.fromJson<DateTime>(json['nextReviewDate']),
+      reviewStep: serializer.fromJson<int>(json['reviewStep']),
     );
   }
   @override
@@ -1739,7 +1881,10 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
       'questionId': serializer.toJson<String>(questionId),
       'breadcrumbs': serializer.toJson<String>(breadcrumbs),
       'rawJson': serializer.toJson<String>(rawJson),
+      'notes': serializer.toJson<String?>(notes),
       'savedAt': serializer.toJson<DateTime>(savedAt),
+      'nextReviewDate': serializer.toJson<DateTime>(nextReviewDate),
+      'reviewStep': serializer.toJson<int>(reviewStep),
     };
   }
 
@@ -1753,7 +1898,10 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     String? questionId,
     String? breadcrumbs,
     String? rawJson,
+    Value<String?> notes = const Value.absent(),
     DateTime? savedAt,
+    DateTime? nextReviewDate,
+    int? reviewStep,
   }) => SavedQuestion(
     id: id ?? this.id,
     folderId: folderId ?? this.folderId,
@@ -1764,7 +1912,10 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     questionId: questionId ?? this.questionId,
     breadcrumbs: breadcrumbs ?? this.breadcrumbs,
     rawJson: rawJson ?? this.rawJson,
+    notes: notes.present ? notes.value : this.notes,
     savedAt: savedAt ?? this.savedAt,
+    nextReviewDate: nextReviewDate ?? this.nextReviewDate,
+    reviewStep: reviewStep ?? this.reviewStep,
   );
   SavedQuestion copyWithCompanion(SavedQuestionsCompanion data) {
     return SavedQuestion(
@@ -1783,7 +1934,14 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
           ? data.breadcrumbs.value
           : this.breadcrumbs,
       rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
+      notes: data.notes.present ? data.notes.value : this.notes,
       savedAt: data.savedAt.present ? data.savedAt.value : this.savedAt,
+      nextReviewDate: data.nextReviewDate.present
+          ? data.nextReviewDate.value
+          : this.nextReviewDate,
+      reviewStep: data.reviewStep.present
+          ? data.reviewStep.value
+          : this.reviewStep,
     );
   }
 
@@ -1799,7 +1957,10 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
           ..write('questionId: $questionId, ')
           ..write('breadcrumbs: $breadcrumbs, ')
           ..write('rawJson: $rawJson, ')
-          ..write('savedAt: $savedAt')
+          ..write('notes: $notes, ')
+          ..write('savedAt: $savedAt, ')
+          ..write('nextReviewDate: $nextReviewDate, ')
+          ..write('reviewStep: $reviewStep')
           ..write(')'))
         .toString();
   }
@@ -1815,7 +1976,10 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     questionId,
     breadcrumbs,
     rawJson,
+    notes,
     savedAt,
+    nextReviewDate,
+    reviewStep,
   );
   @override
   bool operator ==(Object other) =>
@@ -1830,7 +1994,10 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
           other.questionId == this.questionId &&
           other.breadcrumbs == this.breadcrumbs &&
           other.rawJson == this.rawJson &&
-          other.savedAt == this.savedAt);
+          other.notes == this.notes &&
+          other.savedAt == this.savedAt &&
+          other.nextReviewDate == this.nextReviewDate &&
+          other.reviewStep == this.reviewStep);
 }
 
 class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
@@ -1843,7 +2010,10 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
   final Value<String> questionId;
   final Value<String> breadcrumbs;
   final Value<String> rawJson;
+  final Value<String?> notes;
   final Value<DateTime> savedAt;
+  final Value<DateTime> nextReviewDate;
+  final Value<int> reviewStep;
   const SavedQuestionsCompanion({
     this.id = const Value.absent(),
     this.folderId = const Value.absent(),
@@ -1854,7 +2024,10 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     this.questionId = const Value.absent(),
     this.breadcrumbs = const Value.absent(),
     this.rawJson = const Value.absent(),
+    this.notes = const Value.absent(),
     this.savedAt = const Value.absent(),
+    this.nextReviewDate = const Value.absent(),
+    this.reviewStep = const Value.absent(),
   });
   SavedQuestionsCompanion.insert({
     this.id = const Value.absent(),
@@ -1866,7 +2039,10 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     required String questionId,
     required String breadcrumbs,
     required String rawJson,
+    this.notes = const Value.absent(),
     this.savedAt = const Value.absent(),
+    this.nextReviewDate = const Value.absent(),
+    this.reviewStep = const Value.absent(),
   }) : folderId = Value(folderId),
        baseUrl = Value(baseUrl),
        scraperType = Value(scraperType),
@@ -1885,7 +2061,10 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     Expression<String>? questionId,
     Expression<String>? breadcrumbs,
     Expression<String>? rawJson,
+    Expression<String>? notes,
     Expression<DateTime>? savedAt,
+    Expression<DateTime>? nextReviewDate,
+    Expression<int>? reviewStep,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1897,7 +2076,10 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
       if (questionId != null) 'question_id': questionId,
       if (breadcrumbs != null) 'breadcrumbs': breadcrumbs,
       if (rawJson != null) 'raw_json': rawJson,
+      if (notes != null) 'notes': notes,
       if (savedAt != null) 'saved_at': savedAt,
+      if (nextReviewDate != null) 'next_review_date': nextReviewDate,
+      if (reviewStep != null) 'review_step': reviewStep,
     });
   }
 
@@ -1911,7 +2093,10 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     Value<String>? questionId,
     Value<String>? breadcrumbs,
     Value<String>? rawJson,
+    Value<String?>? notes,
     Value<DateTime>? savedAt,
+    Value<DateTime>? nextReviewDate,
+    Value<int>? reviewStep,
   }) {
     return SavedQuestionsCompanion(
       id: id ?? this.id,
@@ -1923,7 +2108,10 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
       questionId: questionId ?? this.questionId,
       breadcrumbs: breadcrumbs ?? this.breadcrumbs,
       rawJson: rawJson ?? this.rawJson,
+      notes: notes ?? this.notes,
       savedAt: savedAt ?? this.savedAt,
+      nextReviewDate: nextReviewDate ?? this.nextReviewDate,
+      reviewStep: reviewStep ?? this.reviewStep,
     );
   }
 
@@ -1957,8 +2145,17 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     if (rawJson.present) {
       map['raw_json'] = Variable<String>(rawJson.value);
     }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
     if (savedAt.present) {
       map['saved_at'] = Variable<DateTime>(savedAt.value);
+    }
+    if (nextReviewDate.present) {
+      map['next_review_date'] = Variable<DateTime>(nextReviewDate.value);
+    }
+    if (reviewStep.present) {
+      map['review_step'] = Variable<int>(reviewStep.value);
     }
     return map;
   }
@@ -1975,7 +2172,249 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
           ..write('questionId: $questionId, ')
           ..write('breadcrumbs: $breadcrumbs, ')
           ..write('rawJson: $rawJson, ')
-          ..write('savedAt: $savedAt')
+          ..write('notes: $notes, ')
+          ..write('savedAt: $savedAt, ')
+          ..write('nextReviewDate: $nextReviewDate, ')
+          ..write('reviewStep: $reviewStep')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ReviewLogsTable extends ReviewLogs
+    with TableInfo<$ReviewLogsTable, ReviewLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReviewLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<int> type = GeneratedColumn<int>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, date, type];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'review_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReviewLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReviewLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReviewLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}type'],
+      )!,
+    );
+  }
+
+  @override
+  $ReviewLogsTable createAlias(String alias) {
+    return $ReviewLogsTable(attachedDatabase, alias);
+  }
+}
+
+class ReviewLog extends DataClass implements Insertable<ReviewLog> {
+  final int id;
+  final DateTime date;
+  final int type;
+  const ReviewLog({required this.id, required this.date, required this.type});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['date'] = Variable<DateTime>(date);
+    map['type'] = Variable<int>(type);
+    return map;
+  }
+
+  ReviewLogsCompanion toCompanion(bool nullToAbsent) {
+    return ReviewLogsCompanion(
+      id: Value(id),
+      date: Value(date),
+      type: Value(type),
+    );
+  }
+
+  factory ReviewLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReviewLog(
+      id: serializer.fromJson<int>(json['id']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      type: serializer.fromJson<int>(json['type']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'date': serializer.toJson<DateTime>(date),
+      'type': serializer.toJson<int>(type),
+    };
+  }
+
+  ReviewLog copyWith({int? id, DateTime? date, int? type}) => ReviewLog(
+    id: id ?? this.id,
+    date: date ?? this.date,
+    type: type ?? this.type,
+  );
+  ReviewLog copyWithCompanion(ReviewLogsCompanion data) {
+    return ReviewLog(
+      id: data.id.present ? data.id.value : this.id,
+      date: data.date.present ? data.date.value : this.date,
+      type: data.type.present ? data.type.value : this.type,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewLog(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('type: $type')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, date, type);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReviewLog &&
+          other.id == this.id &&
+          other.date == this.date &&
+          other.type == this.type);
+}
+
+class ReviewLogsCompanion extends UpdateCompanion<ReviewLog> {
+  final Value<int> id;
+  final Value<DateTime> date;
+  final Value<int> type;
+  const ReviewLogsCompanion({
+    this.id = const Value.absent(),
+    this.date = const Value.absent(),
+    this.type = const Value.absent(),
+  });
+  ReviewLogsCompanion.insert({
+    this.id = const Value.absent(),
+    this.date = const Value.absent(),
+    this.type = const Value.absent(),
+  });
+  static Insertable<ReviewLog> custom({
+    Expression<int>? id,
+    Expression<DateTime>? date,
+    Expression<int>? type,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (date != null) 'date': date,
+      if (type != null) 'type': type,
+    });
+  }
+
+  ReviewLogsCompanion copyWith({
+    Value<int>? id,
+    Value<DateTime>? date,
+    Value<int>? type,
+  }) {
+    return ReviewLogsCompanion(
+      id: id ?? this.id,
+      date: date ?? this.date,
+      type: type ?? this.type,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<int>(type.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('type: $type')
           ..write(')'))
         .toString();
   }
@@ -1991,6 +2430,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $SavedQuestionsTable savedQuestions = $SavedQuestionsTable(this);
+  late final $ReviewLogsTable reviewLogs = $ReviewLogsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2001,6 +2441,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     settings,
     questionFolders,
     savedQuestions,
+    reviewLogs,
   ];
 }
 
@@ -2610,12 +3051,14 @@ typedef $$QuestionFoldersTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       Value<DateTime> createdAt,
+      Value<int?> parentId,
     });
 typedef $$QuestionFoldersTableUpdateCompanionBuilder =
     QuestionFoldersCompanion Function({
       Value<int> id,
       Value<String> name,
       Value<DateTime> createdAt,
+      Value<int?> parentId,
     });
 
 final class $$QuestionFoldersTableReferences
@@ -2626,6 +3069,28 @@ final class $$QuestionFoldersTableReferences
     super.$_table,
     super.$_typedResult,
   );
+
+  static $QuestionFoldersTable _parentIdTable(_$AppDatabase db) =>
+      db.questionFolders.createAlias(
+        $_aliasNameGenerator(
+          db.questionFolders.parentId,
+          db.questionFolders.id,
+        ),
+      );
+
+  $$QuestionFoldersTableProcessedTableManager? get parentId {
+    final $_column = $_itemColumn<int>('parent_id');
+    if ($_column == null) return null;
+    final manager = $$QuestionFoldersTableTableManager(
+      $_db,
+      $_db.questionFolders,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_parentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<$SavedQuestionsTable, List<SavedQuestion>>
   _savedQuestionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -2672,6 +3137,29 @@ class $$QuestionFoldersTableFilterComposer
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$QuestionFoldersTableFilterComposer get parentId {
+    final $$QuestionFoldersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.parentId,
+      referencedTable: $db.questionFolders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestionFoldersTableFilterComposer(
+            $db: $db,
+            $table: $db.questionFolders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> savedQuestionsRefs(
     Expression<bool> Function($$SavedQuestionsTableFilterComposer f) f,
@@ -2722,6 +3210,29 @@ class $$QuestionFoldersTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$QuestionFoldersTableOrderingComposer get parentId {
+    final $$QuestionFoldersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.parentId,
+      referencedTable: $db.questionFolders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestionFoldersTableOrderingComposer(
+            $db: $db,
+            $table: $db.questionFolders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$QuestionFoldersTableAnnotationComposer
@@ -2741,6 +3252,29 @@ class $$QuestionFoldersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$QuestionFoldersTableAnnotationComposer get parentId {
+    final $$QuestionFoldersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.parentId,
+      referencedTable: $db.questionFolders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestionFoldersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.questionFolders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> savedQuestionsRefs<T extends Object>(
     Expression<T> Function($$SavedQuestionsTableAnnotationComposer a) f,
@@ -2781,7 +3315,7 @@ class $$QuestionFoldersTableTableManager
           $$QuestionFoldersTableUpdateCompanionBuilder,
           (QuestionFolder, $$QuestionFoldersTableReferences),
           QuestionFolder,
-          PrefetchHooks Function({bool savedQuestionsRefs})
+          PrefetchHooks Function({bool parentId, bool savedQuestionsRefs})
         > {
   $$QuestionFoldersTableTableManager(
     _$AppDatabase db,
@@ -2801,20 +3335,24 @@ class $$QuestionFoldersTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int?> parentId = const Value.absent(),
               }) => QuestionFoldersCompanion(
                 id: id,
                 name: name,
                 createdAt: createdAt,
+                parentId: parentId,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int?> parentId = const Value.absent(),
               }) => QuestionFoldersCompanion.insert(
                 id: id,
                 name: name,
                 createdAt: createdAt,
+                parentId: parentId,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -2824,38 +3362,74 @@ class $$QuestionFoldersTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({savedQuestionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (savedQuestionsRefs) db.savedQuestions,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (savedQuestionsRefs)
-                    await $_getPrefetchedData<
-                      QuestionFolder,
-                      $QuestionFoldersTable,
-                      SavedQuestion
-                    >(
-                      currentTable: table,
-                      referencedTable: $$QuestionFoldersTableReferences
-                          ._savedQuestionsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$QuestionFoldersTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).savedQuestionsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.folderId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({parentId = false, savedQuestionsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (savedQuestionsRefs) db.savedQuestions,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (parentId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.parentId,
+                                    referencedTable:
+                                        $$QuestionFoldersTableReferences
+                                            ._parentIdTable(db),
+                                    referencedColumn:
+                                        $$QuestionFoldersTableReferences
+                                            ._parentIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (savedQuestionsRefs)
+                        await $_getPrefetchedData<
+                          QuestionFolder,
+                          $QuestionFoldersTable,
+                          SavedQuestion
+                        >(
+                          currentTable: table,
+                          referencedTable: $$QuestionFoldersTableReferences
+                              ._savedQuestionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$QuestionFoldersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).savedQuestionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.folderId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -2872,7 +3446,7 @@ typedef $$QuestionFoldersTableProcessedTableManager =
       $$QuestionFoldersTableUpdateCompanionBuilder,
       (QuestionFolder, $$QuestionFoldersTableReferences),
       QuestionFolder,
-      PrefetchHooks Function({bool savedQuestionsRefs})
+      PrefetchHooks Function({bool parentId, bool savedQuestionsRefs})
     >;
 typedef $$SavedQuestionsTableCreateCompanionBuilder =
     SavedQuestionsCompanion Function({
@@ -2885,7 +3459,10 @@ typedef $$SavedQuestionsTableCreateCompanionBuilder =
       required String questionId,
       required String breadcrumbs,
       required String rawJson,
+      Value<String?> notes,
       Value<DateTime> savedAt,
+      Value<DateTime> nextReviewDate,
+      Value<int> reviewStep,
     });
 typedef $$SavedQuestionsTableUpdateCompanionBuilder =
     SavedQuestionsCompanion Function({
@@ -2898,7 +3475,10 @@ typedef $$SavedQuestionsTableUpdateCompanionBuilder =
       Value<String> questionId,
       Value<String> breadcrumbs,
       Value<String> rawJson,
+      Value<String?> notes,
       Value<DateTime> savedAt,
+      Value<DateTime> nextReviewDate,
+      Value<int> reviewStep,
     });
 
 final class $$SavedQuestionsTableReferences
@@ -2978,8 +3558,23 @@ class $$SavedQuestionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get savedAt => $composableBuilder(
     column: $table.savedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get nextReviewDate => $composableBuilder(
+    column: $table.nextReviewDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reviewStep => $composableBuilder(
+    column: $table.reviewStep,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3056,8 +3651,23 @@ class $$SavedQuestionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get savedAt => $composableBuilder(
     column: $table.savedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get nextReviewDate => $composableBuilder(
+    column: $table.nextReviewDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reviewStep => $composableBuilder(
+    column: $table.reviewStep,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3124,8 +3734,21 @@ class $$SavedQuestionsTableAnnotationComposer
   GeneratedColumn<String> get rawJson =>
       $composableBuilder(column: $table.rawJson, builder: (column) => column);
 
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
   GeneratedColumn<DateTime> get savedAt =>
       $composableBuilder(column: $table.savedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get nextReviewDate => $composableBuilder(
+    column: $table.nextReviewDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reviewStep => $composableBuilder(
+    column: $table.reviewStep,
+    builder: (column) => column,
+  );
 
   $$QuestionFoldersTableAnnotationComposer get folderId {
     final $$QuestionFoldersTableAnnotationComposer composer = $composerBuilder(
@@ -3190,7 +3813,10 @@ class $$SavedQuestionsTableTableManager
                 Value<String> questionId = const Value.absent(),
                 Value<String> breadcrumbs = const Value.absent(),
                 Value<String> rawJson = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
                 Value<DateTime> savedAt = const Value.absent(),
+                Value<DateTime> nextReviewDate = const Value.absent(),
+                Value<int> reviewStep = const Value.absent(),
               }) => SavedQuestionsCompanion(
                 id: id,
                 folderId: folderId,
@@ -3201,7 +3827,10 @@ class $$SavedQuestionsTableTableManager
                 questionId: questionId,
                 breadcrumbs: breadcrumbs,
                 rawJson: rawJson,
+                notes: notes,
                 savedAt: savedAt,
+                nextReviewDate: nextReviewDate,
+                reviewStep: reviewStep,
               ),
           createCompanionCallback:
               ({
@@ -3214,7 +3843,10 @@ class $$SavedQuestionsTableTableManager
                 required String questionId,
                 required String breadcrumbs,
                 required String rawJson,
+                Value<String?> notes = const Value.absent(),
                 Value<DateTime> savedAt = const Value.absent(),
+                Value<DateTime> nextReviewDate = const Value.absent(),
+                Value<int> reviewStep = const Value.absent(),
               }) => SavedQuestionsCompanion.insert(
                 id: id,
                 folderId: folderId,
@@ -3225,7 +3857,10 @@ class $$SavedQuestionsTableTableManager
                 questionId: questionId,
                 breadcrumbs: breadcrumbs,
                 rawJson: rawJson,
+                notes: notes,
                 savedAt: savedAt,
+                nextReviewDate: nextReviewDate,
+                reviewStep: reviewStep,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -3295,6 +3930,151 @@ typedef $$SavedQuestionsTableProcessedTableManager =
       SavedQuestion,
       PrefetchHooks Function({bool folderId})
     >;
+typedef $$ReviewLogsTableCreateCompanionBuilder =
+    ReviewLogsCompanion Function({
+      Value<int> id,
+      Value<DateTime> date,
+      Value<int> type,
+    });
+typedef $$ReviewLogsTableUpdateCompanionBuilder =
+    ReviewLogsCompanion Function({
+      Value<int> id,
+      Value<DateTime> date,
+      Value<int> type,
+    });
+
+class $$ReviewLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $ReviewLogsTable> {
+  $$ReviewLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ReviewLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReviewLogsTable> {
+  $$ReviewLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ReviewLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReviewLogsTable> {
+  $$ReviewLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<int> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+}
+
+class $$ReviewLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ReviewLogsTable,
+          ReviewLog,
+          $$ReviewLogsTableFilterComposer,
+          $$ReviewLogsTableOrderingComposer,
+          $$ReviewLogsTableAnnotationComposer,
+          $$ReviewLogsTableCreateCompanionBuilder,
+          $$ReviewLogsTableUpdateCompanionBuilder,
+          (
+            ReviewLog,
+            BaseReferences<_$AppDatabase, $ReviewLogsTable, ReviewLog>,
+          ),
+          ReviewLog,
+          PrefetchHooks Function()
+        > {
+  $$ReviewLogsTableTableManager(_$AppDatabase db, $ReviewLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReviewLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReviewLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReviewLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<int> type = const Value.absent(),
+              }) => ReviewLogsCompanion(id: id, date: date, type: type),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<int> type = const Value.absent(),
+              }) => ReviewLogsCompanion.insert(id: id, date: date, type: type),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ReviewLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ReviewLogsTable,
+      ReviewLog,
+      $$ReviewLogsTableFilterComposer,
+      $$ReviewLogsTableOrderingComposer,
+      $$ReviewLogsTableAnnotationComposer,
+      $$ReviewLogsTableCreateCompanionBuilder,
+      $$ReviewLogsTableUpdateCompanionBuilder,
+      (ReviewLog, BaseReferences<_$AppDatabase, $ReviewLogsTable, ReviewLog>),
+      ReviewLog,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3309,4 +4089,6 @@ class $AppDatabaseManager {
       $$QuestionFoldersTableTableManager(_db, _db.questionFolders);
   $$SavedQuestionsTableTableManager get savedQuestions =>
       $$SavedQuestionsTableTableManager(_db, _db.savedQuestions);
+  $$ReviewLogsTableTableManager get reviewLogs =>
+      $$ReviewLogsTableTableManager(_db, _db.reviewLogs);
 }
