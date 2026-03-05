@@ -9,9 +9,11 @@ class DrawingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
     for (var obj in objects) {
       _drawObject(canvas, obj);
     }
+    canvas.restore();
   }
 
   void _drawObject(Canvas canvas, DrawingElement obj) {
@@ -85,13 +87,27 @@ class DrawingPainter extends CustomPainter {
   }
 
   void _drawRectangle(Canvas canvas, DrawingElement obj, Paint paint) {
-    if (obj.rect == null) return;
+    if (obj.points == null || obj.points!.length < 2) return;
+
+    final fullPath = Path();
+    fullPath.moveTo(obj.points![0].dx, obj.points![0].dy);
+    for (int i = 1; i < obj.points!.length; i++) {
+      fullPath.lineTo(obj.points![i].dx, obj.points![i].dy);
+    }
+    fullPath.close();
 
     if (obj.duration > 0 && obj.progress < 1.0) {
-      final path = _createAnimatedRectanglePath(obj.rect!, obj.progress);
-      canvas.drawPath(path, paint);
+      final metrics = fullPath.computeMetrics();
+      final drawPath = Path();
+
+      for (final metric in metrics) {
+        final length = metric.length * obj.progress;
+        drawPath.addPath(metric.extractPath(0, length), Offset.zero);
+      }
+
+      canvas.drawPath(drawPath, paint);
     } else {
-      canvas.drawRect(obj.rect!, paint);
+      canvas.drawPath(fullPath, paint);
     }
   }
 
@@ -134,7 +150,7 @@ class DrawingPainter extends CustomPainter {
     if (obj.points == null || obj.points!.length < 2) return;
 
     final paint = Paint()
-      ..color = Colors.white
+      ..blendMode = BlendMode.clear
       ..strokeWidth = obj.strokeWidth * 2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -159,41 +175,6 @@ class DrawingPainter extends CustomPainter {
     } else {
       canvas.drawPath(fullPath, paint);
     }
-  }
-
-  Path _createAnimatedRectanglePath(Rect rect, double progress) {
-    final perimeter = 2 * (rect.width + rect.height);
-    final currentLength = perimeter * progress;
-
-    final path = Path();
-    path.moveTo(rect.left, rect.top);
-
-    double covered = 0;
-
-    if (currentLength > covered) {
-      final length = math.min(rect.width, currentLength - covered);
-      path.lineTo(rect.left + length, rect.top);
-      covered += rect.width;
-    }
-
-    if (currentLength > covered) {
-      final length = math.min(rect.height, currentLength - covered);
-      path.lineTo(rect.right, rect.top + length);
-      covered += rect.height;
-    }
-
-    if (currentLength > covered) {
-      final length = math.min(rect.width, currentLength - covered);
-      path.lineTo(rect.right - length, rect.bottom);
-      covered += rect.width;
-    }
-
-    if (currentLength > covered) {
-      final length = math.min(rect.height, currentLength - covered);
-      path.lineTo(rect.left, rect.bottom - length);
-    }
-
-    return path;
   }
 
   void _drawArrowHead(

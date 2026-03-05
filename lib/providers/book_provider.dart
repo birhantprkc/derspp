@@ -66,12 +66,23 @@ class BookProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String> saveCoverImage(String bookId, Uint8List imageBytes) async {
+  Future<String> saveCoverImage(
+    String bookId,
+    Uint8List imageBytes, {
+    String? oldPath,
+  }) async {
     if (kIsWeb) {
       debugPrint('Webde kapak resmi desteklenmiyor');
       return '';
     }
     try {
+      if (oldPath != null) {
+        final oldFile = io.File(oldPath);
+        if (await oldFile.exists()) {
+          await oldFile.delete();
+        }
+      }
+
       final docsDir = await getApplicationDocumentsDirectory();
       final coversPath = p.join(docsDir.path, 'book_covers');
       final coversDir = io.Directory(coversPath);
@@ -80,13 +91,56 @@ class BookProvider extends ChangeNotifier {
       }
 
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = '${bookId}_cover_$timestamp.jpg';
+      final fileName = '${bookId}_cover_$timestamp.png';
       final filePath = p.join(coversPath, fileName);
       await io.File(filePath).writeAsBytes(imageBytes);
       return filePath;
     } catch (e) {
       debugPrint('Kapak resmi kaydedilemedi: $e');
       throw Exception('Kapak resmi kaydedilemedi');
+    }
+  }
+
+  Future<void> deleteImage(String? filePath) async {
+    if (kIsWeb || filePath == null || filePath.isEmpty) return;
+    try {
+      final file = io.File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      debugPrint('Dosya silinirken hata: $e');
+    }
+  }
+
+  Future<void> cleanupOrphanedCovers() async {
+    if (kIsWeb) return;
+    try {
+      final docsDir = await getApplicationDocumentsDirectory();
+      final coversPath = p.join(docsDir.path, 'book_covers');
+      final coversDir = io.Directory(coversPath);
+      if (!await coversDir.exists()) return;
+
+      final usedFiles = <String>{};
+      for (var book in _savedBooks) {
+        if (book.coverImage != null)
+          usedFiles.add(p.canonicalize(book.coverImage!));
+        if (book.originalCoverImage != null)
+          usedFiles.add(p.canonicalize(book.originalCoverImage!));
+      }
+
+      final files = coversDir.listSync();
+      for (var file in files) {
+        if (file is io.File) {
+          final path = p.canonicalize(file.path);
+          if (!usedFiles.contains(path)) {
+            debugPrint('Yetim dosya siliniyor: $path');
+            await file.delete();
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Yetim dosyalar temizlenirken hata: $e');
     }
   }
 
@@ -113,6 +167,8 @@ class BookProvider extends ChangeNotifier {
             ),
           )
           .toList();
+
+      cleanupOrphanedCovers();
     } catch (e) {
       debugPrint('Kitaplar yüklenirken hata: $e');
     } finally {

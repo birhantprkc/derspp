@@ -365,18 +365,20 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
               ),
           ],
         ),
-        body: Column(
-          children: [
-            if (provider.navigationStack.isNotEmpty)
-              _buildBreadcrumbs(provider, theme),
-            if (provider.errorMessage != null)
-              _buildErrorMessage(provider, theme),
-            Expanded(
-              child: provider.currentBookContent != null
-                  ? _buildQuestionsList(provider)
-                  : _buildCategoryList(provider),
-            ),
-          ],
+        body: SafeArea(
+          child: Column(
+            children: [
+              if (provider.navigationStack.isNotEmpty)
+                _buildBreadcrumbs(provider, theme),
+              if (provider.errorMessage != null)
+                _buildErrorMessage(provider, theme),
+              Expanded(
+                child: provider.currentBookContent != null
+                    ? _buildQuestionsList(provider)
+                    : _buildCategoryList(provider),
+              ),
+            ],
+          ),
         ),
       ),
     );

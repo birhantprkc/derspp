@@ -40,8 +40,6 @@ class AnimationModel {
   });
 
   void update(double currentSeconds) {
-    final deleteObjects = objects.where((o) => o.type == 'delete').toList();
-
     for (var obj in objects) {
       final endTime = obj.startTime + obj.duration;
 
@@ -55,17 +53,26 @@ class AnimationModel {
         obj.isActive = true;
         obj.updateProgress(currentSeconds);
       }
+    }
 
-      for (var del in deleteObjects) {
-        if (del.isActive) {
-          final targetId = del.imageObjectId;
-          if (targetId != null && targetId.isNotEmpty) {
-            for (var target in objects) {
-              if (target.id == targetId) {
-                target.isActive = false;
-                target.progress = 0.0;
-              }
-            }
+    for (var obj in objects) {
+      if (!obj.isActive) continue;
+
+      final targetId = obj.imageObjectId;
+      if (targetId == null || targetId.isEmpty) continue;
+
+      if (obj.type == 'delete') {
+        for (var target in objects) {
+          if (target.id == targetId) {
+            target.isActive = false;
+            target.progress = 0.0;
+          }
+        }
+      } else if (obj.type == 'add') {
+        for (var target in objects) {
+          if (target.id == targetId) {
+            target.isActive = true;
+            target.progress = 1.0;
           }
         }
       }

@@ -10,6 +10,44 @@ import '../../models/saved_book.dart';
 import '../../providers/book_provider.dart';
 import '../widgets/platform_image.dart';
 
+class _ImageProcessParams {
+  final Uint8List bytes;
+  final Rect? cropRect;
+  final int maxDimension;
+
+  _ImageProcessParams({
+    required this.bytes,
+    this.cropRect,
+    this.maxDimension = 2000,
+  });
+}
+
+Future<Uint8List?> _processImageInBackground(_ImageProcessParams params) async {
+  img.Image? image = img.decodeImage(params.bytes);
+  if (image == null) return null;
+
+  if (image.width > params.maxDimension || image.height > params.maxDimension) {
+    image = img.copyResize(
+      image,
+      width: image.width > image.height ? params.maxDimension : null,
+      height: image.height >= image.width ? params.maxDimension : null,
+      interpolation: img.Interpolation.average,
+    );
+  }
+
+  if (params.cropRect != null) {
+    final rect = params.cropRect!;
+    final x = (rect.left * image.width).round();
+    final y = (rect.top * image.height).round();
+    final w = (rect.width * image.width).round();
+    final h = (rect.height * image.height).round();
+
+    image = img.copyCrop(image, x: x, y: y, width: w, height: h);
+  }
+
+  return Uint8List.fromList(img.encodePng(image));
+}
+
 class BookEditScreen extends StatefulWidget {
   final SavedBook book;
 
@@ -77,30 +115,50 @@ class _BookEditScreenState extends State<BookEditScreen> {
   Future<void> _applyCrop() async {
     if (_originalImageBytes == null) return;
 
-    final rect = _cropController.crop;
-    final originalImage = img.decodeImage(_originalImageBytes!);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Resim işleniyor...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
 
-    if (originalImage != null) {
-      final x = (rect.left * originalImage.width).round();
-      final y = (rect.top * originalImage.height).round();
-      final w = (rect.width * originalImage.width).round();
-      final h = (rect.height * originalImage.height).round();
+    try {
+      final rect = _cropController.crop;
 
-      final cropped = img.copyCrop(
-        originalImage,
-        x: x,
-        y: y,
-        width: w,
-        height: h,
+      final processedBytes = await compute(
+        _processImageInBackground,
+        _ImageProcessParams(bytes: _originalImageBytes!, cropRect: rect),
       );
-      final croppedBytes = Uint8List.fromList(
-        img.encodeJpg(cropped, quality: 90),
-      );
 
-      setState(() {
-        _currentImageBytes = croppedBytes;
-        _isCropping = false;
-      });
+      if (mounted) {
+        Navigator.pop(context);
+        if (processedBytes != null) {
+          setState(() {
+            _currentImageBytes = processedBytes;
+            _isCropping = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Hata: $e')));
+      }
     }
   }
 
@@ -120,6 +178,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
       newOriginalPath = await context.read<BookProvider>().saveCoverImage(
         '${widget.book.id}_original',
         _originalImageBytes!,
+        oldPath: widget.book.originalCoverImage,
       );
     }
 
@@ -129,6 +188,7 @@ class _BookEditScreenState extends State<BookEditScreen> {
       newCoverPath = await context.read<BookProvider>().saveCoverImage(
         widget.book.id,
         _currentImageBytes!,
+        oldPath: widget.book.coverImage,
       );
     } else if (_newImagePicked && _originalImageBytes == null) {
       newOriginalPath = null;

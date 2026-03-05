@@ -51,7 +51,9 @@ class XmlParserService {
 
     for (var element in document.findAllElements('obj')) {
       try {
-        final type = element.getAttribute('act') ?? '';
+        var type = element.getAttribute('act') ?? '';
+        // XML'de 'rect' olarak gelen tipi 'rectangle' olarak normalize et
+        if (type == 'rect') type = 'rectangle';
         final startTime = pD(element.getAttribute('t1')) / 1000;
         final duration = pD(element.getAttribute('t2')) / 1000;
         final colorInt = pI(element.getAttribute('color'));
@@ -62,7 +64,13 @@ class XmlParserService {
         Rect? rect;
         String? imageObjectId;
 
-        if (type == 'line' || type == 'arrow' || type == 'eraser') {
+        // JS orijinaline uygun: line, eraser, arrow, triangle, rectangle
+        // hepsi <po> (points) kullanır. Sadece circle <rect> kullanır.
+        if (type == 'line' ||
+            type == 'eraser' ||
+            type == 'arrow' ||
+            type == 'triangle' ||
+            type == 'rectangle') {
           final pts = <Offset>[];
           for (var po in element.findElements('po')) {
             final coords = po.text.split('|');
@@ -71,7 +79,7 @@ class XmlParserService {
             }
           }
           if (pts.isNotEmpty) points = pts;
-        } else if (type == 'circle' || type == 'rectangle') {
+        } else if (type == 'circle') {
           final rectElement = element.findElements('rect').firstOrNull;
           if (rectElement != null) {
             final coords = rectElement.text.split('|');

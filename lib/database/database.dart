@@ -11,6 +11,7 @@ class Books extends Table {
   DateTimeColumn get addedDate => dateTime()();
   TextColumn get coverImage => text().nullable()();
   TextColumn get originalCoverImage => text().nullable()();
+
   IntColumn get position => integer().withDefault(const Constant(0))();
   TextColumn get scraperType => text().withDefault(const Constant('fsource'))();
 
@@ -79,7 +80,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -91,18 +92,10 @@ class AppDatabase extends _$AppDatabase {
         if (from < 2) {
           await m.createTable(questionFolders);
           await m.createTable(savedQuestions);
-        }
-        if (from < 3) {
           await m.addColumn(savedQuestions, savedQuestions.nextReviewDate);
           await m.addColumn(savedQuestions, savedQuestions.reviewStep);
-        }
-        if (from < 4) {
           await m.addColumn(questionFolders, questionFolders.parentId);
-        }
-        if (from < 5) {
           await m.createTable(reviewLogs);
-        }
-        if (from < 6) {
           await m.addColumn(savedQuestions, savedQuestions.notes);
           await m.addColumn(reviewLogs, reviewLogs.type);
         }
@@ -112,7 +105,7 @@ class AppDatabase extends _$AppDatabase {
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
-      name: 'derspp_v3',
+      name: 'derspp',
       web: DriftWebOptions(
         sqlite3Wasm: Uri.parse('sqlite3.wasm'),
         driftWorker: Uri.parse('drift_worker.js'),
