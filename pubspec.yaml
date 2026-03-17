@@ -39,9 +39,9 @@ dependencies:
   media_kit_libs_video: ^1.0.7
   youtube_player_iframe: ^5.2.2
   universal_io: ^2.3.1
-
+  
   cupertino_icons: ^1.0.8
-
+  flutter_ffmpeg_kit_full: ^1.1.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

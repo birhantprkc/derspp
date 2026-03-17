@@ -10,6 +10,7 @@ import '../../services/source_factory.dart';
 import '../../services/f2_source_service.dart';
 import '../../models/animation_model.dart';
 import '../../models/source_item.dart';
+import '../widgets/activity_heatmap.dart';
 import 'player_screen.dart';
 import 'explorer_screen.dart';
 
@@ -23,10 +24,32 @@ class ReviewScreen extends StatefulWidget {
 class _ReviewScreenState extends State<ReviewScreen> {
   int? _selectedFolderId;
   String? _selectedFolderName;
+  Map<int, Map<String, int>> _folderStats = {};
+  final Set<int> _selectedChartFolderIds = {};
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _refreshFolderStats();
+  }
+
+  Future<void> _refreshFolderStats() async {
+    final provider = Provider.of<SavedQuestionsProvider>(
+      context,
+      listen: false,
+    );
+    final stats = await provider.getAllFolderStats();
+    if (mounted) {
+      setState(() {
+        _folderStats = stats;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<SavedQuestionsProvider>(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshFolderStats());
 
     return Scaffold(
       appBar: AppBar(
@@ -68,6 +91,24 @@ class _ReviewScreenState extends State<ReviewScreen> {
     );
   }
 
+  Widget _buildBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
   Widget _buildStatsPanel(
     BuildContext context,
     SavedQuestionsProvider provider,
@@ -75,7 +116,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     return DraggableScrollableSheet(
       initialChildSize: 0.1,
       minChildSize: 0.1,
-      maxChildSize: 0.4,
+      maxChildSize: 0.85,
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
@@ -92,29 +133,298 @@ class _ReviewScreenState extends State<ReviewScreen> {
           child: SingleChildScrollView(
             controller: scrollController,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(2),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 4),
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Text('Veri Yönetimi'),
+                _buildSummaryRow(provider),
+                const Divider(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Aktivite',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.6),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ActivityHeatmap(
+                        data: provider.getHeatmapDataForWeeks(12),
+                        weeks: 12,
+                      ),
+                    ],
+                  ),
                 ),
-                const Divider(),
-                const SizedBox(height: 20),
-                _buildBackupButtons(context, provider),
-                const SizedBox(height: 30),
+                const Divider(height: 32),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Dersler',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.6),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const SizedBox(height: 10),
+                      _buildFolderChipSelector(provider),
+                      if (_selectedChartFolderIds.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        _buildFolderStatsTable(provider),
+                      ],
+                    ],
+                  ),
+                ),
+                const Divider(height: 32),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Veri Yonetimi',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.6),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildBackupButtons(context, provider),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSummaryRow(SavedQuestionsProvider provider) {
+    final streak = provider.getCurrentStreak();
+    final heatmapData = provider.getHeatmapDataForWeeks(12);
+    final totalReviews = heatmapData.values.fold<int>(0, (a, b) => a + b);
+    final totalDue = _folderStats.values.fold<int>(
+      0,
+      (sum, s) => sum + (s['toReview'] ?? 0),
+    );
+    final totalNew = _folderStats.values.fold<int>(
+      0,
+      (sum, s) => sum + (s['new'] ?? 0),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildSummaryStat('Seri', '$streak gun'),
+          _buildSummaryStat('Bu Hafta', '$totalReviews tekrar'),
+          _buildSummaryStat(
+            'Tekrarlanacak',
+            '$totalDue',
+            valueColor: totalDue > 0 ? const Color(0xFFD32F2F) : null,
+          ),
+          _buildSummaryStat(
+            'Yeni',
+            '$totalNew',
+            valueColor: totalNew > 0 ? const Color(0xFF1565C0) : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryStat(String label, String value, {Color? valueColor}) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: valueColor ?? Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFolderChipSelector(SavedQuestionsProvider provider) {
+    final rootFolders = provider.folders
+        .where((f) => f.parentId == null)
+        .toList();
+
+    if (rootFolders.isEmpty) {
+      return Text(
+        'Henuz klasor olusturulmamis.',
+        style: TextStyle(
+          fontSize: 12,
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+        ),
+      );
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 6,
+      children: rootFolders.map((folder) {
+        final selected = _selectedChartFolderIds.contains(folder.id);
+        return FilterChip(
+          label: Text(folder.name, style: const TextStyle(fontSize: 12)),
+          selected: selected,
+          onSelected: (val) {
+            setState(() {
+              if (val) {
+                _selectedChartFolderIds.add(folder.id);
+              } else {
+                _selectedChartFolderIds.remove(folder.id);
+              }
+            });
+          },
+          showCheckmark: false,
+          selectedColor: Theme.of(
+            context,
+          ).colorScheme.primary.withOpacity(0.15),
+          side: BorderSide(
+            color: selected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.grey.withOpacity(0.3),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildFolderStatsTable(SavedQuestionsProvider provider) {
+    final rootFolders = provider.folders
+        .where(
+          (f) => f.parentId == null && _selectedChartFolderIds.contains(f.id),
+        )
+        .toList();
+
+    return Table(
+      columnWidths: const {
+        0: FlexColumnWidth(3),
+        1: FlexColumnWidth(1),
+        2: FlexColumnWidth(1),
+      },
+      children: [
+        TableRow(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(
+                'Ders',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withOpacity(0.5),
+                ),
+              ),
+            ),
+            Text(
+              'Tekrarlanacak',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFFD32F2F).withOpacity(0.8),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              'Yeni',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1565C0).withOpacity(0.8),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        ...rootFolders.map((folder) {
+          final stats = _folderStats[folder.id];
+          final toReview = stats?['toReview'] ?? 0;
+          final newCount = stats?['new'] ?? 0;
+          return TableRow(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Text(
+                  folder.name,
+                  style: const TextStyle(fontSize: 13),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Center(
+                child: Text(
+                  '$toReview',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: toReview > 0
+                        ? const Color(0xFFD32F2F)
+                        : Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.3),
+                  ),
+                ),
+              ),
+              Center(
+                child: Text(
+                  '$newCount',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: newCount > 0
+                        ? const Color(0xFF1565C0)
+                        : Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.3),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
+      ],
     );
   }
 
@@ -178,6 +488,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
           (f) => f.parentId == folder.id,
         );
 
+        final stats = _folderStats[folder.id];
+        final toReview = stats?['toReview'] ?? 0;
+        final newCount = stats?['new'] ?? 0;
+
         return ExpansionTile(
           controlAffinity: ListTileControlAffinity.leading,
           title: GestureDetector(
@@ -194,7 +508,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
               }
             },
             onLongPress: () => _showFolderOptions(context, provider, folder),
-            child: Text(folder.name),
+            child: Row(
+              children: [
+                Expanded(child: Text(folder.name)),
+                if (toReview > 0)
+                  _buildBadge('$toReview', const Color(0xFFD32F2F)),
+                if (toReview > 0 && newCount > 0) const SizedBox(width: 6),
+                if (newCount > 0)
+                  _buildBadge('$newCount', const Color(0xFF1565C0)),
+              ],
+            ),
           ),
           trailing: null,
           children: [

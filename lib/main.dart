@@ -11,6 +11,7 @@ import 'providers/theme_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/source_provider.dart';
 import 'providers/saved_questions_provider.dart';
+import 'providers/transcription_provider.dart';
 import 'database/database.dart';
 import 'ui/navi_bar.dart';
 
@@ -49,6 +50,7 @@ Future<void> main() async {
         ChangeNotifierProvider(
           create: (context) => SavedQuestionsProvider(database),
         ),
+        ChangeNotifierProvider(create: (context) => TranscriptionProvider()),
       ],
       child: const MainApp(),
     ),

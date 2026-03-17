@@ -51,6 +51,96 @@ class SavedQuestionsProvider extends ChangeNotifier {
     return {'total': totalQuestions.length, 'due': dueQuestions};
   }
 
+  Future<Map<String, int>> getFolderStats(int folderId) async {
+    final allIds = await _getAllFolderIdsRecursive(folderId);
+    final allQuestions = await (_db.select(
+      _db.savedQuestions,
+    )..where((t) => t.folderId.isIn(allIds))).get();
+
+    final now = DateTime.now();
+    final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    int toReview = 0;
+    int newCount = 0;
+
+    for (final q in allQuestions) {
+      if (q.reviewStep == 0) {
+        newCount++;
+      } else if (q.nextReviewDate.isBefore(todayEnd) ||
+          q.nextReviewDate.isAtSameMomentAs(todayEnd)) {
+        toReview++;
+      }
+    }
+
+    return {'toReview': toReview, 'new': newCount};
+  }
+
+  Future<Map<int, Map<String, int>>> getAllFolderStats() async {
+    final allQuestions = await _db.select(_db.savedQuestions).get();
+    final now = DateTime.now();
+    final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    final Map<int, List<int>> folderIdCache = {};
+    for (final folder in _folders) {
+      folderIdCache[folder.id] = await _getAllFolderIdsRecursive(folder.id);
+    }
+
+    final Map<int, Map<String, int>> result = {};
+
+    for (final folder in _folders) {
+      final ids = folderIdCache[folder.id] ?? [folder.id];
+      int toReview = 0;
+      int newCount = 0;
+
+      for (final q in allQuestions) {
+        if (!ids.contains(q.folderId)) continue;
+        if (q.reviewStep == 0) {
+          newCount++;
+        } else if (!q.nextReviewDate.isAfter(todayEnd)) {
+          toReview++;
+        }
+      }
+
+      result[folder.id] = {'toReview': toReview, 'new': newCount};
+    }
+
+    return result;
+  }
+
+  Map<DateTime, int> getHeatmapDataForWeeks(int weeks) {
+    final Map<DateTime, int> data = {};
+    final cutoff = DateTime.now().subtract(Duration(days: weeks * 7));
+
+    for (final log in _activityLogs) {
+      if (log.date.isBefore(cutoff)) continue;
+      if (log.type != 1) continue;
+      final day = DateTime(log.date.year, log.date.month, log.date.day);
+      data[day] = (data[day] ?? 0) + 1;
+    }
+    return data;
+  }
+
+  int getCurrentStreak() {
+    final reviewDays = <DateTime>{};
+    for (final log in _activityLogs) {
+      if (log.type != 1) continue;
+      reviewDays.add(DateTime(log.date.year, log.date.month, log.date.day));
+    }
+
+    if (reviewDays.isEmpty) return 0;
+
+    final today = DateTime.now();
+    int streak = 0;
+    DateTime cursor = DateTime(today.year, today.month, today.day);
+
+    while (reviewDays.contains(cursor)) {
+      streak++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+
+    return streak;
+  }
+
   Future<int> createFolder(String name, {int? parentId}) async {
     final id = await _db
         .into(_db.questionFolders)
