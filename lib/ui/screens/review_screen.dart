@@ -25,12 +25,27 @@ class _ReviewScreenState extends State<ReviewScreen> {
   int? _selectedFolderId;
   String? _selectedFolderName;
   Map<int, Map<String, int>> _folderStats = {};
-  final Set<int> _selectedChartFolderIds = {};
+  SavedQuestionsProvider? _provider;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _refreshFolderStats();
+    final newProvider = Provider.of<SavedQuestionsProvider>(
+      context,
+      listen: false,
+    );
+    if (_provider != newProvider) {
+      _provider?.removeListener(_refreshFolderStats);
+      _provider = newProvider;
+      _provider!.addListener(_refreshFolderStats);
+      _refreshFolderStats();
+    }
+  }
+
+  @override
+  void dispose() {
+    _provider?.removeListener(_refreshFolderStats);
+    super.dispose();
   }
 
   Future<void> _refreshFolderStats() async {
@@ -49,7 +64,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<SavedQuestionsProvider>(context);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshFolderStats());
 
     return Scaffold(
       appBar: AppBar(
@@ -91,7 +105,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     );
   }
 
-  Widget _buildBadge(String label, Color color) {
+  Widget _buildBadge(String label, Color color, Color textColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
@@ -100,8 +114,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: textColor,
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
@@ -179,31 +193,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Dersler',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.6),
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const SizedBox(height: 10),
-                      _buildFolderChipSelector(provider),
-                      if (_selectedChartFolderIds.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        _buildFolderStatsTable(provider),
-                      ],
-                    ],
-                  ),
-                ),
-                const Divider(height: 32),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
                         'Veri Yonetimi',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: Theme.of(
@@ -234,9 +223,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
       0,
       (sum, s) => sum + (s['toReview'] ?? 0),
     );
-    final totalNew = _folderStats.values.fold<int>(
+    final totalQuestions = _folderStats.values.fold<int>(
       0,
-      (sum, s) => sum + (s['new'] ?? 0),
+      (sum, s) => sum + (s['total'] ?? 0),
     );
 
     return Padding(
@@ -244,26 +233,35 @@ class _ReviewScreenState extends State<ReviewScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildSummaryStat('Seri', '$streak gun'),
-          _buildSummaryStat('Bu Hafta', '$totalReviews tekrar'),
           _buildSummaryStat(
-            'Tekrarlanacak',
-            '$totalDue',
-            valueColor: totalDue > 0 ? const Color(0xFFD32F2F) : null,
+            Icon(Icons.local_fire_department, color: Colors.orangeAccent),
+            'Seri',
+            '$streak gün',
           ),
-          _buildSummaryStat(
-            'Yeni',
-            '$totalNew',
-            valueColor: totalNew > 0 ? const Color(0xFF1565C0) : null,
-          ),
+          // _buildSummaryStat(
+          //   Icon(Icons.pending_actions),
+          //   'Tekrarlanacak',
+          //   '$totalDue',
+          // ),
+          // _buildSummaryStat(
+          //   Icon(Icons.storage),
+          //   'Toplam',
+          //   '$totalQuestions soru',
+          // ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryStat(String label, String value, {Color? valueColor}) {
+  Widget _buildSummaryStat(
+    Icon icon,
+    String label,
+    String value, {
+    Color? valueColor,
+  }) {
     return Column(
       children: [
+        icon,
         Text(
           value,
           style: TextStyle(
@@ -284,150 +282,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
     );
   }
 
-  Widget _buildFolderChipSelector(SavedQuestionsProvider provider) {
-    final rootFolders = provider.folders
-        .where((f) => f.parentId == null)
-        .toList();
-
-    if (rootFolders.isEmpty) {
-      return Text(
-        'Henuz klasor olusturulmamis.',
-        style: TextStyle(
-          fontSize: 12,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
-        ),
-      );
-    }
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 6,
-      children: rootFolders.map((folder) {
-        final selected = _selectedChartFolderIds.contains(folder.id);
-        return FilterChip(
-          label: Text(folder.name, style: const TextStyle(fontSize: 12)),
-          selected: selected,
-          onSelected: (val) {
-            setState(() {
-              if (val) {
-                _selectedChartFolderIds.add(folder.id);
-              } else {
-                _selectedChartFolderIds.remove(folder.id);
-              }
-            });
-          },
-          showCheckmark: false,
-          selectedColor: Theme.of(
-            context,
-          ).colorScheme.primary.withOpacity(0.15),
-          side: BorderSide(
-            color: selected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey.withOpacity(0.3),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildFolderStatsTable(SavedQuestionsProvider provider) {
-    final rootFolders = provider.folders
-        .where(
-          (f) => f.parentId == null && _selectedChartFolderIds.contains(f.id),
-        )
-        .toList();
-
-    return Table(
-      columnWidths: const {
-        0: FlexColumnWidth(3),
-        1: FlexColumnWidth(1),
-        2: FlexColumnWidth(1),
-      },
-      children: [
-        TableRow(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                'Ders',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.5),
-                ),
-              ),
-            ),
-            Text(
-              'Tekrarlanacak',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFFD32F2F).withOpacity(0.8),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              'Yeni',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1565C0).withOpacity(0.8),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        ...rootFolders.map((folder) {
-          final stats = _folderStats[folder.id];
-          final toReview = stats?['toReview'] ?? 0;
-          final newCount = stats?['new'] ?? 0;
-          return TableRow(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: Text(
-                  folder.name,
-                  style: const TextStyle(fontSize: 13),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Center(
-                child: Text(
-                  '$toReview',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: toReview > 0
-                        ? const Color(0xFFD32F2F)
-                        : Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.3),
-                  ),
-                ),
-              ),
-              Center(
-                child: Text(
-                  '$newCount',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: newCount > 0
-                        ? const Color(0xFF1565C0)
-                        : Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.3),
-                  ),
-                ),
-              ),
-            ],
-          );
-        }),
-      ],
-    );
-  }
-
   Widget _buildBackupButtons(
     BuildContext context,
     SavedQuestionsProvider provider,
@@ -437,7 +291,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       child: Row(
         children: [
           Expanded(
-            child: ElevatedButton.icon(
+            child: OutlinedButton.icon(
               icon: const Icon(Icons.download),
               label: const Text('Veriyi Yedekle'),
               onPressed: () => provider.exportData(),
@@ -490,7 +344,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
         final stats = _folderStats[folder.id];
         final toReview = stats?['toReview'] ?? 0;
-        final newCount = stats?['new'] ?? 0;
+        final total = stats?['total'] ?? 0;
 
         return ExpansionTile(
           controlAffinity: ListTileControlAffinity.leading,
@@ -511,11 +365,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
             child: Row(
               children: [
                 Expanded(child: Text(folder.name)),
-                if (toReview > 0)
-                  _buildBadge('$toReview', const Color(0xFFD32F2F)),
-                if (toReview > 0 && newCount > 0) const SizedBox(width: 6),
-                if (newCount > 0)
-                  _buildBadge('$newCount', const Color(0xFF1565C0)),
+                if (toReview > 0) ...[
+                  _buildBadge(
+                    '$toReview',
+                    Theme.of(context).colorScheme.error,
+                    Theme.of(context).colorScheme.onError,
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                if (total > 0)
+                  _buildBadge(
+                    '$total',
+                    Theme.of(context).colorScheme.secondaryContainer,
+                    Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
               ],
             ),
           ),
@@ -563,11 +426,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.delete_outline, color: Colors.red),
-            title: const Text(
-              'Klasörü Sil',
-              style: TextStyle(color: Colors.red),
-            ),
+            leading: const Icon(Icons.delete_outline),
+            title: const Text('Klasörü Sil'),
             onTap: () {
               Navigator.pop(context);
               _confirmDeleteFolder(context, provider, folder);
@@ -637,11 +497,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.edit_note, color: Colors.blue),
+                icon: const Icon(Icons.edit_note),
                 onPressed: () => _showEditNoteDialog(context, provider, sq),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                icon: const Icon(Icons.delete_outline),
                 onPressed: () =>
                     provider.deleteSavedQuestion(sq.id, sq.folderId),
               ),
@@ -858,7 +718,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
               provider.deleteFolder(folder.id);
               Navigator.pop(context);
             },
-            child: const Text('Sil', style: TextStyle(color: Colors.red)),
+            child: const Text('Sil'),
           ),
         ],
       ),

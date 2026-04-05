@@ -41,24 +41,19 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
     final today = DateTime.now();
     final todayNorm = DateTime(today.year, today.month, today.day);
 
-    // Mevcut haftanın Pazartesi gününü bul
     final currentMonday = todayNorm.subtract(
       Duration(days: todayNorm.weekday - 1),
     );
 
-    // Görüntülenecek ilk haftanın Pazartesi gününü hesapla
     final startDay = currentMonday.subtract(
       Duration(days: (widget.weeks - 1) * 7),
     );
 
     final cells = <_HeatmapCell>[];
-    // Tam haftalar halinde oluştur (widget.weeks * 7)
-    // Bugünün dahil olduğu haftanın sonuna kadar (Pazar) gitmek için:
     final totalDays = widget.weeks * 7;
 
     for (int i = 0; i < totalDays; i++) {
       final day = startDay.add(Duration(days: i));
-      // Gelecek günleri gösterme (opsiyonel, isterseniz boş hücre olarak kalabilir)
       if (day.isAfter(todayNorm)) continue;
 
       final count = widget.data[day] ?? 0;
@@ -69,9 +64,9 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
 
   Widget _buildGrid(List<_HeatmapCell> cells, Color emptyColor) {
     final maxCount = cells.fold<int>(0, (m, c) => c.count > m ? c.count : m);
+    final primary = Theme.of(context).colorScheme.primary;
 
     final columns = <List<_HeatmapCell>>[];
-    // Verileri 7'şerli gruplara ayır (Haftalar)
     for (int i = 0; i < cells.length; i += 7) {
       final end = (i + 7 < cells.length) ? i + 7 : cells.length;
       columns.add(cells.sublist(i, end));
@@ -79,7 +74,6 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Gün etiketleri için ayrılan genişliği (28) hesaba kat
         final cellSize =
             ((constraints.maxWidth - 28 - (columns.length - 1) * 3) /
                     columns.length)
@@ -95,7 +89,12 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
                 padding: const EdgeInsets.only(right: 3),
                 child: Column(
                   children: col.map((cell) {
-                    final color = _cellColor(cell.count, maxCount, emptyColor);
+                    final color = _cellColor(
+                      cell.count,
+                      maxCount,
+                      emptyColor,
+                      primary,
+                    );
                     return GestureDetector(
                       onTap: () {
                         setState(() {
@@ -114,9 +113,10 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
                             borderRadius: BorderRadius.circular(2),
                             border: _hoveredDay == cell.date
                                 ? Border.all(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface.withOpacity(0.6),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
                                     width: 1,
                                   )
                                 : null,
@@ -134,13 +134,13 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
     );
   }
 
-  Color _cellColor(int count, int maxCount, Color emptyColor) {
+  Color _cellColor(int count, int maxCount, Color emptyColor, Color primary) {
     if (count == 0) return emptyColor;
     final ratio = maxCount > 0 ? count / maxCount : 0.0;
-    if (ratio <= 0.25) return const Color(0xFF9BE9A8);
-    if (ratio <= 0.50) return const Color(0xFF40C463);
-    if (ratio <= 0.75) return const Color(0xFF30A14E);
-    return const Color(0xFF216E39);
+    if (ratio <= 0.25) return primary.withValues(alpha: 0.25);
+    if (ratio <= 0.50) return primary.withValues(alpha: 0.50);
+    if (ratio <= 0.75) return primary.withValues(alpha: 0.75);
+    return primary;
   }
 
   Widget _buildMonthLabels(List<_HeatmapCell> cells) {
@@ -171,7 +171,7 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
                     fontSize: 9,
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.5),
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                   overflow: TextOverflow.visible,
                 ),
@@ -199,7 +199,9 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
             d,
             style: TextStyle(
               fontSize: 8,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.4),
             ),
           ),
         );
@@ -217,29 +219,33 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
       '$dateStr: $label',
       style: TextStyle(
         fontSize: 11,
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
       ),
     );
   }
 
   Widget _buildLegend(Color emptyColor) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final legendColors = [
+      emptyColor,
+      primary.withValues(alpha: 0.25),
+      primary.withValues(alpha: 0.50),
+      primary.withValues(alpha: 0.75),
+      primary,
+    ];
     return Row(
       children: [
         Text(
           'Az',
           style: TextStyle(
             fontSize: 9,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.4),
           ),
         ),
         const SizedBox(width: 4),
-        ...([
-          emptyColor,
-          const Color(0xFF9BE9A8),
-          const Color(0xFF40C463),
-          const Color(0xFF30A14E),
-          const Color(0xFF216E39),
-        ].map(
+        ...legendColors.map(
           (c) => Padding(
             padding: const EdgeInsets.only(right: 3),
             child: Container(
@@ -251,12 +257,14 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
               ),
             ),
           ),
-        )),
+        ),
         Text(
-          'Cok',
+          'Çok',
           style: TextStyle(
             fontSize: 9,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.4),
           ),
         ),
       ],

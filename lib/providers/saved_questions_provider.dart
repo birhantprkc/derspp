@@ -40,6 +40,10 @@ class SavedQuestionsProvider extends ChangeNotifier {
     return data;
   }
 
+  int getTotalSavedQuestions() {
+    return _savedQuestions.length;
+  }
+
   Future<Map<String, int>> getSummaryStats() async {
     final totalQuestions = await _db.select(_db.savedQuestions).get();
     final now = DateTime.now();
@@ -90,18 +94,17 @@ class SavedQuestionsProvider extends ChangeNotifier {
     for (final folder in _folders) {
       final ids = folderIdCache[folder.id] ?? [folder.id];
       int toReview = 0;
-      int newCount = 0;
+      int total = 0;
 
       for (final q in allQuestions) {
         if (!ids.contains(q.folderId)) continue;
-        if (q.reviewStep == 0) {
-          newCount++;
-        } else if (!q.nextReviewDate.isAfter(todayEnd)) {
+        total++;
+        if (q.reviewStep > 0 && !q.nextReviewDate.isAfter(todayEnd)) {
           toReview++;
         }
       }
 
-      result[folder.id] = {'toReview': toReview, 'new': newCount};
+      result[folder.id] = {'toReview': toReview, 'total': total};
     }
 
     return result;
