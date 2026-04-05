@@ -8,6 +8,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
 import 'providers/theme_provider.dart';
+import 'providers/task_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/source_provider.dart';
 import 'providers/saved_questions_provider.dart';
@@ -15,8 +16,11 @@ import 'providers/transcription_provider.dart';
 import 'database/database.dart';
 import 'ui/navi_bar.dart';
 
+import 'package:intl/date_symbol_data_local.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('tr_TR', null);
 
   if (!kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.windows ||
@@ -45,6 +49,7 @@ Future<void> main() async {
       providers: [
         Provider<AppDatabase>.value(value: database),
         ChangeNotifierProvider(create: (context) => ThemeProvider(database)),
+        ChangeNotifierProvider(create: (context) => TaskProvider(database)),
         ChangeNotifierProvider(create: (context) => BookProvider(database)),
         ChangeNotifierProvider(create: (context) => SourceProvider(database)),
         ChangeNotifierProvider(

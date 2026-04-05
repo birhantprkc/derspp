@@ -66,6 +66,23 @@ class ReviewLogs extends Table {
   IntColumn get type => integer().withDefault(const Constant(0))();
 }
 
+class Tasks extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text()();
+  BoolColumn get isDone => boolean().withDefault(const Constant(false))();
+  IntColumn get dayIndex => integer()();
+  TextColumn get category => text()();
+  DateTimeColumn get date => dateTime().nullable()();
+  DateTimeColumn get startDate => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get frequency => integer().withDefault(const Constant(0))();
+}
+
+class RoutineCompletions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get taskId => integer().references(Tasks, #id)();
+  DateTimeColumn get date => dateTime()();
+}
+
 @DriftDatabase(
   tables: [
     Books,
@@ -74,13 +91,15 @@ class ReviewLogs extends Table {
     QuestionFolders,
     SavedQuestions,
     ReviewLogs,
+    Tasks,
+    RoutineCompletions,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -98,6 +117,12 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(reviewLogs);
           await m.addColumn(savedQuestions, savedQuestions.notes);
           await m.addColumn(reviewLogs, reviewLogs.type);
+        }
+        if (from < 3) {
+          await m.createTable(tasks);
+          await m.createTable(routineCompletions);
+          await m.addColumn(tasks, tasks.startDate);
+          await m.addColumn(tasks, tasks.frequency);
         }
       },
     );

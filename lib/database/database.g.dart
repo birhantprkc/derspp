@@ -2420,6 +2420,748 @@ class ReviewLogsCompanion extends UpdateCompanion<ReviewLog> {
   }
 }
 
+class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TasksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isDoneMeta = const VerificationMeta('isDone');
+  @override
+  late final GeneratedColumn<bool> isDone = GeneratedColumn<bool>(
+    'is_done',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_done" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _dayIndexMeta = const VerificationMeta(
+    'dayIndex',
+  );
+  @override
+  late final GeneratedColumn<int> dayIndex = GeneratedColumn<int>(
+    'day_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _startDateMeta = const VerificationMeta(
+    'startDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>(
+    'start_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _frequencyMeta = const VerificationMeta(
+    'frequency',
+  );
+  @override
+  late final GeneratedColumn<int> frequency = GeneratedColumn<int>(
+    'frequency',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    isDone,
+    dayIndex,
+    category,
+    date,
+    startDate,
+    frequency,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tasks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Task> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('is_done')) {
+      context.handle(
+        _isDoneMeta,
+        isDone.isAcceptableOrUnknown(data['is_done']!, _isDoneMeta),
+      );
+    }
+    if (data.containsKey('day_index')) {
+      context.handle(
+        _dayIndexMeta,
+        dayIndex.isAcceptableOrUnknown(data['day_index']!, _dayIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayIndexMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    }
+    if (data.containsKey('start_date')) {
+      context.handle(
+        _startDateMeta,
+        startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta),
+      );
+    }
+    if (data.containsKey('frequency')) {
+      context.handle(
+        _frequencyMeta,
+        frequency.isAcceptableOrUnknown(data['frequency']!, _frequencyMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Task map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Task(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      isDone: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_done'],
+      )!,
+      dayIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}day_index'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      ),
+      startDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}start_date'],
+      )!,
+      frequency: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}frequency'],
+      )!,
+    );
+  }
+
+  @override
+  $TasksTable createAlias(String alias) {
+    return $TasksTable(attachedDatabase, alias);
+  }
+}
+
+class Task extends DataClass implements Insertable<Task> {
+  final int id;
+  final String title;
+  final bool isDone;
+  final int dayIndex;
+  final String category;
+  final DateTime? date;
+  final DateTime startDate;
+  final int frequency;
+  const Task({
+    required this.id,
+    required this.title,
+    required this.isDone,
+    required this.dayIndex,
+    required this.category,
+    this.date,
+    required this.startDate,
+    required this.frequency,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['title'] = Variable<String>(title);
+    map['is_done'] = Variable<bool>(isDone);
+    map['day_index'] = Variable<int>(dayIndex);
+    map['category'] = Variable<String>(category);
+    if (!nullToAbsent || date != null) {
+      map['date'] = Variable<DateTime>(date);
+    }
+    map['start_date'] = Variable<DateTime>(startDate);
+    map['frequency'] = Variable<int>(frequency);
+    return map;
+  }
+
+  TasksCompanion toCompanion(bool nullToAbsent) {
+    return TasksCompanion(
+      id: Value(id),
+      title: Value(title),
+      isDone: Value(isDone),
+      dayIndex: Value(dayIndex),
+      category: Value(category),
+      date: date == null && nullToAbsent ? const Value.absent() : Value(date),
+      startDate: Value(startDate),
+      frequency: Value(frequency),
+    );
+  }
+
+  factory Task.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Task(
+      id: serializer.fromJson<int>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      isDone: serializer.fromJson<bool>(json['isDone']),
+      dayIndex: serializer.fromJson<int>(json['dayIndex']),
+      category: serializer.fromJson<String>(json['category']),
+      date: serializer.fromJson<DateTime?>(json['date']),
+      startDate: serializer.fromJson<DateTime>(json['startDate']),
+      frequency: serializer.fromJson<int>(json['frequency']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'title': serializer.toJson<String>(title),
+      'isDone': serializer.toJson<bool>(isDone),
+      'dayIndex': serializer.toJson<int>(dayIndex),
+      'category': serializer.toJson<String>(category),
+      'date': serializer.toJson<DateTime?>(date),
+      'startDate': serializer.toJson<DateTime>(startDate),
+      'frequency': serializer.toJson<int>(frequency),
+    };
+  }
+
+  Task copyWith({
+    int? id,
+    String? title,
+    bool? isDone,
+    int? dayIndex,
+    String? category,
+    Value<DateTime?> date = const Value.absent(),
+    DateTime? startDate,
+    int? frequency,
+  }) => Task(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    isDone: isDone ?? this.isDone,
+    dayIndex: dayIndex ?? this.dayIndex,
+    category: category ?? this.category,
+    date: date.present ? date.value : this.date,
+    startDate: startDate ?? this.startDate,
+    frequency: frequency ?? this.frequency,
+  );
+  Task copyWithCompanion(TasksCompanion data) {
+    return Task(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      isDone: data.isDone.present ? data.isDone.value : this.isDone,
+      dayIndex: data.dayIndex.present ? data.dayIndex.value : this.dayIndex,
+      category: data.category.present ? data.category.value : this.category,
+      date: data.date.present ? data.date.value : this.date,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      frequency: data.frequency.present ? data.frequency.value : this.frequency,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Task(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('isDone: $isDone, ')
+          ..write('dayIndex: $dayIndex, ')
+          ..write('category: $category, ')
+          ..write('date: $date, ')
+          ..write('startDate: $startDate, ')
+          ..write('frequency: $frequency')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    title,
+    isDone,
+    dayIndex,
+    category,
+    date,
+    startDate,
+    frequency,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Task &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.isDone == this.isDone &&
+          other.dayIndex == this.dayIndex &&
+          other.category == this.category &&
+          other.date == this.date &&
+          other.startDate == this.startDate &&
+          other.frequency == this.frequency);
+}
+
+class TasksCompanion extends UpdateCompanion<Task> {
+  final Value<int> id;
+  final Value<String> title;
+  final Value<bool> isDone;
+  final Value<int> dayIndex;
+  final Value<String> category;
+  final Value<DateTime?> date;
+  final Value<DateTime> startDate;
+  final Value<int> frequency;
+  const TasksCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.isDone = const Value.absent(),
+    this.dayIndex = const Value.absent(),
+    this.category = const Value.absent(),
+    this.date = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.frequency = const Value.absent(),
+  });
+  TasksCompanion.insert({
+    this.id = const Value.absent(),
+    required String title,
+    this.isDone = const Value.absent(),
+    required int dayIndex,
+    required String category,
+    this.date = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.frequency = const Value.absent(),
+  }) : title = Value(title),
+       dayIndex = Value(dayIndex),
+       category = Value(category);
+  static Insertable<Task> custom({
+    Expression<int>? id,
+    Expression<String>? title,
+    Expression<bool>? isDone,
+    Expression<int>? dayIndex,
+    Expression<String>? category,
+    Expression<DateTime>? date,
+    Expression<DateTime>? startDate,
+    Expression<int>? frequency,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (isDone != null) 'is_done': isDone,
+      if (dayIndex != null) 'day_index': dayIndex,
+      if (category != null) 'category': category,
+      if (date != null) 'date': date,
+      if (startDate != null) 'start_date': startDate,
+      if (frequency != null) 'frequency': frequency,
+    });
+  }
+
+  TasksCompanion copyWith({
+    Value<int>? id,
+    Value<String>? title,
+    Value<bool>? isDone,
+    Value<int>? dayIndex,
+    Value<String>? category,
+    Value<DateTime?>? date,
+    Value<DateTime>? startDate,
+    Value<int>? frequency,
+  }) {
+    return TasksCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      isDone: isDone ?? this.isDone,
+      dayIndex: dayIndex ?? this.dayIndex,
+      category: category ?? this.category,
+      date: date ?? this.date,
+      startDate: startDate ?? this.startDate,
+      frequency: frequency ?? this.frequency,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (isDone.present) {
+      map['is_done'] = Variable<bool>(isDone.value);
+    }
+    if (dayIndex.present) {
+      map['day_index'] = Variable<int>(dayIndex.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<DateTime>(startDate.value);
+    }
+    if (frequency.present) {
+      map['frequency'] = Variable<int>(frequency.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TasksCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('isDone: $isDone, ')
+          ..write('dayIndex: $dayIndex, ')
+          ..write('category: $category, ')
+          ..write('date: $date, ')
+          ..write('startDate: $startDate, ')
+          ..write('frequency: $frequency')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RoutineCompletionsTable extends RoutineCompletions
+    with TableInfo<$RoutineCompletionsTable, RoutineCompletion> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RoutineCompletionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<int> taskId = GeneratedColumn<int>(
+    'task_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tasks (id)',
+    ),
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, taskId, date];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'routine_completions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RoutineCompletion> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskIdMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RoutineCompletion map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RoutineCompletion(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}task_id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+    );
+  }
+
+  @override
+  $RoutineCompletionsTable createAlias(String alias) {
+    return $RoutineCompletionsTable(attachedDatabase, alias);
+  }
+}
+
+class RoutineCompletion extends DataClass
+    implements Insertable<RoutineCompletion> {
+  final int id;
+  final int taskId;
+  final DateTime date;
+  const RoutineCompletion({
+    required this.id,
+    required this.taskId,
+    required this.date,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['task_id'] = Variable<int>(taskId);
+    map['date'] = Variable<DateTime>(date);
+    return map;
+  }
+
+  RoutineCompletionsCompanion toCompanion(bool nullToAbsent) {
+    return RoutineCompletionsCompanion(
+      id: Value(id),
+      taskId: Value(taskId),
+      date: Value(date),
+    );
+  }
+
+  factory RoutineCompletion.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RoutineCompletion(
+      id: serializer.fromJson<int>(json['id']),
+      taskId: serializer.fromJson<int>(json['taskId']),
+      date: serializer.fromJson<DateTime>(json['date']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'taskId': serializer.toJson<int>(taskId),
+      'date': serializer.toJson<DateTime>(date),
+    };
+  }
+
+  RoutineCompletion copyWith({int? id, int? taskId, DateTime? date}) =>
+      RoutineCompletion(
+        id: id ?? this.id,
+        taskId: taskId ?? this.taskId,
+        date: date ?? this.date,
+      );
+  RoutineCompletion copyWithCompanion(RoutineCompletionsCompanion data) {
+    return RoutineCompletion(
+      id: data.id.present ? data.id.value : this.id,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      date: data.date.present ? data.date.value : this.date,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RoutineCompletion(')
+          ..write('id: $id, ')
+          ..write('taskId: $taskId, ')
+          ..write('date: $date')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, taskId, date);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RoutineCompletion &&
+          other.id == this.id &&
+          other.taskId == this.taskId &&
+          other.date == this.date);
+}
+
+class RoutineCompletionsCompanion extends UpdateCompanion<RoutineCompletion> {
+  final Value<int> id;
+  final Value<int> taskId;
+  final Value<DateTime> date;
+  const RoutineCompletionsCompanion({
+    this.id = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.date = const Value.absent(),
+  });
+  RoutineCompletionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int taskId,
+    required DateTime date,
+  }) : taskId = Value(taskId),
+       date = Value(date);
+  static Insertable<RoutineCompletion> custom({
+    Expression<int>? id,
+    Expression<int>? taskId,
+    Expression<DateTime>? date,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (taskId != null) 'task_id': taskId,
+      if (date != null) 'date': date,
+    });
+  }
+
+  RoutineCompletionsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? taskId,
+    Value<DateTime>? date,
+  }) {
+    return RoutineCompletionsCompanion(
+      id: id ?? this.id,
+      taskId: taskId ?? this.taskId,
+      date: date ?? this.date,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<int>(taskId.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RoutineCompletionsCompanion(')
+          ..write('id: $id, ')
+          ..write('taskId: $taskId, ')
+          ..write('date: $date')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2431,6 +3173,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $SavedQuestionsTable savedQuestions = $SavedQuestionsTable(this);
   late final $ReviewLogsTable reviewLogs = $ReviewLogsTable(this);
+  late final $TasksTable tasks = $TasksTable(this);
+  late final $RoutineCompletionsTable routineCompletions =
+      $RoutineCompletionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2442,6 +3187,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     questionFolders,
     savedQuestions,
     reviewLogs,
+    tasks,
+    routineCompletions,
   ];
 }
 
@@ -4075,6 +4822,653 @@ typedef $$ReviewLogsTableProcessedTableManager =
       ReviewLog,
       PrefetchHooks Function()
     >;
+typedef $$TasksTableCreateCompanionBuilder =
+    TasksCompanion Function({
+      Value<int> id,
+      required String title,
+      Value<bool> isDone,
+      required int dayIndex,
+      required String category,
+      Value<DateTime?> date,
+      Value<DateTime> startDate,
+      Value<int> frequency,
+    });
+typedef $$TasksTableUpdateCompanionBuilder =
+    TasksCompanion Function({
+      Value<int> id,
+      Value<String> title,
+      Value<bool> isDone,
+      Value<int> dayIndex,
+      Value<String> category,
+      Value<DateTime?> date,
+      Value<DateTime> startDate,
+      Value<int> frequency,
+    });
+
+final class $$TasksTableReferences
+    extends BaseReferences<_$AppDatabase, $TasksTable, Task> {
+  $$TasksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$RoutineCompletionsTable, List<RoutineCompletion>>
+  _routineCompletionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.routineCompletions,
+        aliasName: $_aliasNameGenerator(
+          db.tasks.id,
+          db.routineCompletions.taskId,
+        ),
+      );
+
+  $$RoutineCompletionsTableProcessedTableManager get routineCompletionsRefs {
+    final manager = $$RoutineCompletionsTableTableManager(
+      $_db,
+      $_db.routineCompletions,
+    ).filter((f) => f.taskId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _routineCompletionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
+  $$TasksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDone => $composableBuilder(
+    column: $table.isDone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dayIndex => $composableBuilder(
+    column: $table.dayIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get frequency => $composableBuilder(
+    column: $table.frequency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> routineCompletionsRefs(
+    Expression<bool> Function($$RoutineCompletionsTableFilterComposer f) f,
+  ) {
+    final $$RoutineCompletionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.routineCompletions,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RoutineCompletionsTableFilterComposer(
+            $db: $db,
+            $table: $db.routineCompletions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TasksTableOrderingComposer
+    extends Composer<_$AppDatabase, $TasksTable> {
+  $$TasksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDone => $composableBuilder(
+    column: $table.isDone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dayIndex => $composableBuilder(
+    column: $table.dayIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get frequency => $composableBuilder(
+    column: $table.frequency,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TasksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TasksTable> {
+  $$TasksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDone =>
+      $composableBuilder(column: $table.isDone, builder: (column) => column);
+
+  GeneratedColumn<int> get dayIndex =>
+      $composableBuilder(column: $table.dayIndex, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<int> get frequency =>
+      $composableBuilder(column: $table.frequency, builder: (column) => column);
+
+  Expression<T> routineCompletionsRefs<T extends Object>(
+    Expression<T> Function($$RoutineCompletionsTableAnnotationComposer a) f,
+  ) {
+    final $$RoutineCompletionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.routineCompletions,
+          getReferencedColumn: (t) => t.taskId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RoutineCompletionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.routineCompletions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$TasksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TasksTable,
+          Task,
+          $$TasksTableFilterComposer,
+          $$TasksTableOrderingComposer,
+          $$TasksTableAnnotationComposer,
+          $$TasksTableCreateCompanionBuilder,
+          $$TasksTableUpdateCompanionBuilder,
+          (Task, $$TasksTableReferences),
+          Task,
+          PrefetchHooks Function({bool routineCompletionsRefs})
+        > {
+  $$TasksTableTableManager(_$AppDatabase db, $TasksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TasksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TasksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TasksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<bool> isDone = const Value.absent(),
+                Value<int> dayIndex = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<DateTime?> date = const Value.absent(),
+                Value<DateTime> startDate = const Value.absent(),
+                Value<int> frequency = const Value.absent(),
+              }) => TasksCompanion(
+                id: id,
+                title: title,
+                isDone: isDone,
+                dayIndex: dayIndex,
+                category: category,
+                date: date,
+                startDate: startDate,
+                frequency: frequency,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String title,
+                Value<bool> isDone = const Value.absent(),
+                required int dayIndex,
+                required String category,
+                Value<DateTime?> date = const Value.absent(),
+                Value<DateTime> startDate = const Value.absent(),
+                Value<int> frequency = const Value.absent(),
+              }) => TasksCompanion.insert(
+                id: id,
+                title: title,
+                isDone: isDone,
+                dayIndex: dayIndex,
+                category: category,
+                date: date,
+                startDate: startDate,
+                frequency: frequency,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$TasksTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({routineCompletionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (routineCompletionsRefs) db.routineCompletions,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (routineCompletionsRefs)
+                    await $_getPrefetchedData<
+                      Task,
+                      $TasksTable,
+                      RoutineCompletion
+                    >(
+                      currentTable: table,
+                      referencedTable: $$TasksTableReferences
+                          ._routineCompletionsRefsTable(db),
+                      managerFromTypedResult: (p0) => $$TasksTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).routineCompletionsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.taskId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TasksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TasksTable,
+      Task,
+      $$TasksTableFilterComposer,
+      $$TasksTableOrderingComposer,
+      $$TasksTableAnnotationComposer,
+      $$TasksTableCreateCompanionBuilder,
+      $$TasksTableUpdateCompanionBuilder,
+      (Task, $$TasksTableReferences),
+      Task,
+      PrefetchHooks Function({bool routineCompletionsRefs})
+    >;
+typedef $$RoutineCompletionsTableCreateCompanionBuilder =
+    RoutineCompletionsCompanion Function({
+      Value<int> id,
+      required int taskId,
+      required DateTime date,
+    });
+typedef $$RoutineCompletionsTableUpdateCompanionBuilder =
+    RoutineCompletionsCompanion Function({
+      Value<int> id,
+      Value<int> taskId,
+      Value<DateTime> date,
+    });
+
+final class $$RoutineCompletionsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $RoutineCompletionsTable,
+          RoutineCompletion
+        > {
+  $$RoutineCompletionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $TasksTable _taskIdTable(_$AppDatabase db) => db.tasks.createAlias(
+    $_aliasNameGenerator(db.routineCompletions.taskId, db.tasks.id),
+  );
+
+  $$TasksTableProcessedTableManager get taskId {
+    final $_column = $_itemColumn<int>('task_id')!;
+
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$RoutineCompletionsTableFilterComposer
+    extends Composer<_$AppDatabase, $RoutineCompletionsTable> {
+  $$RoutineCompletionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$TasksTableFilterComposer get taskId {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RoutineCompletionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RoutineCompletionsTable> {
+  $$RoutineCompletionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TasksTableOrderingComposer get taskId {
+    final $$TasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RoutineCompletionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RoutineCompletionsTable> {
+  $$RoutineCompletionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  $$TasksTableAnnotationComposer get taskId {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RoutineCompletionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RoutineCompletionsTable,
+          RoutineCompletion,
+          $$RoutineCompletionsTableFilterComposer,
+          $$RoutineCompletionsTableOrderingComposer,
+          $$RoutineCompletionsTableAnnotationComposer,
+          $$RoutineCompletionsTableCreateCompanionBuilder,
+          $$RoutineCompletionsTableUpdateCompanionBuilder,
+          (RoutineCompletion, $$RoutineCompletionsTableReferences),
+          RoutineCompletion,
+          PrefetchHooks Function({bool taskId})
+        > {
+  $$RoutineCompletionsTableTableManager(
+    _$AppDatabase db,
+    $RoutineCompletionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RoutineCompletionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RoutineCompletionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RoutineCompletionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> taskId = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+              }) => RoutineCompletionsCompanion(
+                id: id,
+                taskId: taskId,
+                date: date,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int taskId,
+                required DateTime date,
+              }) => RoutineCompletionsCompanion.insert(
+                id: id,
+                taskId: taskId,
+                date: date,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$RoutineCompletionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({taskId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (taskId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.taskId,
+                                referencedTable:
+                                    $$RoutineCompletionsTableReferences
+                                        ._taskIdTable(db),
+                                referencedColumn:
+                                    $$RoutineCompletionsTableReferences
+                                        ._taskIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$RoutineCompletionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RoutineCompletionsTable,
+      RoutineCompletion,
+      $$RoutineCompletionsTableFilterComposer,
+      $$RoutineCompletionsTableOrderingComposer,
+      $$RoutineCompletionsTableAnnotationComposer,
+      $$RoutineCompletionsTableCreateCompanionBuilder,
+      $$RoutineCompletionsTableUpdateCompanionBuilder,
+      (RoutineCompletion, $$RoutineCompletionsTableReferences),
+      RoutineCompletion,
+      PrefetchHooks Function({bool taskId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4091,4 +5485,8 @@ class $AppDatabaseManager {
       $$SavedQuestionsTableTableManager(_db, _db.savedQuestions);
   $$ReviewLogsTableTableManager get reviewLogs =>
       $$ReviewLogsTableTableManager(_db, _db.reviewLogs);
+  $$TasksTableTableManager get tasks =>
+      $$TasksTableTableManager(_db, _db.tasks);
+  $$RoutineCompletionsTableTableManager get routineCompletions =>
+      $$RoutineCompletionsTableTableManager(_db, _db.routineCompletions);
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/solution_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/review_screen.dart';
+import 'screens/tasks_screen.dart';
 
 class NaviBar extends StatefulWidget {
   const NaviBar({super.key});
@@ -15,6 +16,7 @@ class _NaviBarState extends State<NaviBar> {
 
   final List<Widget> _screens = const [
     SolutionScreen(),
+    TasksScreen(),
     ReviewScreen(),
     SettingsScreen(),
   ];
@@ -55,6 +57,11 @@ class _NaviBarState extends State<NaviBar> {
                   icon: Icon(Icons.play_circle_outline),
                   selectedIcon: Icon(Icons.play_circle),
                   label: Text('Video Çözüm'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.calendar_today_outlined),
+                  selectedIcon: Icon(Icons.calendar_today),
+                  label: Text('Planlama'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.collections_bookmark_outlined),
@@ -129,6 +136,11 @@ class _NaviBarState extends State<NaviBar> {
                   icon: Icon(Icons.play_circle_outline),
                   selectedIcon: Icon(Icons.play_circle),
                   label: 'Video Çözüm',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.calendar_today_outlined),
+                  selectedIcon: Icon(Icons.calendar_today),
+                  label: 'Planlama',
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.collections_bookmark_outlined),
