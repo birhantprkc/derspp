@@ -484,13 +484,6 @@ class _TasksScreenState extends State<TasksScreen> {
             ),
           ),
           const SizedBox(height: 32),
-          Text(
-            'Versiyon 1.0.0',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.3),
-              letterSpacing: 0.5,
-            ),
-          ),
         ],
       ),
     );
