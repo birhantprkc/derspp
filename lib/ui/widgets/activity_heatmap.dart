@@ -18,20 +18,20 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
     final cells = _buildCells();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final emptyColor = isDark
-        ? const Color(0xFF2A2A2A)
-        : const Color(0xFFEEEEEE);
+        ? Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3)
+        : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.4);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildMonthLabels(cells),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         _buildGrid(cells, emptyColor),
         if (_hoveredDay != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           _buildTooltip(),
         ],
-        const SizedBox(height: 6),
+        const SizedBox(height: 12),
         _buildLegend(emptyColor),
       ],
     );
@@ -54,10 +54,12 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
 
     for (int i = 0; i < totalDays; i++) {
       final day = startDay.add(Duration(days: i));
-      if (day.isAfter(todayNorm)) continue;
-
-      final count = widget.data[day] ?? 0;
-      cells.add(_HeatmapCell(date: day, count: count));
+      if (day.isAfter(todayNorm)) {
+        cells.add(_HeatmapCell(date: day, count: -1));
+      } else {
+        final count = widget.data[day] ?? 0;
+        cells.add(_HeatmapCell(date: day, count: count));
+      }
     }
     return cells;
   }
@@ -75,20 +77,26 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cellSize =
-            ((constraints.maxWidth - 28 - (columns.length - 1) * 3) /
+            ((constraints.maxWidth - 28 - (columns.length - 1) * 4) /
                     columns.length)
-                .clamp(8.0, 18.0);
+                .clamp(8.0, 16.0);
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(width: 24, child: _buildDayLabels(cellSize)),
-            const SizedBox(width: 4),
+            const SizedBox(width: 8),
             ...columns.map((col) {
               return Padding(
-                padding: const EdgeInsets.only(right: 3),
+                padding: const EdgeInsets.only(right: 4),
                 child: Column(
                   children: col.map((cell) {
+                    if (cell.count == -1) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: SizedBox(width: cellSize, height: cellSize),
+                      );
+                    }
                     final color = _cellColor(
                       cell.count,
                       maxCount,
@@ -104,7 +112,7 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
                         });
                       },
                       child: Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
+                        padding: const EdgeInsets.only(bottom: 4),
                         child: Container(
                           width: cellSize,
                           height: cellSize,
@@ -113,10 +121,9 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
                             borderRadius: BorderRadius.circular(2),
                             border: _hoveredDay == cell.date
                                 ? Border.all(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.6),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
                                     width: 1,
                                   )
                                 : null,
@@ -137,9 +144,10 @@ class _ActivityHeatmapState extends State<ActivityHeatmap> {
   Color _cellColor(int count, int maxCount, Color emptyColor, Color primary) {
     if (count == 0) return emptyColor;
     final ratio = maxCount > 0 ? count / maxCount : 0.0;
-    if (ratio <= 0.25) return primary.withValues(alpha: 0.25);
-    if (ratio <= 0.50) return primary.withValues(alpha: 0.50);
-    if (ratio <= 0.75) return primary.withValues(alpha: 0.75);
+    if (ratio <= 0.2) return primary.withOpacity(0.15);
+    if (ratio <= 0.4) return primary.withOpacity(0.35);
+    if (ratio <= 0.6) return primary.withOpacity(0.55);
+    if (ratio <= 0.8) return primary.withOpacity(0.75);
     return primary;
   }
 

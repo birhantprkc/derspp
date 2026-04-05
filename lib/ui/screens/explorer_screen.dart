@@ -274,6 +274,10 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
           ),
           autofocus: true,
         ),
+        titleTextStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+          fontSize: 20,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -364,6 +368,10 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
                 onPressed: _saveAsBook,
               ),
           ],
+          titleTextStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+            fontSize: 20,
+          ),
         ),
         body: SafeArea(
           child: Column(

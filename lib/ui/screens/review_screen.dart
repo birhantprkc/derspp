@@ -66,11 +66,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final provider = Provider.of<SavedQuestionsProvider>(context);
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text(_selectedFolderName ?? 'Kaydedilen Sorular'),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        centerTitle: false,
+        title: Text(_selectedFolderName ?? 'Kaydedilenler'),
+        titleTextStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+          fontSize: 20,
+        ),
         leading: _selectedFolderId != null
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: const Icon(Icons.chevron_left, size: 28),
                 onPressed: () {
                   setState(() {
                     _selectedFolderId = null;
@@ -79,26 +88,29 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 },
               )
             : null,
-        titleTextStyle: TextStyle(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-          fontSize: 20,
-        ),
       ),
       body: Stack(
         children: [
-          _selectedFolderId == null
-              ? _buildFolderTree(provider, null)
-              : _buildQuestionList(provider),
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: _selectedFolderId == null
+                ? _buildFolderTree(provider, null)
+                : _buildQuestionList(provider),
+          ),
           if (_selectedFolderId == null) _buildStatsPanel(context, provider),
         ],
       ),
       floatingActionButton: _selectedFolderId == null
           ? Padding(
-              padding: const EdgeInsets.only(bottom: 60.0),
-              child: FloatingActionButton(
+              padding: const EdgeInsets.only(bottom: 80.0),
+              child: FloatingActionButton.small(
+                elevation: 0,
+                highlightElevation: 0,
+                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
                 onPressed: () =>
                     _showCreateFolderDialog(context, provider, null),
-                child: const Icon(Icons.create_new_folder),
+                child: const Icon(Icons.add),
               ),
             )
           : null,
@@ -107,17 +119,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   Widget _buildBadge(String label, Color color, Color textColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(10),
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: textColor,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -128,21 +140,19 @@ class _ReviewScreenState extends State<ReviewScreen> {
     SavedQuestionsProvider provider,
   ) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.1,
-      minChildSize: 0.1,
-      maxChildSize: 0.85,
+      initialChildSize: 0.12,
+      minChildSize: 0.12,
+      maxChildSize: 0.9,
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              top: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 0.5,
               ),
-            ],
+            ),
           ),
           child: SingleChildScrollView(
             controller: scrollController,
@@ -151,62 +161,63 @@ class _ReviewScreenState extends State<ReviewScreen> {
               children: [
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 12, bottom: 4),
+                    padding: const EdgeInsets.only(top: 12, bottom: 8),
                     child: Container(
-                      width: 40,
-                      height: 4,
+                      width: 32,
+                      height: 3,
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.5),
+                        color: Theme.of(context).colorScheme.outlineVariant,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                 ),
                 _buildSummaryRow(provider),
-                const Divider(height: 24),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Aktivite',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.6),
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      ActivityHeatmap(
-                        data: provider.getHeatmapDataForWeeks(12),
-                        weeks: 12,
-                      ),
-                    ],
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                  child: Text(
+                    'AKTİVİTE',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.4),
+                      letterSpacing: 1.1,
+                    ),
                   ),
                 ),
-                const Divider(height: 32),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Veri Yonetimi',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.6),
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildBackupButtons(context, provider),
-                    ],
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: ActivityHeatmap(
+                    data: provider.getHeatmapDataForWeeks(12),
+                    weeks: 12,
                   ),
                 ),
                 const SizedBox(height: 32),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Divider(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                    height: 1,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                  child: Text(
+                    'YÖNETİM',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.4),
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                ),
+                _buildBackupButtons(context, provider),
+                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -217,65 +228,41 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   Widget _buildSummaryRow(SavedQuestionsProvider provider) {
     final streak = provider.getCurrentStreak();
-    final heatmapData = provider.getHeatmapDataForWeeks(12);
-    final totalReviews = heatmapData.values.fold<int>(0, (a, b) => a + b);
-    final totalDue = _folderStats.values.fold<int>(
-      0,
-      (sum, s) => sum + (s['toReview'] ?? 0),
-    );
-    final totalQuestions = _folderStats.values.fold<int>(
-      0,
-      (sum, s) => sum + (s['total'] ?? 0),
-    );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildSummaryStat(
-            Icon(Icons.local_fire_department, color: Colors.orangeAccent),
-            'Seri',
-            '$streak gün',
+            'SERİ',
+            '$streak GÜN',
+            Theme.of(context).colorScheme.primary,
           ),
-          // _buildSummaryStat(
-          //   Icon(Icons.pending_actions),
-          //   'Tekrarlanacak',
-          //   '$totalDue',
-          // ),
-          // _buildSummaryStat(
-          //   Icon(Icons.storage),
-          //   'Toplam',
-          //   '$totalQuestions soru',
-          // ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryStat(
-    Icon icon,
-    String label,
-    String value, {
-    Color? valueColor,
-  }) {
+  Widget _buildSummaryStat(String label, String value, Color color) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        icon,
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: valueColor ?? Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 2),
         Text(
           label,
           style: TextStyle(
-            fontSize: 10,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+            letterSpacing: 0.8,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w300,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],
@@ -287,28 +274,39 @@ class _ReviewScreenState extends State<ReviewScreen> {
     SavedQuestionsProvider provider,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
           Expanded(
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.download),
-              label: const Text('Veriyi Yedekle'),
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.north_east, size: 18),
+              label: const Text('Dışa Aktar'),
               onPressed: () => provider.exportData(),
             ),
           ),
-          const SizedBox(width: 12),
           Expanded(
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.upload),
-              label: const Text('Yedeği Yükle'),
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.south_west, size: 18),
+              label: const Text('İçe Aktar'),
               onPressed: () async {
                 final success = await provider.importData();
                 if (success && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Veriler başarıyla yüklendi.'),
-                    ),
+                    const SnackBar(content: Text('Veriler yüklendi')),
                   );
                 }
               },
@@ -325,71 +323,76 @@ class _ReviewScreenState extends State<ReviewScreen> {
         .toList();
 
     if (folders.isEmpty && parentId == null) {
-      return const Center(child: Text('Henüz klasör oluşturulmamış.'));
+      return Center(
+        child: Text(
+          'Kitaplık boş',
+          style: TextStyle(color: Theme.of(context).colorScheme.outline),
+        ),
+      );
     }
 
-    if (folders.isEmpty) return const SizedBox.shrink();
-
-    return ListView.builder(
+    return ListView.separated(
       shrinkWrap: true,
       physics: parentId == null
           ? const AlwaysScrollableScrollPhysics()
           : const NeverScrollableScrollPhysics(),
       itemCount: folders.length,
+      separatorBuilder: (context, index) => Divider(
+        height: 1,
+        indent: 20,
+        color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
+      ),
       itemBuilder: (context, index) {
         final folder = folders[index];
         final hasChildren = provider.folders.any(
           (f) => f.parentId == folder.id,
         );
-
         final stats = _folderStats[folder.id];
         final toReview = stats?['toReview'] ?? 0;
-        final total = stats?['total'] ?? 0;
 
-        return ExpansionTile(
-          controlAffinity: ListTileControlAffinity.leading,
-          title: GestureDetector(
-            onTap: () async {
-              final sq = await provider.getNextReviewQuestion(folder.id);
-              if (sq != null && context.mounted) {
-                _quickOpen(context, sq);
-              } else if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Bu klasörde bugün tekrar edilecek soru yok'),
-                  ),
-                );
-              }
-            },
-            onLongPress: () => _showFolderOptions(context, provider, folder),
-            child: Row(
-              children: [
-                Expanded(child: Text(folder.name)),
-                if (toReview > 0) ...[
-                  _buildBadge(
-                    '$toReview',
-                    Theme.of(context).colorScheme.error,
-                    Theme.of(context).colorScheme.onError,
-                  ),
-                  const SizedBox(width: 6),
-                ],
-                if (total > 0)
-                  _buildBadge(
-                    '$total',
-                    Theme.of(context).colorScheme.secondaryContainer,
-                    Theme.of(context).colorScheme.onSecondaryContainer,
-                  ),
-              ],
+        return Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 20),
+            leading: Icon(
+              Icons.folder_open,
+              size: 20,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
-          ),
-          trailing: null,
-          children: [
-            if (hasChildren)
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: _buildFolderTree(provider, folder.id),
+            title: GestureDetector(
+              onTap: () async {
+                final sq = await provider.getNextReviewQuestion(folder.id);
+                if (sq != null && context.mounted) {
+                  _quickOpen(context, sq);
+                } else if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Tekrar edilecek soru yok')),
+                  );
+                }
+              },
+              onLongPress: () => _showFolderOptions(context, provider, folder),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      folder.name,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                  if (toReview > 0)
+                    _buildBadge(
+                      '$toReview',
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.onPrimary,
+                    ),
+                ],
               ),
-          ],
+            ),
+            children: [if (hasChildren) _buildFolderTree(provider, folder.id)],
+          ),
         );
       },
     );

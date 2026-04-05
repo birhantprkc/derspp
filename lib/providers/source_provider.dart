@@ -21,6 +21,7 @@ class SourceProvider extends ChangeNotifier {
 
   bool _loadingPubs = true;
   List<Publisher> _savedPubs = [];
+  String _searchQuery = '';
 
   BookContent? get currentBookContent => _currentBookContent;
   String? get baseUrl => _baseUrl;
@@ -33,6 +34,7 @@ class SourceProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   List<Publisher> get savedPubs => _savedPubs;
   bool get loadingPubs => _loadingPubs;
+  String get searchQuery => _searchQuery;
 
   String get breadcrumbs {
     final path = _navigationStack.map((e) => e.name).toList();
@@ -44,6 +46,11 @@ class SourceProvider extends ChangeNotifier {
 
   SourceProvider(this._db) {
     _init();
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query.toLowerCase();
+    notifyListeners();
   }
 
   Future<void> _init() async {

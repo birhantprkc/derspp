@@ -75,31 +75,41 @@ class _PublisherScreenState extends State<PublisherScreen> {
     final provider = context.watch<SourceProvider>();
     final theme = Theme.of(context);
 
+    final filteredPubs = provider.savedPubs.where((pub) {
+      return pub.name.toLowerCase().contains(provider.searchQuery);
+    }).toList();
+
     return Scaffold(
       body: Column(
         children: [
           Expanded(
             child: provider.loadingPubs
                 ? const Center(child: CircularProgressIndicator())
-                : provider.savedPubs.isEmpty
-                ? _buildEmptyPublishers(theme)
+                : filteredPubs.isEmpty
+                ? _buildEmptyPublishers(theme, provider.searchQuery.isNotEmpty)
                 : Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.all(4.0),
                     child: ListView.builder(
-                      itemCount: provider.savedPubs.length,
+                      itemCount: filteredPubs.length,
                       itemBuilder: (context, index) {
-                        final pub = provider.savedPubs[index];
+                        final pub = filteredPubs[index];
                         return Card(
+                          elevation: 0,
+                          color: theme.colorScheme.surfaceVariant.withOpacity(
+                            0.3,
+                          ),
                           margin: const EdgeInsets.symmetric(vertical: 4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: ListTile(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             leading: const Icon(Icons.book),
                             title: Text(pub.name),
-                            subtitle: Text("${pub.url} (ID: ${pub.sourceId})"),
                             trailing: IconButton(
-                              icon: const Icon(Icons.delete),
+                              icon: const Icon(Icons.delete_outline, size: 20),
                               onPressed: () => provider.deletePub(pub),
                             ),
                             onTap: () => _openExplorer(
@@ -117,6 +127,8 @@ class _PublisherScreenState extends State<PublisherScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        elevation: 0,
+        highlightElevation: 0,
         icon: const Icon(Icons.add),
         onPressed: () => _showUrlDialog(provider),
         label: const Text('Yeni yayın ekle'),
@@ -124,13 +136,32 @@ class _PublisherScreenState extends State<PublisherScreen> {
     );
   }
 
-  Widget _buildEmptyPublishers(ThemeData theme) {
+  Widget _buildEmptyPublishers(ThemeData theme, bool isSearching) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          SizedBox(height: 16),
-          Text("Henüz yayın eklemediniz."),
+        children: [
+          Icon(
+            isSearching ? Icons.search_off : Icons.library_books_outlined,
+            size: 80,
+            color: theme.colorScheme.primary.withAlpha((0.3 * 255).round()),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            isSearching ? 'Yayıncı bulunamadı' : 'Henüz yayın eklemediniz',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.primary.withAlpha((0.6 * 255).round()),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            isSearching
+                ? 'Büyük, küçük harf duyarsızdır.'
+                : 'Sağ alttaki butonu kullanarak yeni bir yayın ekleyebilirsiniz.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withAlpha((0.3 * 255).round()),
+            ),
+          ),
         ],
       ),
     );

@@ -3,6 +3,7 @@ import 'library_screen.dart';
 import 'publisher_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/source_provider.dart';
 
 class SolutionScreen extends StatefulWidget {
   const SolutionScreen({super.key});
@@ -46,11 +47,19 @@ class _SolutionScreenState extends State<SolutionScreen>
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: 'Kitap ara...',
+                decoration: InputDecoration(
+                  hintText: _tabController.index == 0
+                      ? 'Kitap ara...'
+                      : 'Yayıncı ara...',
                   border: InputBorder.none,
                 ),
-                onChanged: (value) => bookProvider.setSearchQuery(value),
+                onChanged: (value) {
+                  if (_tabController.index == 0) {
+                    bookProvider.setSearchQuery(value);
+                  } else {
+                    context.read<SourceProvider>().setSearchQuery(value);
+                  }
+                },
               )
             : const Text('Video çözüm'),
         titleTextStyle: TextStyle(
@@ -58,19 +67,20 @@ class _SolutionScreenState extends State<SolutionScreen>
           fontSize: 20,
         ),
         actions: [
-          if (_tabController.index == 0) ...[
-            IconButton(
-              icon: Icon(_isSearching ? Icons.close : Icons.search),
-              onPressed: () {
-                setState(() {
-                  _isSearching = !_isSearching;
-                  if (!_isSearching) {
-                    _searchController.clear();
-                    bookProvider.setSearchQuery('');
-                  }
-                });
-              },
-            ),
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _searchController.clear();
+                  bookProvider.setSearchQuery('');
+                  context.read<SourceProvider>().setSearchQuery('');
+                }
+              });
+            },
+          ),
+          if (_tabController.index == 0)
             IconButton(
               icon: Icon(
                 bookProvider.isGridView ? Icons.grid_view : Icons.list,
@@ -78,7 +88,6 @@ class _SolutionScreenState extends State<SolutionScreen>
               onPressed: () =>
                   bookProvider.setGridView(!bookProvider.isGridView),
             ),
-          ],
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),

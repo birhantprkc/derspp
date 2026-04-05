@@ -33,51 +33,48 @@ class _NaviBarState extends State<NaviBar> {
     return Scaffold(
       body: Row(
         children: [
-          SizedBox(
-            width: 96,
-            child: NavigationRailTheme(
-              data: NavigationRailThemeData(
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-                indicatorShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              child: NavigationRail(
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-                labelType: NavigationRailLabelType.all,
-                useIndicator: true,
-                selectedIndex: _currentIndex,
-                onDestinationSelected: (index) {
-                  setState(() => _currentIndex = index);
-                },
-                destinations: const [
-                  NavigationRailDestination(
-                    icon: Icon(Icons.play_circle_outline),
-                    selectedIcon: Icon(Icons.play_circle),
-                    label: Padding(
-                      padding: EdgeInsets.only(top: 5),
-                      child: Text('Video Çözüm'),
-                    ),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.collections_bookmark_outlined),
-                    selectedIcon: Icon(Icons.collections_bookmark),
-                    label: Padding(
-                      padding: EdgeInsets.only(top: 5),
-                      child: Text('Kaydedilenler'),
-                    ),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.settings_outlined),
-                    selectedIcon: Icon(Icons.settings),
-                    label: Padding(
-                      padding: EdgeInsets.only(top: 5),
-                      child: Text('Ayarlar'),
-                    ),
-                  ),
-                ],
+          NavigationRailTheme(
+            data: NavigationRailThemeData(
+              backgroundColor: Colors.transparent,
+              indicatorColor: Theme.of(context).colorScheme.surfaceVariant,
+              indicatorShape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
+            child: NavigationRail(
+              extended: true,
+              minExtendedWidth: 200,
+              backgroundColor: Colors.transparent,
+              useIndicator: true,
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (index) {
+                setState(() => _currentIndex = index);
+              },
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.play_circle_outline),
+                  selectedIcon: Icon(Icons.play_circle),
+                  label: Text('Video Çözüm'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.collections_bookmark_outlined),
+                  selectedIcon: Icon(Icons.collections_bookmark),
+                  label: Text('Kaydedilenler'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
+                  label: Text('Ayarlar'),
+                ),
+              ],
+            ),
+          ),
+          VerticalDivider(
+            width: 1,
+            thickness: 0.5,
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withOpacity(0.5),
           ),
           Expanded(
             child: AnimatedSwitcher(
@@ -102,35 +99,51 @@ class _NaviBarState extends State<NaviBar> {
           child: _screens[_currentIndex],
         ),
       ),
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          indicatorShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Divider(
+            height: 1,
+            thickness: 0.5,
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withOpacity(0.5),
           ),
-        ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() => _currentIndex = index);
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.play_circle_outline),
-              selectedIcon: Icon(Icons.play_circle),
-              label: 'Video Çözüm',
+          NavigationBarTheme(
+            data: NavigationBarThemeData(
+              backgroundColor: Colors.transparent,
+              indicatorShape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
-            NavigationDestination(
-              icon: Icon(Icons.collections_bookmark_outlined),
-              selectedIcon: Icon(Icons.collections_bookmark),
-              label: 'Kaydedilenler',
+            child: NavigationBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (index) {
+                setState(() => _currentIndex = index);
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.play_circle_outline),
+                  selectedIcon: Icon(Icons.play_circle),
+                  label: 'Video Çözüm',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.collections_bookmark_outlined),
+                  selectedIcon: Icon(Icons.collections_bookmark),
+                  label: 'Kaydedilenler',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
+                  label: 'Ayarlar',
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Ayarlar',
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
