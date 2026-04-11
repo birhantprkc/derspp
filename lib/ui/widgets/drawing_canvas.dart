@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-// import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../models/drawing_element.dart';
 import 'drawing_painter.dart';
 import '../../models/animation_model.dart';
@@ -13,7 +12,6 @@ class DrawingCanvas extends StatefulWidget {
   final AnimationModel animationData;
   final bool enableInteraction;
   final VideoController? videoController;
-  // final YoutubePlayerController? youtubeController;
   final bool isDarkMode;
 
   const DrawingCanvas({
@@ -22,7 +20,6 @@ class DrawingCanvas extends StatefulWidget {
     required this.animationData,
     this.enableInteraction = true,
     this.videoController,
-    // this.youtubeController,
     this.isDarkMode = false,
   });
 
@@ -150,8 +147,8 @@ class DrawingCanvasState extends State<DrawingCanvas> {
     final canvasWidth = widget.animationData.canvasWidth;
     final canvasHeight = widget.animationData.canvasHeight;
 
-    final scaleX = (screenSize.width * 1) / canvasWidth;
-    final scaleY = (screenSize.height * 1) / canvasHeight;
+    final scaleX = screenSize.width / canvasWidth;
+    final scaleY = screenSize.height / canvasHeight;
     _userScale = scaleX < scaleY ? scaleX : scaleY;
     _userScale = _userScale.clamp(0.1, 5.0);
 
@@ -166,12 +163,6 @@ class DrawingCanvasState extends State<DrawingCanvas> {
     _currentScale = _userScale;
     _targetScale = _userScale;
     _isInitialized = true;
-
-    if (widget.animationData.preferPdf && !_pdfLoadAttempted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _loadPdfFromUrl();
-      });
-    }
   }
 
   void _handleMouseWheel(PointerScrollEvent event) {
@@ -217,7 +208,6 @@ class DrawingCanvasState extends State<DrawingCanvas> {
     _initializeTransform(context);
 
     final scaledPdfOffset = widget.animationData.pdfOffset * _userScale;
-
     Widget backgroundContent = _buildBackground(scaledPdfOffset);
 
     final content = Stack(
@@ -235,9 +225,7 @@ class DrawingCanvasState extends State<DrawingCanvas> {
             ),
           ),
         ),
-
         backgroundContent,
-
         Positioned(
           left: _offset.dx,
           top: _offset.dy,
@@ -265,16 +253,6 @@ class DrawingCanvasState extends State<DrawingCanvas> {
                         fit: BoxFit.fill,
                       ),
                     ),
-
-                  // if (widget.youtubeController != null)
-                  //   Positioned.fill(
-                  //     child: YoutubePlayer(
-                  //       controller: widget.youtubeController!,
-                  //       aspectRatio:
-                  //           widget.animationData.canvasWidth /
-                  //           widget.animationData.canvasHeight,
-                  //     ),
-                  //   ),
                   Builder(
                     builder: (context) {
                       Widget paint = CustomPaint(
@@ -322,43 +300,41 @@ class DrawingCanvasState extends State<DrawingCanvas> {
   }
 
   Widget _buildBackground(Offset scaledPdfOffset) {
-    if (widget.animationData.isVideo) {
-      return const SizedBox.shrink();
-    }
+    if (widget.animationData.isVideo) return const SizedBox.shrink();
 
-    Widget? child;
+    Widget? backgroundWidget;
 
     if (widget.animationData.preferPdf &&
         _loadedPdf != null &&
         _loadedPdf!.isLoaded) {
-      child = BackgroundPdfViewer(
+      backgroundWidget = BackgroundPdfViewer(
         backgroundPdf: _loadedPdf!,
         scale: widget.animationData.pdfDefaultScale * _userScale,
       );
     } else if (widget.animationData.preferPdf && _isPdfLoading) {
-      child = const SizedBox(width: 200, height: 200);
+      backgroundWidget = const SizedBox(width: 200, height: 200);
     } else {
-      return _buildJpgBackground(scaledPdfOffset);
+      backgroundWidget = _buildJpgBackground(scaledPdfOffset);
     }
 
+    if (backgroundWidget == null) return const SizedBox.shrink();
+
     if (widget.isDarkMode) {
-      child = ColorFiltered(
+      backgroundWidget = ColorFiltered(
         colorFilter: const ColorFilter.matrix(_invertMatrix),
-        child: child,
+        child: backgroundWidget,
       );
     }
 
     return Positioned(
       left: _offset.dx + scaledPdfOffset.dx,
       top: _offset.dy + scaledPdfOffset.dy,
-      child: child,
+      child: backgroundWidget,
     );
   }
 
-  Widget _buildJpgBackground(Offset scaledPdfOffset) {
-    if (widget.animationData.backgroundJpgUrl == null) {
-      return const SizedBox.shrink();
-    }
+  Widget? _buildJpgBackground(Offset scaledPdfOffset) {
+    if (widget.animationData.backgroundJpgUrl == null) return null;
 
     final swfWidth =
         _localSwfWidth ??
@@ -369,25 +345,12 @@ class DrawingCanvasState extends State<DrawingCanvas> {
         widget.animationData.swfHeight ??
         widget.animationData.canvasHeight;
 
-    Widget image = Image.network(
-      widget.animationData.backgroundJpgUrl!,
-      fit: BoxFit.fill,
-    );
-
-    if (widget.isDarkMode) {
-      image = ColorFiltered(
-        colorFilter: const ColorFilter.matrix(_invertMatrix),
-        child: image,
-      );
-    }
-
-    return Positioned(
-      left: _offset.dx + scaledPdfOffset.dx,
-      top: _offset.dy + scaledPdfOffset.dy,
-      child: SizedBox(
-        width: swfWidth * widget.animationData.pdfDefaultScale * _userScale,
-        height: swfHeight * widget.animationData.pdfDefaultScale * _userScale,
-        child: image,
+    return SizedBox(
+      width: swfWidth * widget.animationData.pdfDefaultScale * _userScale,
+      height: swfHeight * widget.animationData.pdfDefaultScale * _userScale,
+      child: Image.network(
+        widget.animationData.backgroundJpgUrl!,
+        fit: BoxFit.fill,
       ),
     );
   }

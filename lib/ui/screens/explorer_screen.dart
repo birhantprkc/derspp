@@ -9,6 +9,7 @@ import '../../models/animation_model.dart';
 import '../../services/download_service.dart';
 import '../../services/source_factory.dart';
 import '../../services/f2_source_service.dart';
+import '../../services/youtube_source_service.dart';
 import '../../providers/source_provider.dart';
 import '../../providers/book_provider.dart';
 import 'player_screen.dart';
@@ -150,13 +151,23 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
       if (question.videoUrl != null &&
           (question.videoUrl!.contains('youtube.com') ||
               question.videoUrl!.contains('youtu.be'))) {
+        String? finalVideoUrl = question.videoUrl;
+        if (sourceService is YoutubeSourceService) {
+          final streamUrl = await (sourceService).resolveStreamUrl(
+            question.videoUrl!,
+          );
+          if (streamUrl != null) {
+            finalVideoUrl = streamUrl;
+          }
+        }
+
         if (mounted) {
           Navigator.pop(context);
 
           final animationData = AnimationModel(
             objects: [],
             totalDuration: Duration.zero,
-            videoUrl: question.videoUrl,
+            videoUrl: finalVideoUrl,
             canvasWidth: 1920,
             canvasHeight: 1080,
             pdfDefaultScale: 1.0,

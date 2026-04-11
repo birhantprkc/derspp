@@ -5,6 +5,8 @@ class Question {
   final String? videoUrl;
   final String? audioUrl;
   final String order;
+  final double? startTime;
+  final double? endTime;
 
   String? get pdfUrl => swfUrl?.replaceAll('.swf', '.pdf');
 
@@ -15,6 +17,8 @@ class Question {
     this.videoUrl,
     this.audioUrl,
     required this.order,
+    this.startTime,
+    this.endTime,
   });
 
   factory Question.fromJson(Map<String, dynamic> json) {
@@ -30,6 +34,8 @@ class Question {
       videoUrl: video,
       audioUrl: json['audio'],
       order: json['order'].toString(),
+      startTime: (json['start_time'] as num?)?.toDouble(),
+      endTime: (json['end_time'] as num?)?.toDouble(),
     );
   }
 
@@ -42,5 +48,7 @@ class Question {
     'swf': swfUrl,
     'video': videoUrl,
     'audio': audioUrl,
+    'start_time': startTime,
+    'end_time': endTime,
   };
 }

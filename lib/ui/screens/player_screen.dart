@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
-// import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../database/database.dart';
 import '../../models/animation_model.dart';
 import '../../models/question.dart';
@@ -42,8 +41,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Timer? _animationTimer;
   late final Player _player;
   VideoController? _videoController;
-  dynamic get _youtubeController =>
-      null; //YoutubePlayerController? _youtubeController;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
   bool _isPlaying = false;
@@ -59,6 +56,17 @@ class _PlayerScreenState extends State<PlayerScreen> {
   DateTime? _lastSyncTime;
   Duration _lastSyncPos = Duration.zero;
   final GlobalKey<DrawingCanvasState> _canvasKey = GlobalKey();
+  TranscriptionProvider? _transcriptionProvider;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _transcriptionProvider = Provider.of<TranscriptionProvider>(
+      context,
+      listen: false,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -117,9 +125,19 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _player.stream.duration.listen((duration) {
       if (!mounted) return;
       if (duration != Duration.zero) {
+        Duration finalDuration = duration;
+        if (widget.question?.startTime != null &&
+            widget.question?.endTime != null) {
+          finalDuration = Duration(
+            milliseconds:
+                ((widget.question!.endTime! - widget.question!.startTime!) *
+                        1000)
+                    .round(),
+          );
+        }
         setState(() {
-          _totalDuration = duration;
-          widget.animationData.totalDuration = duration;
+          _totalDuration = finalDuration;
+          widget.animationData.totalDuration = finalDuration;
         });
       }
     });
@@ -147,33 +165,31 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Future<void> _initVideo() async {
     final url = widget.animationData.videoUrl;
     if (url == null) return;
-    final bool isDesktop =
-        !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.linux ||
-            defaultTargetPlatform == TargetPlatform.windows ||
-            defaultTargetPlatform == TargetPlatform.macOS);
-    // String? ytId = YoutubePlayerController.convertUrlToId(url);
-    // if (ytId != null && !isDesktop) {
-    //   debugPrint('Youtube videosu algılandı: $ytId');
-    //   _youtubeController = YoutubePlayerController.fromVideoId(
-    //     videoId: ytId,
-    //     autoPlay: true,
-    //     params: const YoutubePlayerParams(
-    //       showControls: true,
-    //       showFullscreenButton: true,
-    //       strictRelatedVideos: false,
-    //     ),
-    //   );
-    //   widget.animationData.canvasWidth = 1920;
-    //   widget.animationData.canvasHeight = 1080;
-    //   if (mounted) {
-    //     setState(() {});
-    //   }
-    //   return;
-    // }
     try {
       _videoController = VideoController(_player);
-      await _player.open(Media(url));
+
+      final startTime = widget.question?.startTime;
+      final endTime = widget.question?.endTime;
+
+      if (startTime != null || endTime != null) {
+        final startPos = startTime != null
+            ? Duration(milliseconds: (startTime * 1000).round())
+            : null;
+        final endPos = endTime != null
+            ? Duration(milliseconds: (endTime * 1000).round())
+            : null;
+
+        if (startTime != null && endTime != null) {
+          setState(() {
+            _totalDuration = Duration(
+              milliseconds: ((endTime - startTime) * 1000).round(),
+            );
+          });
+        }
+
+        await _player.open(Media(url, start: startPos, end: endPos));
+      }
+
       await _player.setRate(_playbackSpeed);
       if (mounted) {
         setState(() {
@@ -246,43 +262,32 @@ class _PlayerScreenState extends State<PlayerScreen> {
     ) async {
       if (!mounted) return;
       try {
-        if (_youtubeController != null) {
-          final duration = await _youtubeController!.duration;
-          final position = await _youtubeController!.currentTime;
-          if (duration > 0) {
-            _totalDuration = Duration(milliseconds: (duration * 1000).round());
-            widget.animationData.totalDuration = _totalDuration;
-          }
-          if (!_isSeeking) {
-            setState(() {
-              _currentPosition = Duration(
-                milliseconds: (position * 1000).round(),
-              );
-            });
-            widget.animationData.update(position);
-          }
-        } else {
-          if (_isPlaying && !_isSeeking) {
-            final actualPos = _player.state.position;
-            if (_lastSyncTime == null || actualPos != _lastSyncPos) {
-              _lastSyncPos = actualPos;
-              _lastSyncTime = DateTime.now();
-            }
-            final elapsed = DateTime.now().difference(_lastSyncTime!);
-            final smoothMs =
-                _lastSyncPos.inMilliseconds +
-                (elapsed.inMilliseconds * _playbackSpeed);
-            final smoothPos = Duration(milliseconds: smoothMs.round());
-            setState(() {
-              _currentPosition = smoothPos;
-            });
-            widget.animationData.update(smoothPos.inMilliseconds / 1000.0);
-          } else if (!_isPlaying || _isSeeking) {
-            _lastSyncTime = null;
-            widget.animationData.update(
-              _currentPosition.inMilliseconds / 1000.0,
+        if (_isPlaying && !_isSeeking) {
+          var actualPos = _player.state.position;
+          if (widget.question?.startTime != null) {
+            final startOffset = Duration(
+              milliseconds: (widget.question!.startTime! * 1000).round(),
             );
+            actualPos = actualPos - startOffset;
+            if (actualPos < Duration.zero) actualPos = Duration.zero;
           }
+
+          if (_lastSyncTime == null || actualPos != _lastSyncPos) {
+            _lastSyncPos = actualPos;
+            _lastSyncTime = DateTime.now();
+          }
+          final elapsed = DateTime.now().difference(_lastSyncTime!);
+          final smoothMs =
+              _lastSyncPos.inMilliseconds +
+              (elapsed.inMilliseconds * _playbackSpeed);
+          final smoothPos = Duration(milliseconds: smoothMs.round());
+          setState(() {
+            _currentPosition = smoothPos;
+          });
+          widget.animationData.update(smoothPos.inMilliseconds / 1000.0);
+        } else if (!_isPlaying || _isSeeking) {
+          _lastSyncTime = null;
+          widget.animationData.update(_currentPosition.inMilliseconds / 1000.0);
         }
       } catch (e) {
         debugPrint('Timer hatası: $e');
@@ -292,7 +297,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   void _onPlaybackComplete() {
     _player.pause();
-    _player.seek(Duration.zero);
+    final startPos = widget.question?.startTime != null
+        ? Duration(milliseconds: (widget.question!.startTime! * 1000).round())
+        : Duration.zero;
+    _player.seek(startPos);
     if (mounted) {
       setState(() {
         _isPlaying = false;
@@ -302,16 +310,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   Future<void> _togglePlay() async {
-    if (_youtubeController != null) {
-      if (_isPlaying) {
-        await _youtubeController!.pauseVideo();
-      } else {
-        await _youtubeController!.playVideo();
-      }
-      setState(() => _isPlaying = !_isPlaying);
-    } else {
-      await _player.playOrPause();
-    }
+    await _player.playOrPause();
   }
 
   Future<void> _seek(Duration position) async {
@@ -324,9 +323,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
         _controlsHideTimer?.cancel();
       });
       _wasPlayingBeforeSeek = _isPlaying;
-      if (_youtubeController != null) {
-        if (_isPlaying) await _youtubeController!.pauseVideo();
-      } else if (_isPlaying) {
+      if (_isPlaying) {
         await _player.pause();
       }
     }
@@ -335,14 +332,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
     });
     widget.animationData.update(position.inMilliseconds / 1000.0);
     try {
-      if (_youtubeController != null) {
-        await _youtubeController!.seekTo(
-          seconds: position.inMilliseconds / 1000.0,
-          allowSeekAhead: true,
+      var seekPos = position;
+      if (widget.question?.startTime != null) {
+        seekPos += Duration(
+          milliseconds: (widget.question!.startTime! * 1000).round(),
         );
-      } else {
-        await _player.seek(position);
       }
+      await _player.seek(seekPos);
     } catch (e) {
       debugPrint('Seek hatası: $e');
     }
@@ -355,11 +351,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       });
       _startControlsHideTimer();
       if (_wasPlayingBeforeSeek) {
-        if (_youtubeController != null) {
-          _youtubeController!.playVideo();
-        } else {
-          _player.play();
-        }
+        _player.play();
         _wasPlayingBeforeSeek = false;
       }
     }
@@ -370,11 +362,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
     if (!_isSeeking) {
       _wasPlayingBeforeSeek = _isPlaying;
       if (_isPlaying) {
-        if (_youtubeController != null) {
-          _youtubeController!.pauseVideo();
-        } else {
-          _player.pause();
-        }
+        _player.pause();
       }
       setState(() => _isSeeking = true);
     }
@@ -390,11 +378,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       _playbackSpeed = speed;
       widget.animationData.setPlaybackSpeed(speed);
     });
-    if (_youtubeController != null) {
-      await _youtubeController!.setPlaybackRate(speed);
-    } else {
-      await _player.setRate(speed);
-    }
+    await _player.setRate(speed);
   }
 
   void _toggleLock() {
@@ -600,13 +584,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _animationTimer?.cancel();
     _controlsHideTimer?.cancel();
-    _youtubeController?.close();
     _player.dispose();
-    final transcriptionProvider = Provider.of<TranscriptionProvider>(
-      context,
-      listen: false,
-    );
-    transcriptionProvider.reset();
+    _transcriptionProvider?.reset(notify: false);
     super.dispose();
   }
 
@@ -626,8 +605,75 @@ class _PlayerScreenState extends State<PlayerScreen> {
           final isOpen = transcriptionProvider.isPanelOpen;
           final double panelSize = isPortrait ? 250.0 : 320.0;
           final Size screenSize = MediaQuery.of(context).size;
+          final bool isYoutubeVideo =
+              widget.animationData.videoUrl?.contains('googlevideo.com') ??
+              widget.animationData.videoUrl?.contains('youtube') ??
+              false;
           return Stack(
             children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: _toggleControls,
+                  onLongPressStart: !_isLocked
+                      ? (details) {
+                          _wasPlayingBeforeSeek = _isPlaying;
+                          if (_isPlaying) _player.pause();
+                          setState(() {
+                            _isSeeking = true;
+                            _lastLongPressX = details.globalPosition.dx;
+                          });
+                        }
+                      : null,
+                  onLongPressMoveUpdate: !_isLocked
+                      ? (details) {
+                          final delta =
+                              details.globalPosition.dx - _lastLongPressX!;
+                          _lastLongPressX = details.globalPosition.dx;
+                          final seekRatio =
+                              delta / MediaQuery.of(context).size.width;
+                          final seekDuration = Duration(
+                            milliseconds:
+                                (seekRatio * _totalDuration.inMilliseconds)
+                                    .round(),
+                          );
+                          _seek(_currentPosition + seekDuration);
+                        }
+                      : null,
+                  onLongPressEnd: !_isLocked
+                      ? (_) {
+                          _lastLongPressX = null;
+                          _onSeekEnd();
+                        }
+                      : null,
+                  onHorizontalDragStart: _isLocked
+                      ? (_) {
+                          _wasPlayingBeforeSeek = _isPlaying;
+                          if (_isPlaying) _player.pause();
+                          setState(() => _isSeeking = true);
+                        }
+                      : null,
+                  onHorizontalDragUpdate: _isLocked
+                      ? (details) {
+                          _onDragSeek(
+                            details.delta.dx,
+                            MediaQuery.of(context).size.width,
+                          );
+                        }
+                      : null,
+                  onHorizontalDragEnd: _isLocked ? (_) => _onSeekEnd() : null,
+                  child: Container(
+                    color: isDarkMode ? Colors.black : Colors.white,
+                    child: DrawingCanvas(
+                      key: _canvasKey,
+                      objects: widget.animationData.getActiveObjects(),
+                      animationData: widget.animationData,
+                      enableInteraction: !_isLocked,
+                      videoController: _videoController,
+                      isDarkMode: isDarkMode,
+                    ),
+                  ),
+                ),
+              ),
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeOutCubic,
@@ -637,74 +683,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 right: isPortrait ? 0 : (isOpen ? panelSize : 0),
                 child: Stack(
                   children: [
-                    Positioned.fill(
-                      child: GestureDetector(
-                        onTap: _toggleControls,
-                        onLongPressStart: !_isLocked
-                            ? (details) {
-                                _wasPlayingBeforeSeek = _isPlaying;
-                                if (_isPlaying) _player.pause();
-                                setState(() {
-                                  _isSeeking = true;
-                                  _lastLongPressX = details.globalPosition.dx;
-                                });
-                              }
-                            : null,
-                        onLongPressMoveUpdate: !_isLocked
-                            ? (details) {
-                                final delta =
-                                    details.globalPosition.dx -
-                                    _lastLongPressX!;
-                                _lastLongPressX = details.globalPosition.dx;
-                                final seekRatio =
-                                    delta / MediaQuery.of(context).size.width;
-                                final seekDuration = Duration(
-                                  milliseconds:
-                                      (seekRatio *
-                                              _totalDuration.inMilliseconds)
-                                          .round(),
-                                );
-                                _seek(_currentPosition + seekDuration);
-                              }
-                            : null,
-                        onLongPressEnd: !_isLocked
-                            ? (_) {
-                                _lastLongPressX = null;
-                                _onSeekEnd();
-                              }
-                            : null,
-                        onHorizontalDragStart: _isLocked
-                            ? (_) {
-                                _wasPlayingBeforeSeek = _isPlaying;
-                                if (_isPlaying) _player.pause();
-                                setState(() => _isSeeking = true);
-                              }
-                            : null,
-                        onHorizontalDragUpdate: _isLocked
-                            ? (details) {
-                                _onDragSeek(
-                                  details.delta.dx,
-                                  MediaQuery.of(context).size.width,
-                                );
-                              }
-                            : null,
-                        onHorizontalDragEnd: _isLocked
-                            ? (_) => _onSeekEnd()
-                            : null,
-                        child: Container(
-                          color: isDarkMode ? Colors.black : Colors.white,
-                          child: DrawingCanvas(
-                            key: _canvasKey,
-                            objects: widget.animationData.getActiveObjects(),
-                            animationData: widget.animationData,
-                            enableInteraction: !_isLocked,
-                            videoController: _videoController,
-                            // youtubeController: _youtubeController,
-                            isDarkMode: isDarkMode,
-                          ),
-                        ),
-                      ),
-                    ),
                     Positioned(
                       top: 40,
                       left: 16,
@@ -767,77 +745,79 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ],
                 ),
               ),
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutCubic,
-                top: isPortrait ? (isOpen ? 0 : -panelSize) : 0,
-                bottom: isPortrait ? null : 0,
-                left: isPortrait ? 0 : null,
-                right: isPortrait ? 0 : (isOpen ? 0 : -panelSize),
-                height: isPortrait ? panelSize : null,
-                width: isPortrait ? null : panelSize,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    boxShadow: [
-                      if (isOpen)
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 10,
-                          offset: isPortrait
-                              ? const Offset(0, 4)
-                              : const Offset(-4, 0),
-                        ),
-                    ],
-                  ),
-                  child: _buildTranscriptionContent(transcriptionProvider),
-                ),
-              ),
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutCubic,
-                left: isPortrait ? (screenSize.width / 2 - 30) : null,
-                top: isPortrait ? (isOpen ? panelSize : 0) : null,
-                right: isPortrait ? null : (isOpen ? panelSize : 0),
-                bottom: isPortrait ? null : (screenSize.height / 2 - 30),
-                child: GestureDetector(
-                  onTap: () => _toggleTranscription(transcriptionProvider),
+              if (!isYoutubeVideo)
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  top: isPortrait ? (isOpen ? 0 : -panelSize) : 0,
+                  bottom: isPortrait ? null : 0,
+                  left: isPortrait ? 0 : null,
+                  right: isPortrait ? 0 : (isOpen ? 0 : -panelSize),
+                  height: isPortrait ? panelSize : null,
+                  width: isPortrait ? null : panelSize,
                   child: Container(
-                    width: isPortrait ? 60 : 36,
-                    height: isPortrait ? 30 : 60,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor.withOpacity(0.85),
-                      borderRadius: isPortrait
-                          ? const BorderRadius.vertical(
-                              bottom: Radius.circular(16),
-                            )
-                          : const BorderRadius.horizontal(
-                              left: Radius.circular(16),
-                            ),
+                      color: Theme.of(context).cardColor,
                       boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 4,
-                          offset: isPortrait
-                              ? const Offset(0, 2)
-                              : const Offset(-2, 0),
-                        ),
+                        if (isOpen)
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 10,
+                            offset: isPortrait
+                                ? const Offset(0, 4)
+                                : const Offset(-4, 0),
+                          ),
                       ],
                     ),
-                    child: Icon(
-                      isPortrait
-                          ? (isOpen
-                                ? Icons.keyboard_arrow_up
-                                : Icons.keyboard_arrow_down)
-                          : (isOpen
-                                ? Icons.keyboard_arrow_right
-                                : Icons.keyboard_arrow_left),
-                      color: Theme.of(context).colorScheme.onSurface,
-                      size: 24,
+                    child: _buildTranscriptionContent(transcriptionProvider),
+                  ),
+                ),
+              if (!isYoutubeVideo)
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  left: isPortrait ? (screenSize.width / 2 - 30) : null,
+                  top: isPortrait ? (isOpen ? panelSize : 0) : null,
+                  right: isPortrait ? null : (isOpen ? panelSize : 0),
+                  bottom: isPortrait ? null : (screenSize.height / 2 - 30),
+                  child: GestureDetector(
+                    onTap: () => _toggleTranscription(transcriptionProvider),
+                    child: Container(
+                      width: isPortrait ? 60 : 36,
+                      height: isPortrait ? 30 : 60,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor.withOpacity(0.85),
+                        borderRadius: isPortrait
+                            ? const BorderRadius.vertical(
+                                bottom: Radius.circular(16),
+                              )
+                            : const BorderRadius.horizontal(
+                                left: Radius.circular(16),
+                              ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 4,
+                            offset: isPortrait
+                                ? const Offset(0, 2)
+                                : const Offset(-2, 0),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        isPortrait
+                            ? (isOpen
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down)
+                            : (isOpen
+                                  ? Icons.keyboard_arrow_right
+                                  : Icons.keyboard_arrow_left),
+                        color: Theme.of(context).colorScheme.onSurface,
+                        size: 24,
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           );
         },

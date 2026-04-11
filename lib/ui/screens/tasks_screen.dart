@@ -464,10 +464,10 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  void _showAddTaskDialog(BuildContext context) {
-    final int currentDay = DefaultTabController.of(context).index;
-    _showQuickAddDialog(context, currentDay, 'DERS');
-  }
+  // void showAddTaskDialog(BuildContext context) {
+  //   final int currentDay = DefaultTabController.of(context).index;
+  //   _showQuickAddDialog(context, currentDay, 'DERS');
+  // }
 
   Widget _buildFooterQuote(BuildContext context) {
     final theme = Theme.of(context);

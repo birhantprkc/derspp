@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
@@ -38,26 +37,25 @@ class TranscriptionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void cancelAndClear() {
+  void cancelAndClear({bool notify = true}) {
     _isCancelled = true;
     _isProcessing = false;
     _transcriptionText = "";
     _subtitles = [];
-    notifyListeners();
+    if (notify) notifyListeners();
   }
 
-  void reset() {
+  void reset({bool notify = true}) {
     _isPanelOpen = false;
-    cancelAndClear();
+    cancelAndClear(notify: notify);
   }
 
   Future<void> processTranscription(String mediaUrl) async {
     if (_isProcessing) return;
 
     _isCancelled = false;
-
     _isProcessing = true;
-    _transcriptionText = "Ses ayıklanıyor...";
+    _transcriptionText = "Altyazılar getiriliyor...";
     _subtitles = [];
     notifyListeners();
 

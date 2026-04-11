@@ -8,6 +8,7 @@ import '../../database/database.dart';
 import '../../services/download_service.dart';
 import '../../services/source_factory.dart';
 import '../../services/f2_source_service.dart';
+import '../../services/youtube_source_service.dart';
 import '../../models/animation_model.dart';
 import '../../models/source_item.dart';
 import '../widgets/activity_heatmap.dart';
@@ -603,10 +604,21 @@ class _ReviewScreenState extends State<ReviewScreen> {
           question.videoUrl != null &&
           (question.videoUrl!.contains('youtube.com') ||
               question.videoUrl!.contains('youtu.be'))) {
+        String? finalVideoUrl = question.videoUrl;
+
+        if (sourceService is YoutubeSourceService) {
+          final streamUrl = await (sourceService).resolveStreamUrl(
+            finalVideoUrl!,
+          );
+          if (streamUrl != null) {
+            finalVideoUrl = streamUrl;
+          }
+        }
+
         animationData = AnimationModel(
           objects: [],
           totalDuration: Duration.zero,
-          videoUrl: question.videoUrl,
+          videoUrl: finalVideoUrl,
           canvasWidth: 1920,
           canvasHeight: 1080,
           pdfDefaultScale: 1.0,

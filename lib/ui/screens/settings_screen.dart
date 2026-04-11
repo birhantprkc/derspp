@@ -498,8 +498,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final zipEncoder = ZipEncoder();
       final zipData = zipEncoder.encode(archive);
 
-      if (zipData == null) throw Exception('Zip oluşturulamadı');
-
       String? outputFile = await FilePicker.platform.saveFile(
         dialogTitle: 'Kitapları Dışa Aktar',
         fileName: 'books_backup.zip',

@@ -185,6 +185,10 @@ class SourceProvider extends ChangeNotifier {
 
   Future<void> onItemTap(SourceItem item) async {
     if (item.isParent) {
+      if (_currentSourceType == 'youtube' && _navigationStack.isNotEmpty) {
+        await loadTestContent(item);
+        return;
+      }
       _navigationStack.add(item);
       notifyListeners();
       await loadCategory(item.id);

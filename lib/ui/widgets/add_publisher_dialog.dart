@@ -35,6 +35,12 @@ class _AddPublisherDialogState extends State<AddPublisherDialog> {
   ) async {
     try {
       final sourceService = SourceFactory.getSourceService(sourceType);
+
+      if (sourceType == 'youtube') {
+        final items = await sourceService.fetchSourceList(id, apiUrl);
+        return items.isNotEmpty;
+      }
+
       final items = await sourceService.fetchSourceList(id, apiUrl);
       return items.isNotEmpty;
     } catch (e) {
@@ -79,6 +85,13 @@ class _AddPublisherDialogState extends State<AddPublisherDialog> {
           selectedSourceType,
         );
         final info = await sourceService.discoverPublisherInfo(url);
+
+        if (info['type'] == 'youtube') {
+          setState(() {
+            selectedSourceType = 'youtube';
+          });
+        }
+
         apiUrl = info['apiUrl'] ?? url;
         if (!apiUrl.startsWith('http')) apiUrl = 'https://$apiUrl';
 
