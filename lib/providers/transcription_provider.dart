@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io';
 import 'dart:convert';
-import 'package:flutter_ffmpeg_kit_full/ffmpeg_kit.dart';
-import 'package:flutter_ffmpeg_kit_full/return_code.dart';
-import 'package:flutter_ffmpeg_kit_full/session_state.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:audio_decoder/audio_decoder.dart';
 
 class SubtitleChunk {
   final double startTime;
@@ -45,7 +43,6 @@ class TranscriptionProvider with ChangeNotifier {
     _isProcessing = false;
     _transcriptionText = "";
     _subtitles = [];
-    FFmpegKit.cancel();
     notifyListeners();
   }
 
@@ -59,34 +56,41 @@ class TranscriptionProvider with ChangeNotifier {
 
     _isCancelled = false;
 
-    if (kIsWeb) {
-      _transcriptionText =
-          "Webde ffmeg şuanlık desteklenmediğinden dolayı transkripsiyn kullanılamamaktadır. Lütfen native uygulamayı kullanın.";
-      notifyListeners();
-      return;
-    }
-
     _isProcessing = true;
     _transcriptionText = "Ses ayıklanıyor...";
     _subtitles = [];
     notifyListeners();
 
     try {
-      final chunkPaths = await _extractAndChunkAudioToFlac(mediaUrl);
-
+      final result = await _extractAudio(mediaUrl);
       if (_isCancelled) return;
 
+      final chunkPaths = result["paths"] as List<String>;
+      final splitPoints = result["points"] as List<double>;
+      final actualRate = result["rate"] as int;
+      final totalLen = result["totalLen"] as double;
+      final originalFilePath = result["originalFilePath"] as String;
+      final originalFile = File(originalFilePath);
       if (chunkPaths.isNotEmpty) {
-        _transcriptionText = "Çevriliyor...";
+        _transcriptionText = "Parçalara ayrıldı \nSunucuya gönderiliyor.";
         notifyListeners();
 
-        await _processChunksWithGoogleV2(chunkPaths);
+        await _processChunksWithGoogleV2(
+          chunkPaths,
+          splitPoints,
+          actualRate,
+          totalLen,
+        );
 
         for (var path in chunkPaths) {
           final tempFile = File(path);
           if (await tempFile.exists()) {
             await tempFile.delete();
           }
+        }
+
+        if (await originalFile.exists()) {
+          await originalFile.delete();
         }
       } else {
         if (!_isCancelled) {
@@ -105,106 +109,95 @@ class TranscriptionProvider with ChangeNotifier {
     }
   }
 
-  Future<List<String>> _extractAndChunkAudioToFlac(String mediaUrl) async {
-    final directory = await getTemporaryDirectory();
-    final outputPattern =
-        '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}_%03d.flac';
+  Future<Map<String, dynamic>> _extractAudio(String mediaUrl) async {
+    final tempDirectory = await getTemporaryDirectory();
+    final originalFileName = Uri.parse(mediaUrl).pathSegments.last;
+    final originalfilePath = "${tempDirectory.path}/$originalFileName";
 
-    final List<String> ffmpegArgs = [
-      '-y',
-      '-i',
-      mediaUrl,
-      '-vn',
-      '-af',
-      'adelay=500|500,apad=pad_dur=0.5',
-      '-acodec',
-      'flac',
-      '-ar',
-      '48000',
-      '-ac',
-      '1',
-      '-f',
-      'segment',
-      '-segment_time',
-      '10',
-      outputPattern,
-    ];
-
-    try {
-      if (Platform.isAndroid || Platform.isIOS) {
-        final command = ffmpegArgs
-            .map((a) => a.contains('http') ? '"$a"' : a)
-            .join(' ');
-
-        final session = await FFmpegKit.executeAsync(command);
-
-        while (!await session.getState().then(
-          (state) =>
-              state == SessionState.completed || state == SessionState.failed,
-        )) {
-          if (_isCancelled) {
-            await FFmpegKit.cancel();
-            return [];
-          }
-          await Future.delayed(const Duration(milliseconds: 500));
-        }
-
-        final returnCode = await session.getReturnCode();
-        if (ReturnCode.isSuccess(returnCode)) {
-          return _getGeneratedChunks(directory.path, outputPattern);
-        }
-      } else if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
-        final result = await Process.run('ffmpeg', ffmpegArgs);
-        if (result.exitCode == 0) {
-          return _getGeneratedChunks(directory.path, outputPattern);
-        }
-      }
-    } catch (e) {
-      debugPrint('Ffmpeg hatasi: $e');
+    final response = await http.get(Uri.parse(mediaUrl));
+    if (response.statusCode == 200) {
+      final file = File(originalfilePath);
+      await file.writeAsBytes(response.bodyBytes);
     }
 
-    return [];
-  }
+    final audioInfo = await AudioDecoder.getAudioInfo(originalfilePath);
+    final int actualRate = audioInfo.sampleRate;
+    final double audiolength = audioInfo.duration.inMilliseconds / 1000.0;
+    final audioWaveForm = await AudioDecoder.getWaveform(
+      originalfilePath,
+      numberOfSamples: (audiolength * 10).toInt(),
+    );
+    int thresholdCounter = 0;
+    double lastSplitTime = 0;
+    List<double> splitPoints = [0.0];
+    List<String> chunkPaths = [];
+    for (int i = 0; i < audioWaveForm.length; i++) {
+      double currentTime = i / 10;
 
-  List<String> _getGeneratedChunks(String dirPath, String pattern) {
-    final basePrefix = pattern.split('_%03d.flac').first;
-    final dir = Directory(dirPath);
-    final List<String> chunkPaths = [];
-
-    if (dir.existsSync()) {
-      final files = dir.listSync().whereType<File>().toList();
-      files.sort((a, b) => a.path.compareTo(b.path));
-
-      for (var file in files) {
-        if (file.path.startsWith(basePrefix) && file.path.endsWith('.flac')) {
-          chunkPaths.add(file.path);
+      if (thresholdCounter < 4) {
+        if (currentTime - lastSplitTime >= 3 && audioWaveForm[i] < 0.1) {
+          thresholdCounter++;
+        } else {
+          thresholdCounter = 0;
         }
+      } else if (lastSplitTime > 20) {
+        splitPoints.add(currentTime);
+        lastSplitTime = currentTime;
+        thresholdCounter = 0;
+      } else {
+        lastSplitTime = currentTime;
+        splitPoints.add(currentTime);
+        thresholdCounter = 0;
       }
     }
-    return chunkPaths;
+
+    for (int i = 0; i < splitPoints.length; i++) {
+      int start = (splitPoints[i] * 1000).toInt();
+      double end = (i == splitPoints.length - 1)
+          ? audiolength
+          : splitPoints[i + 1];
+
+      await AudioDecoder.trimAudio(
+        originalfilePath,
+        '${tempDirectory.path}/clip_${i}.wav',
+        Duration(milliseconds: start),
+        Duration(milliseconds: (end * 1000).toInt()),
+      );
+      chunkPaths.add("${tempDirectory.path}/clip_${i}.wav");
+    }
+
+    return {
+      "originalFilePath": originalfilePath,
+      "paths": chunkPaths,
+      "points": splitPoints,
+      "rate": actualRate,
+      "totalLen": audiolength,
+    };
   }
 
-  Future<void> _processChunksWithGoogleV2(List<String> chunkPaths) async {
-    final int rate = 48000;
+  Future<void> _processChunksWithGoogleV2(
+    List<String> chunkPaths,
+    List<double> splitPoints,
+    int rate,
+    double totalLen,
+  ) async {
     final String language = "tr";
 
     final url = Uri.parse(
       "http://www.google.com/speech-api/v2/recognize?client=chromium&lang=$language&key=$_apiKey",
     );
 
-    final double chunkDuration = 10.0;
     List<Future<void>> futures = [];
 
     for (int i = 0; i < chunkPaths.length; i++) {
-      double currentStartTime = i * chunkDuration;
+      double start = splitPoints[i];
+      double end = (i == splitPoints.length - 1)
+          ? totalLen
+          : splitPoints[i + 1];
+      double duration = end - start;
+
       futures.add(
-        _processSingleChunk(
-          chunkPaths[i],
-          currentStartTime,
-          chunkDuration,
-          url,
-          rate,
-        ),
+        _processSingleChunk(chunkPaths[i], start, duration, url, rate),
       );
     }
 
@@ -232,8 +225,8 @@ class TranscriptionProvider with ChangeNotifier {
 
       final response = await http.post(
         url,
-        headers: {"Content-Type": "audio/x-flac; rate=$rate"},
-        body: bytes,
+        headers: {"Content-Type": "audio/l16; rate=$rate"},
+        body: bytes.length > 44 ? bytes.sublist(44) : bytes,
       );
 
       if (_isCancelled) return;
@@ -264,13 +257,25 @@ class TranscriptionProvider with ChangeNotifier {
       }
 
       if (foundTranscript && chunkText.isNotEmpty && !_isCancelled) {
-        _subtitles.add(
-          SubtitleChunk(
+        int existingIndex = _subtitles.indexWhere(
+          (s) => s.startTime == startTime,
+        );
+
+        if (existingIndex != -1) {
+          _subtitles[existingIndex] = SubtitleChunk(
             startTime: startTime,
             endTime: startTime + duration,
             text: chunkText.trim(),
-          ),
-        );
+          );
+        } else {
+          _subtitles.add(
+            SubtitleChunk(
+              startTime: startTime,
+              endTime: startTime + duration,
+              text: chunkText.trim(),
+            ),
+          );
+        }
 
         _subtitles.sort((a, b) => a.startTime.compareTo(b.startTime));
         _transcriptionText = _subtitles.map((chunk) => chunk.text).join(' ');

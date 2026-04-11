@@ -88,23 +88,22 @@ class FSourceService implements SourceService {
     }
 
     if (discoveredId == null) {
-      discoveredId = '2';
+      discoveredId = '1';
     }
+    try {
+      final uri = Uri.parse(url);
+      final cleanedHost = uri.host.replaceAll('video', '');
+      final cleanedPath = uri.path
+          .replaceAll('video', '')
+          .replaceAll('//', '/');
 
-    if (discoveredApiUrl == null) {
-      try {
-        final uri = Uri.parse(url);
-        final cleanedHost = uri.host.replaceAll('video', '');
-        final cleanedPath = uri.path
-            .replaceAll('video', '')
-            .replaceAll('//', '/');
-
-        discoveredApiUrl =
-            '${uri.scheme}://$cleanedHost${cleanedPath.endsWith('/') ? cleanedPath : '$cleanedPath/'}mobile_solved/mobile_watch.php';
-      } catch (e) {
-        debugPrint('Default api url oluşturulamadı: $e');
-      }
+      discoveredApiUrl =
+          '${uri.scheme}://$cleanedHost${cleanedPath.endsWith('/') ? cleanedPath : '$cleanedPath/'}mobile_solved/mobile_watch.php';
+      debugPrint(discoveredApiUrl);
+    } catch (e) {
+      debugPrint('Default api url oluşturulamadı: $e');
     }
+    if (discoveredApiUrl == null) {}
 
     return {'id': discoveredId, 'apiUrl': discoveredApiUrl};
   }

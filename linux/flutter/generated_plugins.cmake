@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  audio_decoder
   dynamic_color
   file_selector_linux
   media_kit_libs_linux
@@ -14,6 +15,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  jni
   pdfium_flutter
 )
 

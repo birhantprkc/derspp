@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+// import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../database/database.dart';
 import '../../models/animation_model.dart';
 import '../../models/question.dart';
@@ -42,7 +42,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Timer? _animationTimer;
   late final Player _player;
   VideoController? _videoController;
-  YoutubePlayerController? _youtubeController;
+  dynamic get _youtubeController =>
+      null; //YoutubePlayerController? _youtubeController;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
   bool _isPlaying = false;
@@ -151,25 +152,25 @@ class _PlayerScreenState extends State<PlayerScreen> {
         (defaultTargetPlatform == TargetPlatform.linux ||
             defaultTargetPlatform == TargetPlatform.windows ||
             defaultTargetPlatform == TargetPlatform.macOS);
-    String? ytId = YoutubePlayerController.convertUrlToId(url);
-    if (ytId != null && !isDesktop) {
-      debugPrint('Youtube videosu algılandı: $ytId');
-      _youtubeController = YoutubePlayerController.fromVideoId(
-        videoId: ytId,
-        autoPlay: true,
-        params: const YoutubePlayerParams(
-          showControls: true,
-          showFullscreenButton: true,
-          strictRelatedVideos: false,
-        ),
-      );
-      widget.animationData.canvasWidth = 1920;
-      widget.animationData.canvasHeight = 1080;
-      if (mounted) {
-        setState(() {});
-      }
-      return;
-    }
+    // String? ytId = YoutubePlayerController.convertUrlToId(url);
+    // if (ytId != null && !isDesktop) {
+    //   debugPrint('Youtube videosu algılandı: $ytId');
+    //   _youtubeController = YoutubePlayerController.fromVideoId(
+    //     videoId: ytId,
+    //     autoPlay: true,
+    //     params: const YoutubePlayerParams(
+    //       showControls: true,
+    //       showFullscreenButton: true,
+    //       strictRelatedVideos: false,
+    //     ),
+    //   );
+    //   widget.animationData.canvasWidth = 1920;
+    //   widget.animationData.canvasHeight = 1080;
+    //   if (mounted) {
+    //     setState(() {});
+    //   }
+    //   return;
+    // }
     try {
       _videoController = VideoController(_player);
       await _player.open(Media(url));
@@ -698,7 +699,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             animationData: widget.animationData,
                             enableInteraction: !_isLocked,
                             videoController: _videoController,
-                            youtubeController: _youtubeController,
+                            // youtubeController: _youtubeController,
                             isDarkMode: isDarkMode,
                           ),
                         ),

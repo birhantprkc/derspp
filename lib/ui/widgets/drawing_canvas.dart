@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+// import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../models/drawing_element.dart';
 import 'drawing_painter.dart';
 import '../../models/animation_model.dart';
@@ -13,7 +13,7 @@ class DrawingCanvas extends StatefulWidget {
   final AnimationModel animationData;
   final bool enableInteraction;
   final VideoController? videoController;
-  final YoutubePlayerController? youtubeController;
+  // final YoutubePlayerController? youtubeController;
   final bool isDarkMode;
 
   const DrawingCanvas({
@@ -22,7 +22,7 @@ class DrawingCanvas extends StatefulWidget {
     required this.animationData,
     this.enableInteraction = true,
     this.videoController,
-    this.youtubeController,
+    // this.youtubeController,
     this.isDarkMode = false,
   });
 
@@ -265,16 +265,16 @@ class DrawingCanvasState extends State<DrawingCanvas> {
                         fit: BoxFit.fill,
                       ),
                     ),
-                  if (widget.youtubeController != null)
-                    Positioned.fill(
-                      child: YoutubePlayer(
-                        controller: widget.youtubeController!,
-                        aspectRatio:
-                            widget.animationData.canvasWidth /
-                            widget.animationData.canvasHeight,
-                      ),
-                    ),
 
+                  // if (widget.youtubeController != null)
+                  //   Positioned.fill(
+                  //     child: YoutubePlayer(
+                  //       controller: widget.youtubeController!,
+                  //       aspectRatio:
+                  //           widget.animationData.canvasWidth /
+                  //           widget.animationData.canvasHeight,
+                  //     ),
+                  //   ),
                   Builder(
                     builder: (context) {
                       Widget paint = CustomPaint(

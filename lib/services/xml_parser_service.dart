@@ -52,7 +52,6 @@ class XmlParserService {
     for (var element in document.findAllElements('obj')) {
       try {
         var type = element.getAttribute('act') ?? '';
-        // XML'de 'rect' olarak gelen tipi 'rectangle' olarak normalize et
         if (type == 'rect') type = 'rectangle';
         final startTime = pD(element.getAttribute('t1')) / 1000;
         final duration = pD(element.getAttribute('t2')) / 1000;
@@ -64,8 +63,6 @@ class XmlParserService {
         Rect? rect;
         String? imageObjectId;
 
-        // JS orijinaline uygun: line, eraser, arrow, triangle, rectangle
-        // hepsi <po> (points) kullanır. Sadece circle <rect> kullanır.
         if (type == 'line' ||
             type == 'eraser' ||
             type == 'arrow' ||
