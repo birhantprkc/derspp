@@ -4,9 +4,13 @@ import '../models/book_content.dart';
 import '../models/question.dart';
 import '../models/source_item.dart';
 import 'source_service.dart';
+import 'cors_proxy_service.dart';
 
 class F2SourceService implements SourceService {
   final http.Client _client = http.Client();
+
+  Uri _proxied(String url) =>
+      Uri.parse(CorsProxyService.instance.wrapUrlString(url));
   String? _lastCacheKey;
   String? _cachedHtml;
   String _normalizeBaseUrl(String url) {
@@ -34,7 +38,7 @@ class F2SourceService implements SourceService {
 
     final solutionUrl =
         '$normalizedBaseUrl/ShowSolution?testQuestionId=$questionId';
-    final response = await _client.get(Uri.parse(solutionUrl));
+    final response = await _client.get(_proxied(solutionUrl));
     if (response.statusCode != 200) {
       throw Exception('Failed to load solution: ${response.statusCode}');
     }
@@ -74,7 +78,7 @@ class F2SourceService implements SourceService {
       url = '$normalizedBaseUrl/ClassList';
     }
 
-    final response = await _client.get(Uri.parse(url));
+    final response = await _client.get(_proxied(url));
     if (response.statusCode != 200) {
       throw Exception('Failed to load: ${response.statusCode}');
     }
@@ -194,7 +198,7 @@ class F2SourceService implements SourceService {
     final match = RegExp(r'data-xaml="([^"]+)"').firstMatch(html);
     if (match != null) {
       final xamlUrl = match.group(1)!;
-      final xamlResponse = await _client.get(Uri.parse(xamlUrl));
+      final xamlResponse = await _client.get(_proxied(xamlUrl));
       if (xamlResponse.statusCode == 200) return xamlResponse.body;
     }
 

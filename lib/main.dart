@@ -16,6 +16,7 @@ import 'providers/transcription_provider.dart';
 import 'database/database.dart';
 import 'ui/navi_bar.dart';
 
+import 'services/cors_proxy_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
@@ -43,6 +44,7 @@ Future<void> main() async {
   MediaKit.ensureInitialized();
 
   final database = AppDatabase();
+  await CorsProxyService.instance.init(database);
 
   runApp(
     MultiProvider(

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_io/io.dart' as io;
@@ -21,6 +22,16 @@ class PlatformImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (kIsWeb) {
+      if (path.startsWith('data:image')) {
+        final base64String = path.split(',').last;
+        return Image.memory(
+          base64Decode(base64String),
+          fit: fit,
+          errorBuilder: errorBuilder,
+          width: width,
+          height: height,
+        );
+      }
       if (path.startsWith('http')) {
         return Image.network(
           path,

@@ -50,7 +50,10 @@ class TranscriptionProvider with ChangeNotifier {
     cancelAndClear(notify: notify);
   }
 
-  Future<void> processTranscription(String mediaUrl) async {
+  Future<void> processTranscription(
+    String mediaUrl, {
+    bool sendAsChunks = true,
+  }) async {
     if (_isProcessing) return;
 
     _isCancelled = false;
@@ -60,7 +63,7 @@ class TranscriptionProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _extractAudio(mediaUrl);
+      final result = await _extractAudio(mediaUrl, sendAsChunks: sendAsChunks);
       if (_isCancelled) return;
 
       final chunkPaths = result["paths"] as List<String>;
@@ -107,7 +110,10 @@ class TranscriptionProvider with ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>> _extractAudio(String mediaUrl) async {
+  Future<Map<String, dynamic>> _extractAudio(
+    String mediaUrl, {
+    bool sendAsChunks = true,
+  }) async {
     final tempDirectory = await getTemporaryDirectory();
     final originalFileName = Uri.parse(mediaUrl).pathSegments.last;
     final originalfilePath = "${tempDirectory.path}/$originalFileName";
@@ -117,52 +123,108 @@ class TranscriptionProvider with ChangeNotifier {
       final file = File(originalfilePath);
       await file.writeAsBytes(response.bodyBytes);
     }
+    debugPrint("Dosya indirildi");
 
     final audioInfo = await AudioDecoder.getAudioInfo(originalfilePath);
     final int actualRate = audioInfo.sampleRate;
     final double audiolength = audioInfo.duration.inMilliseconds / 1000.0;
-    final audioWaveForm = await AudioDecoder.getWaveform(
-      originalfilePath,
-      numberOfSamples: (audiolength * 10).toInt(),
-    );
+    debugPrint("AudioInfo: rate=$actualRate, length=$audiolength");
+
+    final double segmentSize = 60.0;
+    List<double> fullWaveForm = [];
+    int segmentIndex = 0;
+
+    double segStart = 0.0;
+    while (segStart < audiolength) {
+      final double segEnd = (segStart + segmentSize).clamp(0.0, audiolength);
+      final double segDuration = segEnd - segStart;
+
+      final String tempSegPath =
+          '${tempDirectory.path}/temp_seg_$segmentIndex.wav';
+
+      await AudioDecoder.trimAudio(
+        originalfilePath,
+        tempSegPath,
+        Duration(milliseconds: (segStart * 1000).toInt()),
+        Duration(milliseconds: (segEnd * 1000).toInt()),
+      );
+
+      final int sampleCount = (segDuration * 10).toInt();
+      final segWaveForm = await AudioDecoder.getWaveform(
+        tempSegPath,
+        numberOfSamples: sampleCount,
+      );
+
+      fullWaveForm.addAll(segWaveForm);
+
+      final tempSeg = File(tempSegPath);
+      if (await tempSeg.exists()) await tempSeg.delete();
+
+      segStart += segmentSize;
+      segmentIndex++;
+    }
+    debugPrint("Waveform birleştirildi: ${fullWaveForm.length} örnek");
+
     int thresholdCounter = 0;
     double lastSplitTime = 0;
     List<double> splitPoints = [0.0];
     List<String> chunkPaths = [];
-    for (int i = 0; i < audioWaveForm.length; i++) {
-      double currentTime = i / 10;
 
-      if (thresholdCounter < 4) {
-        if (currentTime - lastSplitTime >= 3 && audioWaveForm[i] < 0.1) {
-          thresholdCounter++;
+    if (sendAsChunks) {
+      for (int i = 0; i < fullWaveForm.length; i++) {
+        double currentTime = i / 10.0;
+
+        if (thresholdCounter < 4) {
+          if (currentTime - lastSplitTime >= 3 && fullWaveForm[i] < 0.1) {
+            thresholdCounter++;
+          } else {
+            thresholdCounter = 0;
+          }
+        } else if (currentTime - lastSplitTime > 20) {
+          splitPoints.add(currentTime);
+          lastSplitTime = currentTime;
+          thresholdCounter = 0;
         } else {
+          lastSplitTime = currentTime;
+          splitPoints.add(currentTime);
           thresholdCounter = 0;
         }
-      } else if (lastSplitTime > 20) {
-        splitPoints.add(currentTime);
-        lastSplitTime = currentTime;
-        thresholdCounter = 0;
-      } else {
-        lastSplitTime = currentTime;
-        splitPoints.add(currentTime);
-        thresholdCounter = 0;
       }
+    } else {
+      debugPrint("Parçalama kapalı, tek dosya olarak ayıklanıyor...");
     }
 
+    debugPrint("Split noktaları: $splitPoints");
+
     for (int i = 0; i < splitPoints.length; i++) {
-      int start = (splitPoints[i] * 1000).toInt();
-      double end = (i == splitPoints.length - 1)
+      final double startSec = splitPoints[i];
+      final double endSec = (i == splitPoints.length - 1)
           ? audiolength
           : splitPoints[i + 1];
 
+      if (endSec <= startSec) {
+        debugPrint("Clip $i atlandı: geçersiz aralık ($startSec → $endSec)");
+        continue;
+      }
+
+      final int startMs = (startSec * 1000).toInt();
+      final int endMs = (endSec * 1000).toInt().clamp(
+        0,
+        (audiolength * 1000).toInt(),
+      );
+      final String outPath = '${tempDirectory.path}/clip_$i.wav';
+
+      debugPrint("Clip $i: $startMs ms → $endMs ms");
       await AudioDecoder.trimAudio(
         originalfilePath,
-        '${tempDirectory.path}/clip_${i}.wav',
-        Duration(milliseconds: start),
-        Duration(milliseconds: (end * 1000).toInt()),
+        outPath,
+        Duration(milliseconds: startMs),
+        Duration(milliseconds: endMs),
       );
-      chunkPaths.add("${tempDirectory.path}/clip_${i}.wav");
+      chunkPaths.add(outPath);
     }
+
+    debugPrint("${chunkPaths.length} clip oluşturuldu");
 
     return {
       "originalFilePath": originalfilePath,

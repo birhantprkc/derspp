@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:universal_io/io.dart' as io;
 
@@ -72,8 +73,7 @@ class BookProvider extends ChangeNotifier {
     String? oldPath,
   }) async {
     if (kIsWeb) {
-      debugPrint('Webde kapak resmi desteklenmiyor');
-      return '';
+      return 'data:image/png;base64,${base64Encode(imageBytes)}';
     }
     try {
       if (oldPath != null) {

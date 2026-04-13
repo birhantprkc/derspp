@@ -1,17 +1,27 @@
-# Derspp
-
-Derspp, Flutter ile geliştirilmiş, eğitim içeriklerini merkezi bir yapıda toplayan ve vektörlü video başta olmak üzere video çözüm oynatma özelliklerine sahip açık kaynaklı bir uygulamadır. Uygulama başta farklı kaynaklardan gelen eğitim materyallerini organize etmek amacı ile yapılmış olsa da öğrencilerin işine yarayabilecek bir çok özellik barındırmaktadır.
+<div align="center">
+    <img alt="Icon" src="screenshots/derspp-logo-circle.png" width="200px" />
+    <h1><b>derspp</b></h1>
+    <p>
+        <a href="https://github.com/navidicted/derspp/blob/main/LICENSE"><img src="https://custom-icon-badges.demolab.com/badge/license-AGPL--3.0-teal" alt="License"></a>
+        <a href="https://github.com/navidicted/derspp/stargazers"><img src="https://custom-icon-badges.demolab.com/github/stars/navidicted/derspp?style=flat&logo=star&color=teal" alt="Stars"></a>
+        <img src="https://img.shields.io/badge/larp-forever-teal" alt="larp"></a>
+    </p>
+    <p>
+        <a href="docs/usage.md"><b>Dokümantasyon</b></a> •
+        <a href="docs/installation.md"><b>Kurulum</b></a> •
+        <a href="#özellikler"><b>Özellikler</b></a> •
+        <a href="#ekran-görüntüleri"><b>Ekran Görüntüleri</b></a>
+    </p>
+</div>
+Derspp, flutter ile geliştirilen; kullanıcıların soru çözüm oynatma, soru çözümlerini kaydetme, kaydedilen soruları aralıklı tekrarlama, görev listesi hazırlama imkanı sunan bir uygulamadır.
 
 ## Özellikler
 
-- Çoklu platform desteği.
-- Çoklu yayıncı entegrasyonu ve kişisel kütüphane yönetimi.
-- Vektör tabanlı animasyon ve senkronize çizim oynatma motoru.
-- MP4 ve vektörel formatlı soru çözüm desteği.
-- Gelişmiş rutin ve görev planlama sistemi.
+- Nerdeyeyse tüm yayınlar için soru çözümü oynatma desteği.
+- Rutin ve görev planlama sistemi.
 - Çalışma performansını gösteren görsel aktivite haritası.
-- Kaydedilen sorular için arşiv ve aralıklı tekrar inceleme arayüzü.
-- Karanlık ve aydınlık mod desteği.
+- Soru kaydetme özelliği ve aralıklı tekrarlama sistemi.
+- Oynatıcı karanlık ve aydınlık mod desteği.
 
 ## Ekran Görüntüleri
 
@@ -20,27 +30,20 @@ Derspp, Flutter ile geliştirilmiş, eğitim içeriklerini merkezi bir yapıda t
 | <img src="screenshots/kutuphane.jpeg" width="250"> | <img src="screenshots/yayinlar.jpeg" width="250"> | <img src="screenshots/planlama.jpeg" width="250"> |
 | <img src="screenshots/kaydedilenler.jpeg" width="250"> | <img src="screenshots/ayarlar.jpeg" width="250"> | |
 
-## Proje Yapısı
-
-- lib/database/: Yerel veri depolama ve senkronizasyon işlemlerini yönetir.
-- lib/models/: İçerik, soru ve çizim öğeleri için yapılandırılmış veri modellerini içerir.
-- lib/providers/: Kütüphane verileri, görevler ve temalar için durum yönetimi (state management) mantığını barındırır.
-- lib/services/: Ağ işlemleri, XML işleme ve içerik keşfi için temel mantığı sağlar.
-- lib/ui/: Modüler ekran uygulamaları ve özel bileşen tasarımlarını içerir.
-
-
 ## Kurulum
 Uygulamayı buradan indirebilirsiniz
 
 Uygulamanın çalıştığını bildiğim platformlar şunlardır: 
 - Android
 - Linux
-- Web
+- Web(?)
 
-Web versiyonunda tarayıcı CORS politikaları gereği direkt olarak html parsing yapılamamaktadır
+Web versiyonunda tarayıcı CORS politikaları gereği direkt olarak html parsing yapılamamaktadır.
 
+## Nasıl kullanılır
+Kullanma dokümantasynuna buradan ulaşabilirsiniz.
 ## Derleme adımları
-Proje Flutter 3.38.6 Dart 3.10.7 sürümlerinde test edilmiştir lütfen uygulamayı tavsiye ettiğim bu sürümlerde derleyin.
+Proje Flutter 3.38.6 Dart 3.10.7 sürümlerinde test edilmiştir. Bu sürümlerin kullanılması tavsiye edilir.
 
 1. Bağımlılıkları yükleyin:
    ```bash
@@ -51,6 +54,31 @@ Proje Flutter 3.38.6 Dart 3.10.7 sürümlerinde test edilmiştir lütfen uygulam
    ```bash
    flutter build apk
    ```
+
+## Uygulama hakkında
+<details>
+  <summary><b>Uygulama ne amaçla ortaya çıktı?</b></summary>
+  Uygulama ders kitaplarının soru çözümlerinin kapak fotoğraflarının kişiselleştirilebilir anime kızı koyma motivasyonuyla ortaya çıktı. Tabii ki bir telefonda tek bir soru çözüm uygulaması falan...
+</details>
+
+<details>
+  <summary><b>Uygulamayı nasıl kullanırım?</b></summary>
+  Uygulama kullanım klavuzuna buradan erişebilirsiniz.
+</details>
+
+<details>
+  <summary><b>derspp adı nereden geliyor</b></summary>
+  Ders ve app adlarının birleştirilmiş hali.
+</details>
+
+<details>
+  <summary><b>Uygulama logosunun anlamı ne?</b></summary>
+  Bir çark ikonu ve üstünde duran kitap -kitaba benzetmek için hayal gücünüzü kullanabilirsiniz.
+</details>
+
+## Teşekkürler
+
+ Son olarak uygulamayı erkenden deneyip bana motivasyon veren arkadaşlarıma teşekkür ederim.
 
 ## Lisans
 Proje AGPL-3.0 ile lisanslanmıştır lisansın tamamını görmek için LICENCE.md dosyasına bakınız.

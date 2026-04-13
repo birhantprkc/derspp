@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:universal_io/io.dart' as io;
 import 'package:flutter/foundation.dart';
 import 'dart:ui' as ui;
@@ -83,8 +84,13 @@ class _BookEditScreenState extends State<BookEditScreen> {
       sourcePath = widget.book.coverImage!;
     }
 
-    if (sourcePath != null && await io.File(sourcePath).exists()) {
-      _originalImageBytes = await io.File(sourcePath).readAsBytes();
+    if (sourcePath != null) {
+      if (kIsWeb && sourcePath.startsWith('data:image')) {
+        final base64String = sourcePath.split(',').last;
+        _originalImageBytes = base64Decode(base64String);
+      } else if (await io.File(sourcePath).exists()) {
+        _originalImageBytes = await io.File(sourcePath).readAsBytes();
+      }
     }
   }
 

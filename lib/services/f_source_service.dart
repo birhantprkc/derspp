@@ -5,13 +5,17 @@ import 'package:http/http.dart' as http;
 import '../models/book_content.dart';
 import '../models/source_item.dart';
 import 'source_service.dart';
+import 'cors_proxy_service.dart';
 
 class FSourceService implements SourceService {
   final http.Client _client = http.Client();
 
+  Uri _proxied(String url) =>
+      Uri.parse(CorsProxyService.instance.wrapUrlString(url));
+
   @override
   Future<List<SourceItem>> fetchSourceList(String id, String baseUrl) async {
-    final url = Uri.parse('$baseUrl?action=source_list&id=$id');
+    final url = _proxied('$baseUrl?action=source_list&id=$id');
 
     try {
       final response = await _client.get(
@@ -40,7 +44,7 @@ class FSourceService implements SourceService {
 
   @override
   Future<BookContent> fetchBookContent(String id, String baseUrl) async {
-    final url = Uri.parse('$baseUrl?action=content_list&id=$id');
+    final url = _proxied('$baseUrl?action=content_list&id=$id');
 
     try {
       final response = await _client.get(
@@ -67,7 +71,7 @@ class FSourceService implements SourceService {
     String? discoveredApiUrl;
 
     try {
-      final response = await _client.get(Uri.parse(url));
+      final response = await _client.get(_proxied(url));
       if (response.statusCode == 200) {
         final body = response.body;
 
@@ -121,7 +125,7 @@ class FSourceService implements SourceService {
       if (domain.isNotEmpty) {
         final apiUrl =
             "$domain/soru_cozum/web_player/xaml2text.php?action=get-xml&url=$videoUrl";
-        final response = await _client.get(Uri.parse(apiUrl));
+        final response = await _client.get(_proxied(apiUrl));
         if (response.statusCode == 200 && response.body.isNotEmpty) {
           return response.body;
         }
@@ -130,7 +134,7 @@ class FSourceService implements SourceService {
       debugPrint('xaml2text.php hatası: $e');
     }
 
-    final response = await _client.get(Uri.parse(videoUrl));
+    final response = await _client.get(_proxied(videoUrl));
     if (response.statusCode == 200) {
       return response.body;
     }
@@ -145,7 +149,7 @@ class FSourceService implements SourceService {
       final sizeApiUrl =
           "$domain/soru_cozum/web_player/get-size.php?action=get-size&url=$swfUrl";
 
-      final response = await _client.get(Uri.parse(sizeApiUrl));
+      final response = await _client.get(_proxied(sizeApiUrl));
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         final width = (json['0'] as num?)?.toDouble();
@@ -173,7 +177,7 @@ class FSourceService implements SourceService {
       final phpUrl =
           "$domain/soru_cozum/web_player/pdf2jpg.php?action=pdf2jpg&url=$pdfUrl&x=$x&y=$y";
 
-      final response = await _client.get(Uri.parse(phpUrl));
+      final response = await _client.get(_proxied(phpUrl));
       if (response.statusCode == 200) {
         final body = response.body.trim();
         final urlMatch = RegExp(r'https?://[^\s<>"]+\.jpg').firstMatch(body);

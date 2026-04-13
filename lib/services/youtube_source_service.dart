@@ -1,14 +1,23 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import '../models/book_content.dart';
 import '../models/source_item.dart';
 import '../models/question.dart';
 import 'source_service.dart';
+import 'cors_proxy_service.dart';
 
 class YoutubeSourceService implements SourceService {
   final YoutubeExplode _yt = YoutubeExplode();
 
+  void _syncProxy() {
+    if (kIsWeb) {
+      YoutubeHttpClient.corsProxyUrl = CorsProxyService.instance.proxyUrl ?? '';
+    }
+  }
+
   Future<String?> resolveStreamUrl(String videoUrl) async {
+    _syncProxy();
     try {
       final manifest = await _yt.videos.streamsClient.getManifest(videoUrl);
       final streamInfo = manifest.muxed.withHighestBitrate();
@@ -20,6 +29,7 @@ class YoutubeSourceService implements SourceService {
 
   @override
   Future<List<SourceItem>> fetchSourceList(String id, String baseUrl) async {
+    _syncProxy();
     try {
       final playlist = await _yt.playlists.get(baseUrl);
       final List<SourceItem> items = [];
@@ -43,6 +53,7 @@ class YoutubeSourceService implements SourceService {
 
   @override
   Future<BookContent> fetchBookContent(String id, String baseUrl) async {
+    _syncProxy();
     try {
       final video = await _yt.videos.get(id);
       final description = video.description;
@@ -108,6 +119,7 @@ class YoutubeSourceService implements SourceService {
 
   @override
   Future<Map<String, String?>> discoverPublisherInfo(String url) async {
+    _syncProxy();
     try {
       final playlistId = PlaylistId.parsePlaylistId(url);
       if (playlistId != null) {

@@ -188,6 +188,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
         }
 
         await _player.open(Media(url, start: startPos, end: endPos));
+      } else {
+        await _player.open(Media(url));
       }
 
       await _player.setRate(_playbackSpeed);
@@ -843,12 +845,20 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 IconButton(
                   icon: const Icon(Icons.refresh, size: 18),
                   tooltip: 'Yeniden isle',
-                  onPressed: () {
+                  onPressed: () async {
                     final mediaUrl =
                         widget.animationData.videoUrl ??
                         widget.animationData.audioPath;
                     if (mediaUrl != null) {
-                      provider.processTranscription(mediaUrl);
+                      final db = context.read<AppDatabase>();
+                      final settings = await db.select(db.settings).get();
+                      final map = {for (var s in settings) s.key: s.value};
+                      final sendAsChunks =
+                          map['transcriptionAsChunks'] != 'false';
+                      provider.processTranscription(
+                        mediaUrl,
+                        sendAsChunks: sendAsChunks,
+                      );
                     }
                   },
                 ),
@@ -869,12 +879,22 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       ),
                       const SizedBox(height: 10),
                       ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           final mediaUrl =
                               widget.animationData.videoUrl ??
                               widget.animationData.audioPath;
                           if (mediaUrl != null) {
-                            provider.processTranscription(mediaUrl);
+                            final db = context.read<AppDatabase>();
+                            final settings = await db.select(db.settings).get();
+                            final map = {
+                              for (var s in settings) s.key: s.value,
+                            };
+                            final sendAsChunks =
+                                map['transcriptionAsChunks'] != 'false';
+                            provider.processTranscription(
+                              mediaUrl,
+                              sendAsChunks: sendAsChunks,
+                            );
                           }
                         },
                         child: const Text('Metne Dönüştür'),

@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../providers/theme_provider.dart';
 import '../../database/database.dart';
+import '../../services/cors_proxy_service.dart';
 import 'package:universal_io/io.dart' as io;
 
 class SettingsScreen extends StatefulWidget {
@@ -21,6 +22,9 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   double _defaultPlaybackSpeed = 1.0;
+  bool _corsProxyEnabled = true;
+  bool _transcriptionAsChunks = true;
+  final TextEditingController _corsProxyController = TextEditingController();
 
   @override
   void initState() {
@@ -28,6 +32,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadPreferences();
     });
+  }
+
+  @override
+  void dispose() {
+    _corsProxyController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadPreferences() async {
@@ -41,6 +51,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
             double.tryParse(map['defaultPlaybackSpeed']!) ?? 1.0;
       });
     }
+
+    if (mounted && map.containsKey('corsProxyUrl')) {
+      _corsProxyController.text = map['corsProxyUrl']!;
+    }
+    if (mounted && map.containsKey('corsProxyEnabled')) {
+      setState(() {
+        _corsProxyEnabled = map['corsProxyEnabled'] == 'true';
+      });
+    }
+
+    if (mounted && map.containsKey('transcriptionAsChunks')) {
+      setState(() {
+        _transcriptionAsChunks = map['transcriptionAsChunks'] != 'false';
+      });
+    }
+  }
+
+  Future<void> _saveCorsProxyUrl(String url) async {
+    final db = context.read<AppDatabase>();
+    final trimmed = url.trim();
+    await db
+        .into(db.settings)
+        .insertOnConflictUpdate(
+          SettingsCompanion.insert(key: 'corsProxyUrl', value: trimmed),
+        );
+    CorsProxyService.instance.updateProxyUrl(trimmed);
+  }
+
+  Future<void> _saveCorsProxyEnabled(bool enabled) async {
+    setState(() {
+      _corsProxyEnabled = enabled;
+    });
+    final db = context.read<AppDatabase>();
+    await db
+        .into(db.settings)
+        .insertOnConflictUpdate(
+          SettingsCompanion.insert(
+            key: 'corsProxyEnabled',
+            value: enabled.toString(),
+          ),
+        );
+    CorsProxyService.instance.updateProxyEnabled(enabled);
   }
 
   Future<void> _saveDefaultPlaybackSpeed(double speed) async {
@@ -54,6 +106,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SettingsCompanion.insert(
             key: 'defaultPlaybackSpeed',
             value: speed.toString(),
+          ),
+        );
+  }
+
+  Future<void> _saveTranscriptionAsChunks(bool enabled) async {
+    setState(() {
+      _transcriptionAsChunks = enabled;
+    });
+    final db = context.read<AppDatabase>();
+    await db
+        .into(db.settings)
+        .insertOnConflictUpdate(
+          SettingsCompanion.insert(
+            key: 'transcriptionAsChunks',
+            value: enabled.toString(),
           ),
         );
   }
@@ -88,6 +155,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 32),
               _buildSectionHeader(context, 'OYNATICI'),
               _buildPlayerSection(context, themeProvider),
+
+              const SizedBox(height: 32),
+              _buildSectionHeader(context, 'TRANSKRİPSİYON'),
+              _buildTranscriptionSection(context),
+
+              if (kIsWeb) ...[
+                const SizedBox(height: 32),
+                _buildSectionHeader(context, 'WEB - CORS PROXY'),
+                _buildCorsProxySection(context),
+              ],
 
               const SizedBox(height: 32),
               _buildSectionHeader(context, 'VERİ & YEDEKLEME'),
@@ -362,6 +439,112 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildTranscriptionSection(BuildContext context) {
+    return _buildCard(
+      context,
+      children: [
+        SwitchListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+          title: const Text('Parçalı Gönderim', style: TextStyle(fontSize: 15)),
+          subtitle: Text(
+            'Google sunucularına tek dosya yerine parçalar halinde gönderir.',
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
+          secondary: const Icon(Icons.call_split_rounded, size: 20),
+          value: _transcriptionAsChunks,
+          onChanged: _saveTranscriptionAsChunks,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCorsProxySection(BuildContext context) {
+    final theme = Theme.of(context);
+    return _buildCard(
+      context,
+      children: [
+        SwitchListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+          title: const Text('CORS Proxy Aktif', style: TextStyle(fontSize: 15)),
+          subtitle: Text(
+            'Web sürümünde harici sitelere erişmek için gereklidir.',
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
+          secondary: const Icon(Icons.public, size: 20),
+          value: _corsProxyEnabled,
+          onChanged: _saveCorsProxyEnabled,
+        ),
+        if (_corsProxyEnabled) ...[
+          Divider(
+            height: 32,
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withOpacity(0.5),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _corsProxyController,
+                  decoration: InputDecoration(
+                    labelText: 'CORS Proxy URL',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      tooltip: 'Temizle',
+                      onPressed: () {
+                        _corsProxyController.clear();
+                        _saveCorsProxyUrl('');
+                      },
+                    ),
+                  ),
+                  style: const TextStyle(fontSize: 13),
+                  keyboardType: TextInputType.url,
+                  autocorrect: false,
+                  onSubmitted: _saveCorsProxyUrl,
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    FilledButton.tonal(
+                      onPressed: () =>
+                          _saveCorsProxyUrl(_corsProxyController.text),
+                      child: const Text('Kaydet'),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton(
+                      onPressed: () {
+                        _corsProxyController.text =
+                            'https://corsproxy.io/?url=';
+                        _saveCorsProxyUrl('https://corsproxy.io/?url=');
+                      },
+                      child: const Text('Varsayılanı Kullan'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
