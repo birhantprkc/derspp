@@ -36,9 +36,8 @@ Uygulamayı buradan indirebilirsiniz
 Uygulamanın çalıştığını bildiğim platformlar şunlardır: 
 - Android
 - Linux
-- Web(?)
-
-Web versiyonunda tarayıcı CORS politikaları gereği direkt olarak html parsing yapılamamaktadır.
+- Web(?) 
+Web versiyonunda proxy gereklidir
 
 ## Nasıl kullanılır
 Kullanma dokümantasynuna buradan ulaşabilirsiniz.

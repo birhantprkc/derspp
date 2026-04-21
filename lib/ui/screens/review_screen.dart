@@ -350,6 +350,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
         );
         final stats = _folderStats[folder.id];
         final toReview = stats?['toReview'] ?? 0;
+        final newCount = stats?['newCount'] ?? 0;
+        final total = stats?['total'] ?? 0;
 
         return Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -367,7 +369,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   _quickOpen(context, sq);
                 } else if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Tekrar edilecek soru yok')),
+                    const SnackBar(
+                      content: Text('Tekrar edilecek soru yok'),
+                      duration: Duration(milliseconds: 500),
+                    ),
                   );
                 }
               },
@@ -383,11 +388,27 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       ),
                     ),
                   ),
-                  if (toReview > 0)
+                  if (newCount > 0) ...[
                     _buildBadge(
-                      '$toReview',
+                      '$newCount YENİ',
+                      Theme.of(context).colorScheme.secondary,
+                      Theme.of(context).colorScheme.onSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  if (toReview > 0) ...[
+                    _buildBadge(
+                      '$toReview TEKRAR',
                       Theme.of(context).colorScheme.primary,
                       Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  if (total > 0)
+                    _buildBadge(
+                      '$total TOPLAM',
+                      Theme.of(context).colorScheme.outline,
+                      Theme.of(context).colorScheme.onSurface,
                     ),
                 ],
               ),

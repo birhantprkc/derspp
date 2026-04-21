@@ -187,7 +187,12 @@ class F2SourceService implements SourceService {
 
   @override
   Future<Map<String, String?>> discoverPublisherInfo(String url) async {
-    final normalizedUrl = _normalizeBaseUrl(url);
+    String normalizedUrl = _normalizeBaseUrl(url);
+    if (!normalizedUrl.toLowerCase().endsWith(
+      '/solutionapp/solutionpublic/solutions',
+    )) {
+      normalizedUrl = '$normalizedUrl/SolutionApp/SolutionPublic/Solutions';
+    }
     return {'id': 'root', 'apiUrl': normalizedUrl};
   }
 

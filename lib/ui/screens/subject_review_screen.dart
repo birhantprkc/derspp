@@ -325,7 +325,6 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
             _buildIntervalOption(context, provider, subject, '7 Gün', 7),
             _buildIntervalOption(context, provider, subject, '14 Gün', 14),
             _buildIntervalOption(context, provider, subject, '30 Gün', 30),
-            _buildIntervalOption(context, provider, subject, '6 Ay', 180),
           ],
         ),
       ),

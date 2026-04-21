@@ -94,17 +94,24 @@ class SavedQuestionsProvider extends ChangeNotifier {
     for (final folder in _folders) {
       final ids = folderIdCache[folder.id] ?? [folder.id];
       int toReview = 0;
+      int newCount = 0;
       int total = 0;
 
       for (final q in allQuestions) {
         if (!ids.contains(q.folderId)) continue;
         total++;
-        if (q.reviewStep > 0 && !q.nextReviewDate.isAfter(todayEnd)) {
+        if (q.reviewStep == 0) {
+          newCount++;
+        } else if (!q.nextReviewDate.isAfter(todayEnd)) {
           toReview++;
         }
       }
 
-      result[folder.id] = {'toReview': toReview, 'total': total};
+      result[folder.id] = {
+        'toReview': toReview,
+        'newCount': newCount,
+        'total': total,
+      };
     }
 
     return result;
