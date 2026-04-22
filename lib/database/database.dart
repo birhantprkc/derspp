@@ -58,6 +58,7 @@ class SavedQuestions extends Table {
   DateTimeColumn get nextReviewDate =>
       dateTime().withDefault(currentDateAndTime)();
   IntColumn get reviewStep => integer().withDefault(const Constant(0))();
+  IntColumn get lastReviewInterval => integer().nullable()();
 }
 
 class ReviewLogs extends Table {
@@ -99,7 +100,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -123,6 +124,9 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(routineCompletions);
           await m.addColumn(tasks, tasks.startDate);
           await m.addColumn(tasks, tasks.frequency);
+        }
+        if (from < 4) {
+          await m.addColumn(savedQuestions, savedQuestions.lastReviewInterval);
         }
       },
     );

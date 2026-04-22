@@ -216,6 +216,7 @@ class SavedQuestionsProvider extends ChangeNotifier {
     int questionId,
     DateTime nextReviewDate,
     int reviewStep,
+    int? lastReviewInterval,
   ) async {
     await (_db.update(
       _db.savedQuestions,
@@ -223,6 +224,7 @@ class SavedQuestionsProvider extends ChangeNotifier {
       SavedQuestionsCompanion(
         nextReviewDate: Value(nextReviewDate),
         reviewStep: Value(reviewStep),
+        lastReviewInterval: Value(lastReviewInterval),
       ),
     );
 

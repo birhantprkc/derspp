@@ -1579,6 +1579,16 @@ class $SavedQuestionsTable extends SavedQuestions
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _lastReviewIntervalMeta =
+      const VerificationMeta('lastReviewInterval');
+  @override
+  late final GeneratedColumn<int> lastReviewInterval = GeneratedColumn<int>(
+    'last_review_interval',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1594,6 +1604,7 @@ class $SavedQuestionsTable extends SavedQuestions
     savedAt,
     nextReviewDate,
     reviewStep,
+    lastReviewInterval,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1707,6 +1718,15 @@ class $SavedQuestionsTable extends SavedQuestions
         reviewStep.isAcceptableOrUnknown(data['review_step']!, _reviewStepMeta),
       );
     }
+    if (data.containsKey('last_review_interval')) {
+      context.handle(
+        _lastReviewIntervalMeta,
+        lastReviewInterval.isAcceptableOrUnknown(
+          data['last_review_interval']!,
+          _lastReviewIntervalMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1768,6 +1788,10 @@ class $SavedQuestionsTable extends SavedQuestions
         DriftSqlType.int,
         data['${effectivePrefix}review_step'],
       )!,
+      lastReviewInterval: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_review_interval'],
+      ),
     );
   }
 
@@ -1791,6 +1815,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
   final DateTime savedAt;
   final DateTime nextReviewDate;
   final int reviewStep;
+  final int? lastReviewInterval;
   const SavedQuestion({
     required this.id,
     required this.folderId,
@@ -1805,6 +1830,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     required this.savedAt,
     required this.nextReviewDate,
     required this.reviewStep,
+    this.lastReviewInterval,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1824,6 +1850,9 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     map['saved_at'] = Variable<DateTime>(savedAt);
     map['next_review_date'] = Variable<DateTime>(nextReviewDate);
     map['review_step'] = Variable<int>(reviewStep);
+    if (!nullToAbsent || lastReviewInterval != null) {
+      map['last_review_interval'] = Variable<int>(lastReviewInterval);
+    }
     return map;
   }
 
@@ -1844,6 +1873,9 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
       savedAt: Value(savedAt),
       nextReviewDate: Value(nextReviewDate),
       reviewStep: Value(reviewStep),
+      lastReviewInterval: lastReviewInterval == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastReviewInterval),
     );
   }
 
@@ -1866,6 +1898,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
       savedAt: serializer.fromJson<DateTime>(json['savedAt']),
       nextReviewDate: serializer.fromJson<DateTime>(json['nextReviewDate']),
       reviewStep: serializer.fromJson<int>(json['reviewStep']),
+      lastReviewInterval: serializer.fromJson<int?>(json['lastReviewInterval']),
     );
   }
   @override
@@ -1885,6 +1918,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
       'savedAt': serializer.toJson<DateTime>(savedAt),
       'nextReviewDate': serializer.toJson<DateTime>(nextReviewDate),
       'reviewStep': serializer.toJson<int>(reviewStep),
+      'lastReviewInterval': serializer.toJson<int?>(lastReviewInterval),
     };
   }
 
@@ -1902,6 +1936,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     DateTime? savedAt,
     DateTime? nextReviewDate,
     int? reviewStep,
+    Value<int?> lastReviewInterval = const Value.absent(),
   }) => SavedQuestion(
     id: id ?? this.id,
     folderId: folderId ?? this.folderId,
@@ -1916,6 +1951,9 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     savedAt: savedAt ?? this.savedAt,
     nextReviewDate: nextReviewDate ?? this.nextReviewDate,
     reviewStep: reviewStep ?? this.reviewStep,
+    lastReviewInterval: lastReviewInterval.present
+        ? lastReviewInterval.value
+        : this.lastReviewInterval,
   );
   SavedQuestion copyWithCompanion(SavedQuestionsCompanion data) {
     return SavedQuestion(
@@ -1942,6 +1980,9 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
       reviewStep: data.reviewStep.present
           ? data.reviewStep.value
           : this.reviewStep,
+      lastReviewInterval: data.lastReviewInterval.present
+          ? data.lastReviewInterval.value
+          : this.lastReviewInterval,
     );
   }
 
@@ -1960,7 +2001,8 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
           ..write('notes: $notes, ')
           ..write('savedAt: $savedAt, ')
           ..write('nextReviewDate: $nextReviewDate, ')
-          ..write('reviewStep: $reviewStep')
+          ..write('reviewStep: $reviewStep, ')
+          ..write('lastReviewInterval: $lastReviewInterval')
           ..write(')'))
         .toString();
   }
@@ -1980,6 +2022,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     savedAt,
     nextReviewDate,
     reviewStep,
+    lastReviewInterval,
   );
   @override
   bool operator ==(Object other) =>
@@ -1997,7 +2040,8 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
           other.notes == this.notes &&
           other.savedAt == this.savedAt &&
           other.nextReviewDate == this.nextReviewDate &&
-          other.reviewStep == this.reviewStep);
+          other.reviewStep == this.reviewStep &&
+          other.lastReviewInterval == this.lastReviewInterval);
 }
 
 class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
@@ -2014,6 +2058,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
   final Value<DateTime> savedAt;
   final Value<DateTime> nextReviewDate;
   final Value<int> reviewStep;
+  final Value<int?> lastReviewInterval;
   const SavedQuestionsCompanion({
     this.id = const Value.absent(),
     this.folderId = const Value.absent(),
@@ -2028,6 +2073,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     this.savedAt = const Value.absent(),
     this.nextReviewDate = const Value.absent(),
     this.reviewStep = const Value.absent(),
+    this.lastReviewInterval = const Value.absent(),
   });
   SavedQuestionsCompanion.insert({
     this.id = const Value.absent(),
@@ -2043,6 +2089,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     this.savedAt = const Value.absent(),
     this.nextReviewDate = const Value.absent(),
     this.reviewStep = const Value.absent(),
+    this.lastReviewInterval = const Value.absent(),
   }) : folderId = Value(folderId),
        baseUrl = Value(baseUrl),
        scraperType = Value(scraperType),
@@ -2065,6 +2112,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     Expression<DateTime>? savedAt,
     Expression<DateTime>? nextReviewDate,
     Expression<int>? reviewStep,
+    Expression<int>? lastReviewInterval,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2080,6 +2128,8 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
       if (savedAt != null) 'saved_at': savedAt,
       if (nextReviewDate != null) 'next_review_date': nextReviewDate,
       if (reviewStep != null) 'review_step': reviewStep,
+      if (lastReviewInterval != null)
+        'last_review_interval': lastReviewInterval,
     });
   }
 
@@ -2097,6 +2147,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     Value<DateTime>? savedAt,
     Value<DateTime>? nextReviewDate,
     Value<int>? reviewStep,
+    Value<int?>? lastReviewInterval,
   }) {
     return SavedQuestionsCompanion(
       id: id ?? this.id,
@@ -2112,6 +2163,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
       savedAt: savedAt ?? this.savedAt,
       nextReviewDate: nextReviewDate ?? this.nextReviewDate,
       reviewStep: reviewStep ?? this.reviewStep,
+      lastReviewInterval: lastReviewInterval ?? this.lastReviewInterval,
     );
   }
 
@@ -2157,6 +2209,9 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     if (reviewStep.present) {
       map['review_step'] = Variable<int>(reviewStep.value);
     }
+    if (lastReviewInterval.present) {
+      map['last_review_interval'] = Variable<int>(lastReviewInterval.value);
+    }
     return map;
   }
 
@@ -2175,7 +2230,8 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
           ..write('notes: $notes, ')
           ..write('savedAt: $savedAt, ')
           ..write('nextReviewDate: $nextReviewDate, ')
-          ..write('reviewStep: $reviewStep')
+          ..write('reviewStep: $reviewStep, ')
+          ..write('lastReviewInterval: $lastReviewInterval')
           ..write(')'))
         .toString();
   }
@@ -4210,6 +4266,7 @@ typedef $$SavedQuestionsTableCreateCompanionBuilder =
       Value<DateTime> savedAt,
       Value<DateTime> nextReviewDate,
       Value<int> reviewStep,
+      Value<int?> lastReviewInterval,
     });
 typedef $$SavedQuestionsTableUpdateCompanionBuilder =
     SavedQuestionsCompanion Function({
@@ -4226,6 +4283,7 @@ typedef $$SavedQuestionsTableUpdateCompanionBuilder =
       Value<DateTime> savedAt,
       Value<DateTime> nextReviewDate,
       Value<int> reviewStep,
+      Value<int?> lastReviewInterval,
     });
 
 final class $$SavedQuestionsTableReferences
@@ -4325,6 +4383,11 @@ class $$SavedQuestionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get lastReviewInterval => $composableBuilder(
+    column: $table.lastReviewInterval,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$QuestionFoldersTableFilterComposer get folderId {
     final $$QuestionFoldersTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -4418,6 +4481,11 @@ class $$SavedQuestionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get lastReviewInterval => $composableBuilder(
+    column: $table.lastReviewInterval,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$QuestionFoldersTableOrderingComposer get folderId {
     final $$QuestionFoldersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4497,6 +4565,11 @@ class $$SavedQuestionsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get lastReviewInterval => $composableBuilder(
+    column: $table.lastReviewInterval,
+    builder: (column) => column,
+  );
+
   $$QuestionFoldersTableAnnotationComposer get folderId {
     final $$QuestionFoldersTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -4564,6 +4637,7 @@ class $$SavedQuestionsTableTableManager
                 Value<DateTime> savedAt = const Value.absent(),
                 Value<DateTime> nextReviewDate = const Value.absent(),
                 Value<int> reviewStep = const Value.absent(),
+                Value<int?> lastReviewInterval = const Value.absent(),
               }) => SavedQuestionsCompanion(
                 id: id,
                 folderId: folderId,
@@ -4578,6 +4652,7 @@ class $$SavedQuestionsTableTableManager
                 savedAt: savedAt,
                 nextReviewDate: nextReviewDate,
                 reviewStep: reviewStep,
+                lastReviewInterval: lastReviewInterval,
               ),
           createCompanionCallback:
               ({
@@ -4594,6 +4669,7 @@ class $$SavedQuestionsTableTableManager
                 Value<DateTime> savedAt = const Value.absent(),
                 Value<DateTime> nextReviewDate = const Value.absent(),
                 Value<int> reviewStep = const Value.absent(),
+                Value<int?> lastReviewInterval = const Value.absent(),
               }) => SavedQuestionsCompanion.insert(
                 id: id,
                 folderId: folderId,
@@ -4608,6 +4684,7 @@ class $$SavedQuestionsTableTableManager
                 savedAt: savedAt,
                 nextReviewDate: nextReviewDate,
                 reviewStep: reviewStep,
+                lastReviewInterval: lastReviewInterval,
               ),
           withReferenceMapper: (p0) => p0
               .map(

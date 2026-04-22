@@ -52,6 +52,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   bool _wasPlayingBeforeSeek = false;
   double? _lastLongPressX;
   bool _controlsVisible = true;
+  bool _isNotesVisible = true;
   Timer? _controlsHideTimer;
   DateTime? _lastSyncTime;
   Duration _lastSyncPos = Duration.zero;
@@ -564,12 +565,25 @@ class _PlayerScreenState extends State<PlayerScreen> {
     String label,
     int days,
   ) {
+    final bool isSelectedBefore = sq.lastReviewInterval == days;
+
     return ListTile(
       title: Text(label),
-      leading: const Icon(Icons.calendar_today_outlined),
+      leading: Icon(
+        isSelectedBefore ? Icons.check_circle : Icons.calendar_today_outlined,
+        color: isSelectedBefore ? Theme.of(context).colorScheme.primary : null,
+      ),
+      tileColor: isSelectedBefore
+          ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+          : null,
       onTap: () async {
         final nextDate = DateTime.now().add(Duration(days: days));
-        await provider.updateReviewStatus(sq.id, nextDate, sq.reviewStep + 1);
+        await provider.updateReviewStatus(
+          sq.id,
+          nextDate,
+          sq.reviewStep + 1,
+          days,
+        );
         if (context.mounted) {
           Navigator.pop(context);
           Navigator.pop(context);
@@ -716,6 +730,86 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                 ? Icons.check_box
                                 : Icons.bookmark_add,
                           ),
+                        ),
+                      ),
+                    if (widget.savedQuestion?.notes != null &&
+                        widget.savedQuestion!.notes!.isNotEmpty &&
+                        _isNotesVisible)
+                      Positioned(
+                        top: 40,
+                        left: 70,
+                        right: 70,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withOpacity(0.85),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.note_alt_outlined,
+                                size: 16,
+                                color: Colors.black87,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  widget.savedQuestion!.notes!,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _isNotesVisible = false;
+                                  });
+                                },
+                                child: const Icon(
+                                  Icons.close,
+                                  size: 16,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (widget.savedQuestion?.notes != null &&
+                        widget.savedQuestion!.notes!.isNotEmpty &&
+                        !_isNotesVisible)
+                      Positioned(
+                        top: 40,
+                        left: 70,
+                        child: FloatingActionButton(
+                          mini: true,
+                          heroTag: 'show_notes',
+                          backgroundColor: Colors.amber.withOpacity(0.8),
+                          foregroundColor: Colors.black87,
+                          onPressed: () {
+                            setState(() {
+                              _isNotesVisible = true;
+                            });
+                          },
+                          child: const Icon(Icons.note_alt_outlined),
                         ),
                       ),
                     Positioned(
