@@ -84,6 +84,19 @@ class RoutineCompletions extends Table {
   DateTimeColumn get date => dateTime()();
 }
 
+class StudySubjects extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  IntColumn get parentId =>
+      integer().nullable().references(StudySubjects, #id)();
+  BoolColumn get isLeaf => boolean().withDefault(const Constant(false))();
+  BoolColumn get isKnown => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get nextReviewDate => dateTime().nullable()();
+  IntColumn get lastReviewInterval => integer().nullable()();
+  IntColumn get syncWithFolderId =>
+      integer().nullable().references(QuestionFolders, #id)();
+}
+
 @DriftDatabase(
   tables: [
     Books,
@@ -94,13 +107,14 @@ class RoutineCompletions extends Table {
     ReviewLogs,
     Tasks,
     RoutineCompletions,
+    StudySubjects,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -127,6 +141,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 4) {
           await m.addColumn(savedQuestions, savedQuestions.lastReviewInterval);
+        }
+        if (from < 5) {
+          await m.createTable(studySubjects);
         }
       },
     );

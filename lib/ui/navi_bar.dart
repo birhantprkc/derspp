@@ -3,6 +3,7 @@ import 'screens/solution_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/review_screen.dart';
 import 'screens/tasks_screen.dart';
+import 'screens/subject_review_screen.dart';
 
 class NaviBar extends StatefulWidget {
   const NaviBar({super.key});
@@ -18,6 +19,7 @@ class _NaviBarState extends State<NaviBar> {
     SolutionScreen(),
     TasksScreen(),
     ReviewScreen(),
+    SubjectReviewScreen(),
     SettingsScreen(),
   ];
 
@@ -67,6 +69,11 @@ class _NaviBarState extends State<NaviBar> {
                   icon: Icon(Icons.collections_bookmark_outlined),
                   selectedIcon: Icon(Icons.collections_bookmark),
                   label: Text('Kaydedilenler'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.checklist_rtl_rounded),
+                  selectedIcon: Icon(Icons.checklist_rtl_sharp),
+                  label: Text('Konular'),
                 ),
                 NavigationRailDestination(
                   icon: Icon(Icons.settings_outlined),
@@ -146,6 +153,11 @@ class _NaviBarState extends State<NaviBar> {
                   icon: Icon(Icons.collections_bookmark_outlined),
                   selectedIcon: Icon(Icons.collections_bookmark),
                   label: 'Kaydedilenler',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.checklist_rtl_rounded),
+                  selectedIcon: Icon(Icons.checklist_rtl_sharp),
+                  label: 'Konular',
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.settings_outlined),

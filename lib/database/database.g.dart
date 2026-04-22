@@ -3218,6 +3218,538 @@ class RoutineCompletionsCompanion extends UpdateCompanion<RoutineCompletion> {
   }
 }
 
+class $StudySubjectsTable extends StudySubjects
+    with TableInfo<$StudySubjectsTable, StudySubject> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StudySubjectsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _parentIdMeta = const VerificationMeta(
+    'parentId',
+  );
+  @override
+  late final GeneratedColumn<int> parentId = GeneratedColumn<int>(
+    'parent_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES study_subjects (id)',
+    ),
+  );
+  static const VerificationMeta _isLeafMeta = const VerificationMeta('isLeaf');
+  @override
+  late final GeneratedColumn<bool> isLeaf = GeneratedColumn<bool>(
+    'is_leaf',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_leaf" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isKnownMeta = const VerificationMeta(
+    'isKnown',
+  );
+  @override
+  late final GeneratedColumn<bool> isKnown = GeneratedColumn<bool>(
+    'is_known',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_known" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _nextReviewDateMeta = const VerificationMeta(
+    'nextReviewDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> nextReviewDate =
+      GeneratedColumn<DateTime>(
+        'next_review_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _lastReviewIntervalMeta =
+      const VerificationMeta('lastReviewInterval');
+  @override
+  late final GeneratedColumn<int> lastReviewInterval = GeneratedColumn<int>(
+    'last_review_interval',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncWithFolderIdMeta = const VerificationMeta(
+    'syncWithFolderId',
+  );
+  @override
+  late final GeneratedColumn<int> syncWithFolderId = GeneratedColumn<int>(
+    'sync_with_folder_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES question_folders (id)',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    parentId,
+    isLeaf,
+    isKnown,
+    nextReviewDate,
+    lastReviewInterval,
+    syncWithFolderId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'study_subjects';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StudySubject> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('parent_id')) {
+      context.handle(
+        _parentIdMeta,
+        parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta),
+      );
+    }
+    if (data.containsKey('is_leaf')) {
+      context.handle(
+        _isLeafMeta,
+        isLeaf.isAcceptableOrUnknown(data['is_leaf']!, _isLeafMeta),
+      );
+    }
+    if (data.containsKey('is_known')) {
+      context.handle(
+        _isKnownMeta,
+        isKnown.isAcceptableOrUnknown(data['is_known']!, _isKnownMeta),
+      );
+    }
+    if (data.containsKey('next_review_date')) {
+      context.handle(
+        _nextReviewDateMeta,
+        nextReviewDate.isAcceptableOrUnknown(
+          data['next_review_date']!,
+          _nextReviewDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_review_interval')) {
+      context.handle(
+        _lastReviewIntervalMeta,
+        lastReviewInterval.isAcceptableOrUnknown(
+          data['last_review_interval']!,
+          _lastReviewIntervalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_with_folder_id')) {
+      context.handle(
+        _syncWithFolderIdMeta,
+        syncWithFolderId.isAcceptableOrUnknown(
+          data['sync_with_folder_id']!,
+          _syncWithFolderIdMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StudySubject map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StudySubject(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      parentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}parent_id'],
+      ),
+      isLeaf: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_leaf'],
+      )!,
+      isKnown: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_known'],
+      )!,
+      nextReviewDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_review_date'],
+      ),
+      lastReviewInterval: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_review_interval'],
+      ),
+      syncWithFolderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sync_with_folder_id'],
+      ),
+    );
+  }
+
+  @override
+  $StudySubjectsTable createAlias(String alias) {
+    return $StudySubjectsTable(attachedDatabase, alias);
+  }
+}
+
+class StudySubject extends DataClass implements Insertable<StudySubject> {
+  final int id;
+  final String name;
+  final int? parentId;
+  final bool isLeaf;
+  final bool isKnown;
+  final DateTime? nextReviewDate;
+  final int? lastReviewInterval;
+  final int? syncWithFolderId;
+  const StudySubject({
+    required this.id,
+    required this.name,
+    this.parentId,
+    required this.isLeaf,
+    required this.isKnown,
+    this.nextReviewDate,
+    this.lastReviewInterval,
+    this.syncWithFolderId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || parentId != null) {
+      map['parent_id'] = Variable<int>(parentId);
+    }
+    map['is_leaf'] = Variable<bool>(isLeaf);
+    map['is_known'] = Variable<bool>(isKnown);
+    if (!nullToAbsent || nextReviewDate != null) {
+      map['next_review_date'] = Variable<DateTime>(nextReviewDate);
+    }
+    if (!nullToAbsent || lastReviewInterval != null) {
+      map['last_review_interval'] = Variable<int>(lastReviewInterval);
+    }
+    if (!nullToAbsent || syncWithFolderId != null) {
+      map['sync_with_folder_id'] = Variable<int>(syncWithFolderId);
+    }
+    return map;
+  }
+
+  StudySubjectsCompanion toCompanion(bool nullToAbsent) {
+    return StudySubjectsCompanion(
+      id: Value(id),
+      name: Value(name),
+      parentId: parentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentId),
+      isLeaf: Value(isLeaf),
+      isKnown: Value(isKnown),
+      nextReviewDate: nextReviewDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextReviewDate),
+      lastReviewInterval: lastReviewInterval == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastReviewInterval),
+      syncWithFolderId: syncWithFolderId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncWithFolderId),
+    );
+  }
+
+  factory StudySubject.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StudySubject(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      parentId: serializer.fromJson<int?>(json['parentId']),
+      isLeaf: serializer.fromJson<bool>(json['isLeaf']),
+      isKnown: serializer.fromJson<bool>(json['isKnown']),
+      nextReviewDate: serializer.fromJson<DateTime?>(json['nextReviewDate']),
+      lastReviewInterval: serializer.fromJson<int?>(json['lastReviewInterval']),
+      syncWithFolderId: serializer.fromJson<int?>(json['syncWithFolderId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'parentId': serializer.toJson<int?>(parentId),
+      'isLeaf': serializer.toJson<bool>(isLeaf),
+      'isKnown': serializer.toJson<bool>(isKnown),
+      'nextReviewDate': serializer.toJson<DateTime?>(nextReviewDate),
+      'lastReviewInterval': serializer.toJson<int?>(lastReviewInterval),
+      'syncWithFolderId': serializer.toJson<int?>(syncWithFolderId),
+    };
+  }
+
+  StudySubject copyWith({
+    int? id,
+    String? name,
+    Value<int?> parentId = const Value.absent(),
+    bool? isLeaf,
+    bool? isKnown,
+    Value<DateTime?> nextReviewDate = const Value.absent(),
+    Value<int?> lastReviewInterval = const Value.absent(),
+    Value<int?> syncWithFolderId = const Value.absent(),
+  }) => StudySubject(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    parentId: parentId.present ? parentId.value : this.parentId,
+    isLeaf: isLeaf ?? this.isLeaf,
+    isKnown: isKnown ?? this.isKnown,
+    nextReviewDate: nextReviewDate.present
+        ? nextReviewDate.value
+        : this.nextReviewDate,
+    lastReviewInterval: lastReviewInterval.present
+        ? lastReviewInterval.value
+        : this.lastReviewInterval,
+    syncWithFolderId: syncWithFolderId.present
+        ? syncWithFolderId.value
+        : this.syncWithFolderId,
+  );
+  StudySubject copyWithCompanion(StudySubjectsCompanion data) {
+    return StudySubject(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      parentId: data.parentId.present ? data.parentId.value : this.parentId,
+      isLeaf: data.isLeaf.present ? data.isLeaf.value : this.isLeaf,
+      isKnown: data.isKnown.present ? data.isKnown.value : this.isKnown,
+      nextReviewDate: data.nextReviewDate.present
+          ? data.nextReviewDate.value
+          : this.nextReviewDate,
+      lastReviewInterval: data.lastReviewInterval.present
+          ? data.lastReviewInterval.value
+          : this.lastReviewInterval,
+      syncWithFolderId: data.syncWithFolderId.present
+          ? data.syncWithFolderId.value
+          : this.syncWithFolderId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StudySubject(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('parentId: $parentId, ')
+          ..write('isLeaf: $isLeaf, ')
+          ..write('isKnown: $isKnown, ')
+          ..write('nextReviewDate: $nextReviewDate, ')
+          ..write('lastReviewInterval: $lastReviewInterval, ')
+          ..write('syncWithFolderId: $syncWithFolderId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    parentId,
+    isLeaf,
+    isKnown,
+    nextReviewDate,
+    lastReviewInterval,
+    syncWithFolderId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StudySubject &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.parentId == this.parentId &&
+          other.isLeaf == this.isLeaf &&
+          other.isKnown == this.isKnown &&
+          other.nextReviewDate == this.nextReviewDate &&
+          other.lastReviewInterval == this.lastReviewInterval &&
+          other.syncWithFolderId == this.syncWithFolderId);
+}
+
+class StudySubjectsCompanion extends UpdateCompanion<StudySubject> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<int?> parentId;
+  final Value<bool> isLeaf;
+  final Value<bool> isKnown;
+  final Value<DateTime?> nextReviewDate;
+  final Value<int?> lastReviewInterval;
+  final Value<int?> syncWithFolderId;
+  const StudySubjectsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.parentId = const Value.absent(),
+    this.isLeaf = const Value.absent(),
+    this.isKnown = const Value.absent(),
+    this.nextReviewDate = const Value.absent(),
+    this.lastReviewInterval = const Value.absent(),
+    this.syncWithFolderId = const Value.absent(),
+  });
+  StudySubjectsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.parentId = const Value.absent(),
+    this.isLeaf = const Value.absent(),
+    this.isKnown = const Value.absent(),
+    this.nextReviewDate = const Value.absent(),
+    this.lastReviewInterval = const Value.absent(),
+    this.syncWithFolderId = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<StudySubject> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<int>? parentId,
+    Expression<bool>? isLeaf,
+    Expression<bool>? isKnown,
+    Expression<DateTime>? nextReviewDate,
+    Expression<int>? lastReviewInterval,
+    Expression<int>? syncWithFolderId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (parentId != null) 'parent_id': parentId,
+      if (isLeaf != null) 'is_leaf': isLeaf,
+      if (isKnown != null) 'is_known': isKnown,
+      if (nextReviewDate != null) 'next_review_date': nextReviewDate,
+      if (lastReviewInterval != null)
+        'last_review_interval': lastReviewInterval,
+      if (syncWithFolderId != null) 'sync_with_folder_id': syncWithFolderId,
+    });
+  }
+
+  StudySubjectsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<int?>? parentId,
+    Value<bool>? isLeaf,
+    Value<bool>? isKnown,
+    Value<DateTime?>? nextReviewDate,
+    Value<int?>? lastReviewInterval,
+    Value<int?>? syncWithFolderId,
+  }) {
+    return StudySubjectsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      parentId: parentId ?? this.parentId,
+      isLeaf: isLeaf ?? this.isLeaf,
+      isKnown: isKnown ?? this.isKnown,
+      nextReviewDate: nextReviewDate ?? this.nextReviewDate,
+      lastReviewInterval: lastReviewInterval ?? this.lastReviewInterval,
+      syncWithFolderId: syncWithFolderId ?? this.syncWithFolderId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (parentId.present) {
+      map['parent_id'] = Variable<int>(parentId.value);
+    }
+    if (isLeaf.present) {
+      map['is_leaf'] = Variable<bool>(isLeaf.value);
+    }
+    if (isKnown.present) {
+      map['is_known'] = Variable<bool>(isKnown.value);
+    }
+    if (nextReviewDate.present) {
+      map['next_review_date'] = Variable<DateTime>(nextReviewDate.value);
+    }
+    if (lastReviewInterval.present) {
+      map['last_review_interval'] = Variable<int>(lastReviewInterval.value);
+    }
+    if (syncWithFolderId.present) {
+      map['sync_with_folder_id'] = Variable<int>(syncWithFolderId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StudySubjectsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('parentId: $parentId, ')
+          ..write('isLeaf: $isLeaf, ')
+          ..write('isKnown: $isKnown, ')
+          ..write('nextReviewDate: $nextReviewDate, ')
+          ..write('lastReviewInterval: $lastReviewInterval, ')
+          ..write('syncWithFolderId: $syncWithFolderId')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3232,6 +3764,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TasksTable tasks = $TasksTable(this);
   late final $RoutineCompletionsTable routineCompletions =
       $RoutineCompletionsTable(this);
+  late final $StudySubjectsTable studySubjects = $StudySubjectsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3245,6 +3778,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     reviewLogs,
     tasks,
     routineCompletions,
+    studySubjects,
   ];
 }
 
@@ -3915,6 +4449,27 @@ final class $$QuestionFoldersTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$StudySubjectsTable, List<StudySubject>>
+  _studySubjectsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.studySubjects,
+    aliasName: $_aliasNameGenerator(
+      db.questionFolders.id,
+      db.studySubjects.syncWithFolderId,
+    ),
+  );
+
+  $$StudySubjectsTableProcessedTableManager get studySubjectsRefs {
+    final manager = $$StudySubjectsTableTableManager(
+      $_db,
+      $_db.studySubjects,
+    ).filter((f) => f.syncWithFolderId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_studySubjectsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$QuestionFoldersTableFilterComposer
@@ -3980,6 +4535,31 @@ class $$QuestionFoldersTableFilterComposer
           }) => $$SavedQuestionsTableFilterComposer(
             $db: $db,
             $table: $db.savedQuestions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> studySubjectsRefs(
+    Expression<bool> Function($$StudySubjectsTableFilterComposer f) f,
+  ) {
+    final $$StudySubjectsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studySubjects,
+      getReferencedColumn: (t) => t.syncWithFolderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudySubjectsTableFilterComposer(
+            $db: $db,
+            $table: $db.studySubjects,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4103,6 +4683,31 @@ class $$QuestionFoldersTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> studySubjectsRefs<T extends Object>(
+    Expression<T> Function($$StudySubjectsTableAnnotationComposer a) f,
+  ) {
+    final $$StudySubjectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studySubjects,
+      getReferencedColumn: (t) => t.syncWithFolderId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudySubjectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.studySubjects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$QuestionFoldersTableTableManager
@@ -4118,7 +4723,11 @@ class $$QuestionFoldersTableTableManager
           $$QuestionFoldersTableUpdateCompanionBuilder,
           (QuestionFolder, $$QuestionFoldersTableReferences),
           QuestionFolder,
-          PrefetchHooks Function({bool parentId, bool savedQuestionsRefs})
+          PrefetchHooks Function({
+            bool parentId,
+            bool savedQuestionsRefs,
+            bool studySubjectsRefs,
+          })
         > {
   $$QuestionFoldersTableTableManager(
     _$AppDatabase db,
@@ -4166,11 +4775,16 @@ class $$QuestionFoldersTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({parentId = false, savedQuestionsRefs = false}) {
+              ({
+                parentId = false,
+                savedQuestionsRefs = false,
+                studySubjectsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (savedQuestionsRefs) db.savedQuestions,
+                    if (studySubjectsRefs) db.studySubjects,
                   ],
                   addJoins:
                       <
@@ -4229,6 +4843,27 @@ class $$QuestionFoldersTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (studySubjectsRefs)
+                        await $_getPrefetchedData<
+                          QuestionFolder,
+                          $QuestionFoldersTable,
+                          StudySubject
+                        >(
+                          currentTable: table,
+                          referencedTable: $$QuestionFoldersTableReferences
+                              ._studySubjectsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$QuestionFoldersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).studySubjectsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.syncWithFolderId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4249,7 +4884,11 @@ typedef $$QuestionFoldersTableProcessedTableManager =
       $$QuestionFoldersTableUpdateCompanionBuilder,
       (QuestionFolder, $$QuestionFoldersTableReferences),
       QuestionFolder,
-      PrefetchHooks Function({bool parentId, bool savedQuestionsRefs})
+      PrefetchHooks Function({
+        bool parentId,
+        bool savedQuestionsRefs,
+        bool studySubjectsRefs,
+      })
     >;
 typedef $$SavedQuestionsTableCreateCompanionBuilder =
     SavedQuestionsCompanion Function({
@@ -5546,6 +6185,480 @@ typedef $$RoutineCompletionsTableProcessedTableManager =
       RoutineCompletion,
       PrefetchHooks Function({bool taskId})
     >;
+typedef $$StudySubjectsTableCreateCompanionBuilder =
+    StudySubjectsCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<int?> parentId,
+      Value<bool> isLeaf,
+      Value<bool> isKnown,
+      Value<DateTime?> nextReviewDate,
+      Value<int?> lastReviewInterval,
+      Value<int?> syncWithFolderId,
+    });
+typedef $$StudySubjectsTableUpdateCompanionBuilder =
+    StudySubjectsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<int?> parentId,
+      Value<bool> isLeaf,
+      Value<bool> isKnown,
+      Value<DateTime?> nextReviewDate,
+      Value<int?> lastReviewInterval,
+      Value<int?> syncWithFolderId,
+    });
+
+final class $$StudySubjectsTableReferences
+    extends BaseReferences<_$AppDatabase, $StudySubjectsTable, StudySubject> {
+  $$StudySubjectsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $StudySubjectsTable _parentIdTable(_$AppDatabase db) =>
+      db.studySubjects.createAlias(
+        $_aliasNameGenerator(db.studySubjects.parentId, db.studySubjects.id),
+      );
+
+  $$StudySubjectsTableProcessedTableManager? get parentId {
+    final $_column = $_itemColumn<int>('parent_id');
+    if ($_column == null) return null;
+    final manager = $$StudySubjectsTableTableManager(
+      $_db,
+      $_db.studySubjects,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_parentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $QuestionFoldersTable _syncWithFolderIdTable(_$AppDatabase db) =>
+      db.questionFolders.createAlias(
+        $_aliasNameGenerator(
+          db.studySubjects.syncWithFolderId,
+          db.questionFolders.id,
+        ),
+      );
+
+  $$QuestionFoldersTableProcessedTableManager? get syncWithFolderId {
+    final $_column = $_itemColumn<int>('sync_with_folder_id');
+    if ($_column == null) return null;
+    final manager = $$QuestionFoldersTableTableManager(
+      $_db,
+      $_db.questionFolders,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_syncWithFolderIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$StudySubjectsTableFilterComposer
+    extends Composer<_$AppDatabase, $StudySubjectsTable> {
+  $$StudySubjectsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isLeaf => $composableBuilder(
+    column: $table.isLeaf,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isKnown => $composableBuilder(
+    column: $table.isKnown,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get nextReviewDate => $composableBuilder(
+    column: $table.nextReviewDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastReviewInterval => $composableBuilder(
+    column: $table.lastReviewInterval,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$StudySubjectsTableFilterComposer get parentId {
+    final $$StudySubjectsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.parentId,
+      referencedTable: $db.studySubjects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudySubjectsTableFilterComposer(
+            $db: $db,
+            $table: $db.studySubjects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$QuestionFoldersTableFilterComposer get syncWithFolderId {
+    final $$QuestionFoldersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.syncWithFolderId,
+      referencedTable: $db.questionFolders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestionFoldersTableFilterComposer(
+            $db: $db,
+            $table: $db.questionFolders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StudySubjectsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StudySubjectsTable> {
+  $$StudySubjectsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isLeaf => $composableBuilder(
+    column: $table.isLeaf,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isKnown => $composableBuilder(
+    column: $table.isKnown,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get nextReviewDate => $composableBuilder(
+    column: $table.nextReviewDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastReviewInterval => $composableBuilder(
+    column: $table.lastReviewInterval,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$StudySubjectsTableOrderingComposer get parentId {
+    final $$StudySubjectsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.parentId,
+      referencedTable: $db.studySubjects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudySubjectsTableOrderingComposer(
+            $db: $db,
+            $table: $db.studySubjects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$QuestionFoldersTableOrderingComposer get syncWithFolderId {
+    final $$QuestionFoldersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.syncWithFolderId,
+      referencedTable: $db.questionFolders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestionFoldersTableOrderingComposer(
+            $db: $db,
+            $table: $db.questionFolders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StudySubjectsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StudySubjectsTable> {
+  $$StudySubjectsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<bool> get isLeaf =>
+      $composableBuilder(column: $table.isLeaf, builder: (column) => column);
+
+  GeneratedColumn<bool> get isKnown =>
+      $composableBuilder(column: $table.isKnown, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get nextReviewDate => $composableBuilder(
+    column: $table.nextReviewDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lastReviewInterval => $composableBuilder(
+    column: $table.lastReviewInterval,
+    builder: (column) => column,
+  );
+
+  $$StudySubjectsTableAnnotationComposer get parentId {
+    final $$StudySubjectsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.parentId,
+      referencedTable: $db.studySubjects,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudySubjectsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.studySubjects,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$QuestionFoldersTableAnnotationComposer get syncWithFolderId {
+    final $$QuestionFoldersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.syncWithFolderId,
+      referencedTable: $db.questionFolders,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestionFoldersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.questionFolders,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StudySubjectsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StudySubjectsTable,
+          StudySubject,
+          $$StudySubjectsTableFilterComposer,
+          $$StudySubjectsTableOrderingComposer,
+          $$StudySubjectsTableAnnotationComposer,
+          $$StudySubjectsTableCreateCompanionBuilder,
+          $$StudySubjectsTableUpdateCompanionBuilder,
+          (StudySubject, $$StudySubjectsTableReferences),
+          StudySubject,
+          PrefetchHooks Function({bool parentId, bool syncWithFolderId})
+        > {
+  $$StudySubjectsTableTableManager(_$AppDatabase db, $StudySubjectsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StudySubjectsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StudySubjectsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StudySubjectsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int?> parentId = const Value.absent(),
+                Value<bool> isLeaf = const Value.absent(),
+                Value<bool> isKnown = const Value.absent(),
+                Value<DateTime?> nextReviewDate = const Value.absent(),
+                Value<int?> lastReviewInterval = const Value.absent(),
+                Value<int?> syncWithFolderId = const Value.absent(),
+              }) => StudySubjectsCompanion(
+                id: id,
+                name: name,
+                parentId: parentId,
+                isLeaf: isLeaf,
+                isKnown: isKnown,
+                nextReviewDate: nextReviewDate,
+                lastReviewInterval: lastReviewInterval,
+                syncWithFolderId: syncWithFolderId,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<int?> parentId = const Value.absent(),
+                Value<bool> isLeaf = const Value.absent(),
+                Value<bool> isKnown = const Value.absent(),
+                Value<DateTime?> nextReviewDate = const Value.absent(),
+                Value<int?> lastReviewInterval = const Value.absent(),
+                Value<int?> syncWithFolderId = const Value.absent(),
+              }) => StudySubjectsCompanion.insert(
+                id: id,
+                name: name,
+                parentId: parentId,
+                isLeaf: isLeaf,
+                isKnown: isKnown,
+                nextReviewDate: nextReviewDate,
+                lastReviewInterval: lastReviewInterval,
+                syncWithFolderId: syncWithFolderId,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$StudySubjectsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({parentId = false, syncWithFolderId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (parentId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.parentId,
+                                    referencedTable:
+                                        $$StudySubjectsTableReferences
+                                            ._parentIdTable(db),
+                                    referencedColumn:
+                                        $$StudySubjectsTableReferences
+                                            ._parentIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (syncWithFolderId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.syncWithFolderId,
+                                    referencedTable:
+                                        $$StudySubjectsTableReferences
+                                            ._syncWithFolderIdTable(db),
+                                    referencedColumn:
+                                        $$StudySubjectsTableReferences
+                                            ._syncWithFolderIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$StudySubjectsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StudySubjectsTable,
+      StudySubject,
+      $$StudySubjectsTableFilterComposer,
+      $$StudySubjectsTableOrderingComposer,
+      $$StudySubjectsTableAnnotationComposer,
+      $$StudySubjectsTableCreateCompanionBuilder,
+      $$StudySubjectsTableUpdateCompanionBuilder,
+      (StudySubject, $$StudySubjectsTableReferences),
+      StudySubject,
+      PrefetchHooks Function({bool parentId, bool syncWithFolderId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5566,4 +6679,6 @@ class $AppDatabaseManager {
       $$TasksTableTableManager(_db, _db.tasks);
   $$RoutineCompletionsTableTableManager get routineCompletions =>
       $$RoutineCompletionsTableTableManager(_db, _db.routineCompletions);
+  $$StudySubjectsTableTableManager get studySubjects =>
+      $$StudySubjectsTableTableManager(_db, _db.studySubjects);
 }

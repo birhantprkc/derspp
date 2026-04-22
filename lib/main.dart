@@ -13,6 +13,7 @@ import 'providers/book_provider.dart';
 import 'providers/source_provider.dart';
 import 'providers/saved_questions_provider.dart';
 import 'providers/transcription_provider.dart';
+import 'providers/subject_review_provider.dart';
 import 'database/database.dart';
 import 'ui/navi_bar.dart';
 
@@ -58,6 +59,9 @@ Future<void> main() async {
           create: (context) => SavedQuestionsProvider(database),
         ),
         ChangeNotifierProvider(create: (context) => TranscriptionProvider()),
+        ChangeNotifierProvider(
+          create: (context) => SubjectReviewProvider(database),
+        ),
       ],
       child: const MainApp(),
     ),
