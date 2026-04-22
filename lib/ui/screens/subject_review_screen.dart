@@ -29,7 +29,13 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
       body: _buildFolderTree(provider, null),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 80.0),
-        child: FloatingActionButton(
+        child: FloatingActionButton.small(
+          elevation: 0,
+          highlightElevation: 0,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest,
+          foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
           onPressed: () {
             showModalBottomSheet(
               context: context,
@@ -107,13 +113,17 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  CircularProgressIndicator(
-                    value: progress,
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.outlineVariant.withOpacity(0.3),
-                    color: Theme.of(context).colorScheme.primary,
-                    strokeWidth: 2.5,
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.outlineVariant.withOpacity(0.3),
+                      color: Theme.of(context).colorScheme.primary,
+                      strokeWidth: 3,
+                    ),
                   ),
                   Icon(
                     Icons.check,
@@ -136,19 +146,19 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
                     : Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            subtitle: subject.isKnown
-                ? Text(
-                    isExpired
-                        ? 'Tekrar zamanı geldi!'
-                        : 'Tekrar: ${_formatDate(subject.nextReviewDate)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isExpired
-                          ? Colors.red
-                          : Theme.of(context).colorScheme.primary,
-                    ),
-                  )
-                : null,
+            // subtitle: subject.isKnown
+            //     ? Text(
+            //         isExpired
+            //             ? 'Tekrar zamanı geldi!'
+            //             : 'Tekrar: ${_formatDate(subject.nextReviewDate)}',
+            //         style: TextStyle(
+            //           fontSize: 12,
+            //           color: isExpired
+            //               ? Colors.red
+            //               : Theme.of(context).colorScheme.primary,
+            //         ),
+            //       )
+            //     : null,
             trailing: IconButton(
               icon: const Icon(Icons.more_vert, size: 20),
               onPressed: () => _showOptionsDialog(context, provider, subject),
@@ -206,10 +216,10 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
     );
   }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return '';
-    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-  }
+  // String _formatDate(DateTime? date) {
+  //   if (date == null) return '';
+  //   return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+  // }
 
   void _showAddDialog(
     BuildContext context,
