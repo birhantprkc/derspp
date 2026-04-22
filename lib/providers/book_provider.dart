@@ -83,7 +83,7 @@ class BookProvider extends ChangeNotifier {
         }
       }
 
-      final docsDir = await getApplicationDocumentsDirectory();
+      final docsDir = await getApplicationSupportDirectory();
       final coversPath = p.join(docsDir.path, 'book_covers');
       final coversDir = io.Directory(coversPath);
       if (!await coversDir.exists()) {
@@ -116,7 +116,7 @@ class BookProvider extends ChangeNotifier {
   Future<void> cleanupOrphanedCovers() async {
     if (kIsWeb) return;
     try {
-      final docsDir = await getApplicationDocumentsDirectory();
+      final docsDir = await getApplicationSupportDirectory();
       final coversPath = p.join(docsDir.path, 'book_covers');
       final coversDir = io.Directory(coversPath);
       if (!await coversDir.exists()) return;

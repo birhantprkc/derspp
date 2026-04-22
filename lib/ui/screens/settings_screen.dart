@@ -752,7 +752,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final jsonString = utf8.decode(booksFile.content as List<int>);
         final List<dynamic> jsonList = jsonDecode(jsonString);
 
-        final docsDir = await getApplicationDocumentsDirectory();
+        final docsDir = await getApplicationSupportDirectory();
         final coversPath = p.join(docsDir.path, 'book_covers');
         final coversDir = io.Directory(coversPath);
         if (!await coversDir.exists()) {
