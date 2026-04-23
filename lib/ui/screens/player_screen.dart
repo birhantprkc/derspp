@@ -543,7 +543,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               padding: EdgeInsets.all(16.0),
               child: Text(
                 'Bu soruyu ne zaman tekrar etmek istersin?',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 16),
               ),
             ),
             _buildReviewOption(context, provider, sq, '1 Gün', 1),
@@ -720,7 +720,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         child: FloatingActionButton(
                           mini: true,
                           heroTag: 'save_or_review',
-                          backgroundColor: Colors.black.withOpacity(0.5),
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryFixedVariant
+                              .withOpacity(0.5),
                           foregroundColor: Colors.white,
                           onPressed: () => widget.savedQuestion != null
                               ? _showReviewDialog(context)
@@ -736,7 +739,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         widget.savedQuestion!.notes!.isNotEmpty &&
                         _isNotesVisible)
                       Positioned(
-                        top: 40,
+                        top: 43,
                         left: 70,
                         right: 70,
                         child: Container(
@@ -745,7 +748,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.amber.withOpacity(0.85),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.50),
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
@@ -802,8 +807,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         child: FloatingActionButton(
                           mini: true,
                           heroTag: 'show_notes',
-                          backgroundColor: Colors.amber.withOpacity(0.8),
-                          foregroundColor: Colors.black87,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.3),
+                          foregroundColor: Colors.black87.withOpacity(0.3),
                           onPressed: () {
                             setState(() {
                               _isNotesVisible = true;
@@ -1025,7 +1032,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isActive
-                                      ? Colors.white.withOpacity(0.2)
+                                      ? Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface.withOpacity(0.2)
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
@@ -1035,8 +1044,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                     fontSize: 14,
                                     height: 1.5,
                                     color: isActive
-                                        ? Colors.white
-                                        : Colors.white.withOpacity(0.6),
+                                        ? Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface
+                                        : Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withOpacity(0.6),
                                     fontWeight: isActive
                                         ? FontWeight.bold
                                         : FontWeight.normal,
