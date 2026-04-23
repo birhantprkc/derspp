@@ -59,6 +59,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
   final GlobalKey<DrawingCanvasState> _canvasKey = GlobalKey();
   TranscriptionProvider? _transcriptionProvider;
 
+  double? _customPanelSize;
+  bool _isDraggingPanel = false;
+  final ScrollController _transcriptionScrollController = ScrollController();
+  List<GlobalKey> _chunkKeys = [];
+  int _lastActiveIndex = -1;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -288,14 +294,47 @@ class _PlayerScreenState extends State<PlayerScreen> {
             _currentPosition = smoothPos;
           });
           widget.animationData.update(smoothPos.inMilliseconds / 1000.0);
+          _checkTranscriptionAutoScroll(smoothPos.inMilliseconds / 1000.0);
         } else if (!_isPlaying || _isSeeking) {
           _lastSyncTime = null;
           widget.animationData.update(_currentPosition.inMilliseconds / 1000.0);
+          _checkTranscriptionAutoScroll(
+            _currentPosition.inMilliseconds / 1000.0,
+          );
         }
       } catch (e) {
         debugPrint('Timer hatası: $e');
       }
     });
+  }
+
+  void _checkTranscriptionAutoScroll(double currentSeconds) {
+    if (_transcriptionProvider == null) return;
+    final subtitles = _transcriptionProvider!.subtitles;
+    if (subtitles.isEmpty) return;
+
+    final int currentIndex = subtitles.indexWhere(
+      (chunk) =>
+          currentSeconds >= chunk.startTime && currentSeconds <= chunk.endTime,
+    );
+
+    if (currentIndex != -1 && currentIndex != _lastActiveIndex) {
+      _lastActiveIndex = currentIndex;
+      if (_transcriptionScrollController.hasClients &&
+          !_isDraggingPanel &&
+          currentIndex < _chunkKeys.length) {
+        final key = _chunkKeys[currentIndex];
+        final context = key.currentContext;
+        if (context != null) {
+          Scrollable.ensureVisible(
+            context,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            alignment: 0.5,
+          );
+        }
+      }
+    }
   }
 
   void _onPlaybackComplete() {
@@ -619,7 +658,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
         builder: (context, orientation) {
           final isPortrait = orientation == Orientation.portrait;
           final isOpen = transcriptionProvider.isPanelOpen;
-          final double panelSize = isPortrait ? 250.0 : 320.0;
+          final double panelSize =
+              _customPanelSize ?? (isPortrait ? 250.0 : 320.0);
           final Size screenSize = MediaQuery.of(context).size;
           final bool isYoutubeVideo =
               widget.animationData.videoUrl?.contains('googlevideo.com') ??
@@ -872,17 +912,83 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           ),
                       ],
                     ),
-                    child: _buildTranscriptionContent(transcriptionProvider),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: _buildTranscriptionContent(
+                            transcriptionProvider,
+                          ),
+                        ),
+                        Positioned(
+                          left: isPortrait ? 0 : 0,
+                          right: isPortrait ? 0 : null,
+                          bottom: isPortrait ? 0 : 0,
+                          top: isPortrait ? null : 0,
+                          height: isPortrait ? 16 : null,
+                          width: isPortrait ? null : 16,
+                          child: GestureDetector(
+                            onVerticalDragUpdate: isPortrait
+                                ? (details) {
+                                    setState(() {
+                                      _customPanelSize =
+                                          (_customPanelSize ?? panelSize) +
+                                          details.primaryDelta!;
+                                      if (_customPanelSize! < 100)
+                                        _customPanelSize = 100;
+                                      if (_customPanelSize! >
+                                          screenSize.height - 100)
+                                        _customPanelSize =
+                                            screenSize.height - 100;
+                                    });
+                                  }
+                                : null,
+                            onHorizontalDragUpdate: !isPortrait
+                                ? (details) {
+                                    setState(() {
+                                      _customPanelSize =
+                                          (_customPanelSize ?? panelSize) -
+                                          details.primaryDelta!;
+                                      if (_customPanelSize! < 100)
+                                        _customPanelSize = 100;
+                                      if (_customPanelSize! >
+                                          screenSize.width - 100)
+                                        _customPanelSize =
+                                            screenSize.width - 100;
+                                    });
+                                  }
+                                : null,
+                            child: MouseRegion(
+                              cursor: isPortrait
+                                  ? SystemMouseCursors.resizeUpDown
+                                  : SystemMouseCursors.resizeLeftRight,
+                              child: Container(
+                                color: Colors.transparent,
+                                child: Center(
+                                  child: Container(
+                                    width: isPortrait ? 40 : 4,
+                                    height: isPortrait ? 4 : 40,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               if (!isYoutubeVideo)
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOutCubic,
-                  left: isPortrait ? (screenSize.width / 2 - 30) : null,
+                  left: isPortrait ? (screenSize.width * 0.5 + 30) : null,
                   top: isPortrait ? (isOpen ? panelSize : 0) : null,
                   right: isPortrait ? null : (isOpen ? panelSize : 0),
-                  bottom: isPortrait ? null : (screenSize.height / 2 - 30),
+                  bottom: isPortrait ? null : (screenSize.height * 0.5 - 30),
                   child: GestureDetector(
                     onTap: () => _toggleTranscription(transcriptionProvider),
                     child: Container(
@@ -929,6 +1035,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   Widget _buildTranscriptionContent(TranscriptionProvider provider) {
+    if (_chunkKeys.length != provider.subtitles.length) {
+      _chunkKeys = List.generate(provider.subtitles.length, (_) => GlobalKey());
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1004,6 +1113,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ),
                 )
               : SingleChildScrollView(
+                  controller: _transcriptionScrollController,
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1017,13 +1127,18 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         Wrap(
                           spacing: 4.0,
                           runSpacing: 6.0,
-                          children: provider.subtitles.map((chunk) {
+                          children: provider.subtitles.asMap().entries.map((
+                            entry,
+                          ) {
+                            final int index = entry.key;
+                            final chunk = entry.value;
                             final double currentSeconds =
                                 _currentPosition.inMilliseconds / 1000.0;
                             final bool isActive =
                                 currentSeconds >= chunk.startTime &&
                                 currentSeconds <= chunk.endTime;
                             return InkWell(
+                              key: _chunkKeys[index],
                               borderRadius: BorderRadius.circular(4),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
