@@ -121,9 +121,18 @@ class YoutubeSourceService implements SourceService {
   Future<Map<String, String?>> discoverPublisherInfo(String url) async {
     _syncProxy();
     try {
-      final playlistId = PlaylistId.parsePlaylistId(url);
-      if (playlistId != null) {
-        return {'id': playlistId, 'apiUrl': url, 'type': 'youtube'};
+      String? extractedPlaylistId;
+      try {
+        final uri = Uri.parse(url);
+        extractedPlaylistId = uri.queryParameters['list'];
+      } catch (_) {}
+
+      if (extractedPlaylistId == null || extractedPlaylistId.isEmpty) {
+        extractedPlaylistId = PlaylistId.parsePlaylistId(url);
+      }
+
+      if (extractedPlaylistId != null && extractedPlaylistId.isNotEmpty) {
+        return {'id': extractedPlaylistId, 'apiUrl': url, 'type': 'youtube'};
       }
     } catch (_) {}
     return {'id': null, 'apiUrl': null};
