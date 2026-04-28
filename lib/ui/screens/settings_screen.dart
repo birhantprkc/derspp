@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../database/database.dart';
 import '../../services/cors_proxy_service.dart';
+import 'navigation_settings_screen.dart';
 import 'package:universal_io/io.dart' as io;
 
 class SettingsScreen extends StatefulWidget {
@@ -151,6 +152,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               _buildSectionHeader(context, 'GÖRÜNÜM'),
               _buildAppearanceSection(context, themeProvider),
+              _buildMinimalActionTile(
+                context,
+                icon: Icons.format_list_bulleted_rounded,
+                title: 'Navigasyon Çubuğunu Düzenle',
+                subtitle: 'Sekme sırasını ve görünürlüğü ayarla',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NavigationSettingsScreen(),
+                    ),
+                  );
+                },
+              ),
 
               const SizedBox(height: 32),
               _buildSectionHeader(context, 'OYNATICI'),

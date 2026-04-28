@@ -6,6 +6,7 @@ import 'package:pdfrx/pdfrx.dart';
 import 'package:provider/provider.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'providers/theme_provider.dart';
 import 'providers/task_provider.dart';
@@ -14,8 +15,10 @@ import 'providers/source_provider.dart';
 import 'providers/saved_questions_provider.dart';
 import 'providers/transcription_provider.dart';
 import 'providers/subject_review_provider.dart';
+import 'providers/navigation_provider.dart';
 import 'database/database.dart';
 import 'ui/navi_bar.dart';
+import 'ui/screens/welcome_screen.dart';
 
 import 'services/cors_proxy_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -47,6 +50,9 @@ Future<void> main() async {
   final database = AppDatabase();
   await CorsProxyService.instance.init(database);
 
+  final prefs = await SharedPreferences.getInstance();
+  final welcomeShown = prefs.getBool('welcome_shown') ?? false;
+
   runApp(
     MultiProvider(
       providers: [
@@ -62,8 +68,11 @@ Future<void> main() async {
         ChangeNotifierProvider(
           create: (context) => SubjectReviewProvider(database),
         ),
+        ChangeNotifierProvider(
+          create: (context) => NavigationProvider(database),
+        ),
       ],
-      child: const MainApp(),
+      child: MainApp(welcomeShown: welcomeShown),
     ),
   );
 }
@@ -78,7 +87,8 @@ class MyScrollBehavior extends MaterialScrollBehavior {
 }
 
 class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  final bool welcomeShown;
+  const MainApp({super.key, required this.welcomeShown});
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +103,7 @@ class MainApp extends StatelessWidget {
           themeMode: themeProvider.themeMode,
           theme: themeProvider.buildTheme(Brightness.light, lightDynamic),
           darkTheme: themeProvider.buildTheme(Brightness.dark, darkDynamic),
-          home: const NaviBar(),
+          home: const WelcomeScreen(),
         );
       },
     );
