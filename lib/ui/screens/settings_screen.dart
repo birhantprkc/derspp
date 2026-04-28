@@ -13,6 +13,8 @@ import '../../database/database.dart';
 import '../../services/cors_proxy_service.dart';
 import 'navigation_settings_screen.dart';
 import 'backup_screen.dart';
+import 'about_screen.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:universal_io/io.dart' as io;
 
 class SettingsScreen extends StatefulWidget {
@@ -199,6 +201,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
 
+              _buildMinimalActionTile(
+                context,
+                icon: Icons.info_outline_rounded,
+                title: 'Hakkında',
+                subtitle: 'Uygulama bilgileri ve versiyon',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AboutScreen(),
+                    ),
+                  );
+                },
+              ),
+
               const SizedBox(height: 50),
               Center(
                 child: Text(
@@ -289,10 +306,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 'Vurgu Rengi',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withOpacity(0.7),
+                  ).colorScheme.onSurface.withOpacity(0.5),
                 ),
               ),
               const SizedBox(height: 16),
@@ -323,7 +340,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       height: 48,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        children: [
+      children: [
           _buildColorOption(
             context,
             color: Theme.of(context).colorScheme.primary,
@@ -332,15 +349,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () => themeProvider.setUseDynamicColor(true),
           ),
           const SizedBox(width: 12),
-          ...seedColors.map(
-            (color) => _buildColorOption(
-              context,
-              color: color,
+        ...seedColors.map(
+          (color) => _buildColorOption(
+            context,
+            color: color,
               isSelected:
                   !themeProvider.useDynamicColor &&
-                  themeProvider.customSeedColor.value == color.value,
-              onTap: () => themeProvider.setSeedColor(color),
-            ),
+                themeProvider.customSeedColor.value == color.value,
+            onTap: () => themeProvider.setSeedColor(color),
+          ),
+        ),
+        const SizedBox(width: 12),
+        _buildCustomColorButton(context, themeProvider),
+      ],
+      ),
+    );
+  }
+
+  Widget _buildCustomColorButton(
+    BuildContext context,
+    ThemeProvider themeProvider,
+  ) {
+    final isCustomSelected =
+        !themeProvider.useDynamicColor &&
+        ![
+          Colors.blue.value,
+          Colors.purple.value,
+          Colors.deepPurple.value,
+          Colors.indigo.value,
+          Colors.pink.value,
+          Colors.red.value,
+          Colors.orange.value,
+          Colors.amber.value,
+          Colors.green.value,
+          Colors.teal.value,
+          Colors.cyan.value,
+        ].contains(themeProvider.customSeedColor.value);
+
+    return GestureDetector(
+      onTap: () => _showColorPickerDialog(context, themeProvider),
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: isCustomSelected
+              ? themeProvider.customSeedColor
+              : Theme.of(context).colorScheme.surfaceVariant,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isCustomSelected
+                ? Theme.of(context).colorScheme.onSurface
+                : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Icon(
+          Icons.edit_rounded,
+          size: 18,
+          color: isCustomSelected
+              ? (themeProvider.customSeedColor.computeLuminance() > 0.5
+                  ? Colors.black
+                  : Colors.white)
+              : Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
+  void _showColorPickerDialog(BuildContext context, ThemeProvider themeProvider) {
+    Color pickerColor = themeProvider.customSeedColor;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Özel Renk Seç'),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: pickerColor,
+            onColorChanged: (color) => pickerColor = color,
+            pickerAreaHeightPercent: 0.8,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () {
+              themeProvider.setSeedColor(pickerColor);
+              Navigator.pop(context);
+            },
+            child: const Text('Seç'),
           ),
         ],
       ),
@@ -379,7 +478,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).colorScheme.onSurfaceVariant,
                 size: 16,
-              )
+                  )
             : isSelected
             ? const Icon(Icons.check, color: Colors.white, size: 18)
             : null,

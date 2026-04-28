@@ -6,7 +6,7 @@ class ThemeProvider extends ChangeNotifier {
 
   ThemeMode _themeMode = ThemeMode.system;
   Color _customSeedColor = Colors.blue;
-  bool _useDynamicColor = false;
+  bool _useDynamicColor = true;
   bool _playerContentDarkMode = false;
 
   ThemeMode get themeMode => _themeMode;
