@@ -92,6 +92,15 @@ class TaskProvider with ChangeNotifier {
 
           if (normalizedTarget.isBefore(normalizedStart)) return false;
 
+          if (t.endDate != null) {
+            final normalizedEnd = DateTime(
+              t.endDate!.year,
+              t.endDate!.month,
+              t.endDate!.day,
+            );
+            if (normalizedTarget.isAfter(normalizedEnd)) return false;
+          }
+
           if (t.frequency == 0) {
             if (t.date == null) return false;
             final normalizedTaskDate = DateTime(
@@ -162,22 +171,18 @@ class TaskProvider with ChangeNotifier {
     );
 
     if (task.frequency != 0) {
-      final existing = _routineCompletions.where(
+      final existing = _routineCompletions.cast<RoutineCompletion?>().firstWhere(
         (c) =>
-            c.taskId == task.id &&
-            c.date.year == normalizedTarget.year &&
-            c.date.month == normalizedTarget.month &&
-            c.date.day == normalizedTarget.day,
+            c?.taskId == task.id &&
+            c?.date.year == normalizedTarget.year &&
+            c?.date.month == normalizedTarget.month &&
+            c?.date.day == normalizedTarget.day,
+        orElse: () => null,
       );
 
-      if (existing.isNotEmpty) {
-        await (_db.delete(_db.routineCompletions)..where(
-              (c) =>
-                  c.taskId.equals(task.id) &
-                  c.date.year.equals(normalizedTarget.year) &
-                  c.date.month.equals(normalizedTarget.month) &
-                  c.date.day.equals(normalizedTarget.day),
-            ))
+      if (existing != null) {
+        await (_db.delete(_db.routineCompletions)
+              ..where((c) => c.id.equals(existing.id)))
             .go();
       } else {
         await _db
@@ -195,10 +200,19 @@ class TaskProvider with ChangeNotifier {
   }
 
   Future<void> deleteTask(int id) async {
-    await (_db.delete(
-      _db.routineCompletions,
-    )..where((c) => c.taskId.equals(id))).go();
-    await (_db.delete(_db.tasks)..where((t) => t.id.equals(id))).go();
+    final taskIndex = _tasks.indexWhere((t) => t.id == id);
+    if (taskIndex == -1) return;
+    final task = _tasks[taskIndex];
+
+    if (task.frequency != 0) {
+      final newEndDate = weekStart.subtract(const Duration(days: 1));
+      await (_db.update(_db.tasks)..where((t) => t.id.equals(id)))
+          .write(TasksCompanion(endDate: Value(newEndDate)));
+    } else {
+      await (_db.delete(_db.routineCompletions)..where((c) => c.taskId.equals(id)))
+          .go();
+      await (_db.delete(_db.tasks)..where((t) => t.id.equals(id))).go();
+    }
   }
 
   Map<DateTime, int> getHeatmapData() {

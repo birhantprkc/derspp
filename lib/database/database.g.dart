@@ -2559,6 +2559,17 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _endDateMeta = const VerificationMeta(
+    'endDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
+    'end_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _frequencyMeta = const VerificationMeta(
     'frequency',
   );
@@ -2580,6 +2591,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     category,
     date,
     startDate,
+    endDate,
     frequency,
   ];
   @override
@@ -2639,6 +2651,12 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta),
       );
     }
+    if (data.containsKey('end_date')) {
+      context.handle(
+        _endDateMeta,
+        endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta),
+      );
+    }
     if (data.containsKey('frequency')) {
       context.handle(
         _frequencyMeta,
@@ -2682,6 +2700,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}start_date'],
       )!,
+      endDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}end_date'],
+      ),
       frequency: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}frequency'],
@@ -2703,6 +2725,7 @@ class Task extends DataClass implements Insertable<Task> {
   final String category;
   final DateTime? date;
   final DateTime startDate;
+  final DateTime? endDate;
   final int frequency;
   const Task({
     required this.id,
@@ -2712,6 +2735,7 @@ class Task extends DataClass implements Insertable<Task> {
     required this.category,
     this.date,
     required this.startDate,
+    this.endDate,
     required this.frequency,
   });
   @override
@@ -2726,6 +2750,9 @@ class Task extends DataClass implements Insertable<Task> {
       map['date'] = Variable<DateTime>(date);
     }
     map['start_date'] = Variable<DateTime>(startDate);
+    if (!nullToAbsent || endDate != null) {
+      map['end_date'] = Variable<DateTime>(endDate);
+    }
     map['frequency'] = Variable<int>(frequency);
     return map;
   }
@@ -2739,6 +2766,9 @@ class Task extends DataClass implements Insertable<Task> {
       category: Value(category),
       date: date == null && nullToAbsent ? const Value.absent() : Value(date),
       startDate: Value(startDate),
+      endDate: endDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDate),
       frequency: Value(frequency),
     );
   }
@@ -2756,6 +2786,7 @@ class Task extends DataClass implements Insertable<Task> {
       category: serializer.fromJson<String>(json['category']),
       date: serializer.fromJson<DateTime?>(json['date']),
       startDate: serializer.fromJson<DateTime>(json['startDate']),
+      endDate: serializer.fromJson<DateTime?>(json['endDate']),
       frequency: serializer.fromJson<int>(json['frequency']),
     );
   }
@@ -2770,6 +2801,7 @@ class Task extends DataClass implements Insertable<Task> {
       'category': serializer.toJson<String>(category),
       'date': serializer.toJson<DateTime?>(date),
       'startDate': serializer.toJson<DateTime>(startDate),
+      'endDate': serializer.toJson<DateTime?>(endDate),
       'frequency': serializer.toJson<int>(frequency),
     };
   }
@@ -2782,6 +2814,7 @@ class Task extends DataClass implements Insertable<Task> {
     String? category,
     Value<DateTime?> date = const Value.absent(),
     DateTime? startDate,
+    Value<DateTime?> endDate = const Value.absent(),
     int? frequency,
   }) => Task(
     id: id ?? this.id,
@@ -2791,6 +2824,7 @@ class Task extends DataClass implements Insertable<Task> {
     category: category ?? this.category,
     date: date.present ? date.value : this.date,
     startDate: startDate ?? this.startDate,
+    endDate: endDate.present ? endDate.value : this.endDate,
     frequency: frequency ?? this.frequency,
   );
   Task copyWithCompanion(TasksCompanion data) {
@@ -2802,6 +2836,7 @@ class Task extends DataClass implements Insertable<Task> {
       category: data.category.present ? data.category.value : this.category,
       date: data.date.present ? data.date.value : this.date,
       startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
       frequency: data.frequency.present ? data.frequency.value : this.frequency,
     );
   }
@@ -2816,6 +2851,7 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('category: $category, ')
           ..write('date: $date, ')
           ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
           ..write('frequency: $frequency')
           ..write(')'))
         .toString();
@@ -2830,6 +2866,7 @@ class Task extends DataClass implements Insertable<Task> {
     category,
     date,
     startDate,
+    endDate,
     frequency,
   );
   @override
@@ -2843,6 +2880,7 @@ class Task extends DataClass implements Insertable<Task> {
           other.category == this.category &&
           other.date == this.date &&
           other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
           other.frequency == this.frequency);
 }
 
@@ -2854,6 +2892,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<String> category;
   final Value<DateTime?> date;
   final Value<DateTime> startDate;
+  final Value<DateTime?> endDate;
   final Value<int> frequency;
   const TasksCompanion({
     this.id = const Value.absent(),
@@ -2863,6 +2902,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.category = const Value.absent(),
     this.date = const Value.absent(),
     this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
     this.frequency = const Value.absent(),
   });
   TasksCompanion.insert({
@@ -2873,6 +2913,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     required String category,
     this.date = const Value.absent(),
     this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
     this.frequency = const Value.absent(),
   }) : title = Value(title),
        dayIndex = Value(dayIndex),
@@ -2885,6 +2926,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<String>? category,
     Expression<DateTime>? date,
     Expression<DateTime>? startDate,
+    Expression<DateTime>? endDate,
     Expression<int>? frequency,
   }) {
     return RawValuesInsertable({
@@ -2895,6 +2937,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (category != null) 'category': category,
       if (date != null) 'date': date,
       if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
       if (frequency != null) 'frequency': frequency,
     });
   }
@@ -2907,6 +2950,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<String>? category,
     Value<DateTime?>? date,
     Value<DateTime>? startDate,
+    Value<DateTime?>? endDate,
     Value<int>? frequency,
   }) {
     return TasksCompanion(
@@ -2917,6 +2961,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       category: category ?? this.category,
       date: date ?? this.date,
       startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
       frequency: frequency ?? this.frequency,
     );
   }
@@ -2945,6 +2990,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (startDate.present) {
       map['start_date'] = Variable<DateTime>(startDate.value);
     }
+    if (endDate.present) {
+      map['end_date'] = Variable<DateTime>(endDate.value);
+    }
     if (frequency.present) {
       map['frequency'] = Variable<int>(frequency.value);
     }
@@ -2961,6 +3009,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('category: $category, ')
           ..write('date: $date, ')
           ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
           ..write('frequency: $frequency')
           ..write(')'))
         .toString();
@@ -5547,6 +5596,7 @@ typedef $$TasksTableCreateCompanionBuilder =
       required String category,
       Value<DateTime?> date,
       Value<DateTime> startDate,
+      Value<DateTime?> endDate,
       Value<int> frequency,
     });
 typedef $$TasksTableUpdateCompanionBuilder =
@@ -5558,6 +5608,7 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<String> category,
       Value<DateTime?> date,
       Value<DateTime> startDate,
+      Value<DateTime?> endDate,
       Value<int> frequency,
     });
 
@@ -5630,6 +5681,11 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<DateTime> get startDate => $composableBuilder(
     column: $table.startDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get endDate => $composableBuilder(
+    column: $table.endDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5708,6 +5764,11 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get frequency => $composableBuilder(
     column: $table.frequency,
     builder: (column) => ColumnOrderings(column),
@@ -5743,6 +5804,9 @@ class $$TasksTableAnnotationComposer
 
   GeneratedColumn<DateTime> get startDate =>
       $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
 
   GeneratedColumn<int> get frequency =>
       $composableBuilder(column: $table.frequency, builder: (column) => column);
@@ -5809,6 +5873,7 @@ class $$TasksTableTableManager
                 Value<String> category = const Value.absent(),
                 Value<DateTime?> date = const Value.absent(),
                 Value<DateTime> startDate = const Value.absent(),
+                Value<DateTime?> endDate = const Value.absent(),
                 Value<int> frequency = const Value.absent(),
               }) => TasksCompanion(
                 id: id,
@@ -5818,6 +5883,7 @@ class $$TasksTableTableManager
                 category: category,
                 date: date,
                 startDate: startDate,
+                endDate: endDate,
                 frequency: frequency,
               ),
           createCompanionCallback:
@@ -5829,6 +5895,7 @@ class $$TasksTableTableManager
                 required String category,
                 Value<DateTime?> date = const Value.absent(),
                 Value<DateTime> startDate = const Value.absent(),
+                Value<DateTime?> endDate = const Value.absent(),
                 Value<int> frequency = const Value.absent(),
               }) => TasksCompanion.insert(
                 id: id,
@@ -5838,6 +5905,7 @@ class $$TasksTableTableManager
                 category: category,
                 date: date,
                 startDate: startDate,
+                endDate: endDate,
                 frequency: frequency,
               ),
           withReferenceMapper: (p0) => p0

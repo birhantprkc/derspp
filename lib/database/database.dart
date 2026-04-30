@@ -77,9 +77,9 @@ class Tasks extends Table {
   TextColumn get category => text()();
   DateTimeColumn get date => dateTime().nullable()();
   DateTimeColumn get startDate => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get endDate => dateTime().nullable()();
   IntColumn get frequency => integer().withDefault(const Constant(0))();
 }
-
 class RoutineCompletions extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get taskId => integer().references(Tasks, #id)();
@@ -98,7 +98,6 @@ class StudySubjects extends Table {
   IntColumn get syncWithFolderId =>
       integer().nullable().references(QuestionFolders, #id)();
 }
-
 @DriftDatabase(
   tables: [
     Books,
@@ -116,7 +115,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -146,6 +145,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 5) {
           await m.createTable(studySubjects);
+        }
+        if (from < 6) {
+          await m.addColumn(tasks, tasks.endDate);
         }
       },
     );
