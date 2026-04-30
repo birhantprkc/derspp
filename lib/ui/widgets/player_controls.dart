@@ -259,7 +259,7 @@ class PlayerControls extends StatelessWidget {
             onSpeedChange(speed);
           },
           itemBuilder: (context) => [
-            for (final s in [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0])
+            for (final s in [0.5, 1.0, 1.25, 1.5, 1.75, 2.0])
               PopupMenuItem(
                 value: s,
                 child: Text(

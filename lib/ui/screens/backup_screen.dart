@@ -120,18 +120,6 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 
   Future<void> _exportBooks() async {
-    if (kIsWeb) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Web platformunda dışa aktarma henüz desteklenmiyor'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-      return;
-    }
-
     try {
       final db = context.read<AppDatabase>();
       final books = await db.select(db.books).get();
@@ -159,38 +147,41 @@ class _BackupScreenState extends State<BackupScreen> {
       final jsonBytes = utf8.encode(jsonString);
       archive.addFile(ArchiveFile('books.json', jsonBytes.length, jsonBytes));
 
-      for (final book in books) {
-        if (book.coverImage != null && book.coverImage!.isNotEmpty) {
-          final file = io.File(book.coverImage!);
-          if (await file.exists()) {
-            final bytes = await file.readAsBytes();
-            archive.addFile(
-              ArchiveFile(
-                'covers/${p.basename(book.coverImage!)}',
-                bytes.length,
-                bytes,
-              ),
-            );
+      if (!kIsWeb) {
+        for (final book in books) {
+          if (book.coverImage != null && book.coverImage!.isNotEmpty) {
+            final file = io.File(book.coverImage!);
+            if (await file.exists()) {
+              final bytes = await file.readAsBytes();
+              archive.addFile(
+                ArchiveFile(
+                  'covers/${p.basename(book.coverImage!)}',
+                  bytes.length,
+                  bytes,
+                ),
+              );
+            }
           }
-        }
-        if (book.originalCoverImage != null &&
-            book.originalCoverImage!.isNotEmpty) {
-          final file = io.File(book.originalCoverImage!);
-          if (await file.exists()) {
-            final bytes = await file.readAsBytes();
-            archive.addFile(
-              ArchiveFile(
-                'covers/${p.basename(book.originalCoverImage!)}',
-                bytes.length,
-                bytes,
-              ),
-            );
+          if (book.originalCoverImage != null &&
+              book.originalCoverImage!.isNotEmpty) {
+            final file = io.File(book.originalCoverImage!);
+            if (await file.exists()) {
+              final bytes = await file.readAsBytes();
+              archive.addFile(
+                ArchiveFile(
+                  'covers/${p.basename(book.originalCoverImage!)}',
+                  bytes.length,
+                  bytes,
+                ),
+              );
+            }
           }
         }
       }
 
       final zipEncoder = ZipEncoder();
       final zipData = zipEncoder.encode(archive);
+      if (zipData == null) throw Exception('ZIP oluşturulamadı');
 
       String? outputFile = await FilePicker.platform.saveFile(
         dialogTitle: 'Kitapları Dışa Aktar',
@@ -232,20 +223,6 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 
   Future<void> _importBooks() async {
-    if (kIsWeb) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Web platformunda içeri aktarma henüz desteklenmiyor',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-      return;
-    }
-
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         dialogTitle: 'Kitapları İçeri Aktar',
@@ -253,8 +230,12 @@ class _BackupScreenState extends State<BackupScreen> {
         allowedExtensions: ['zip'],
       );
 
-      if (result != null && result.files.single.path != null) {
-        final bytes = await io.File(result.files.single.path!).readAsBytes();
+      if (result != null) {
+        final bytes = kIsWeb
+            ? result.files.single.bytes
+            : await io.File(result.files.single.path!).readAsBytes();
+
+        if (bytes == null) throw Exception('Dosya okunamadı');
         final archive = ZipDecoder().decodeBytes(bytes);
 
         final booksFile = archive.findFile('books.json');
@@ -263,20 +244,24 @@ class _BackupScreenState extends State<BackupScreen> {
         final jsonString = utf8.decode(booksFile.content as List<int>);
         final List<dynamic> jsonList = jsonDecode(jsonString);
 
-        final docsDir = await getApplicationSupportDirectory();
-        final coversPath = p.join(docsDir.path, 'book_covers');
-        final coversDir = io.Directory(coversPath);
-        if (!await coversDir.exists()) {
-          await coversDir.create(recursive: true);
-        }
+        String? coversPath;
+        if (!kIsWeb) {
+          final docsDir = await getApplicationSupportDirectory();
+          coversPath = p.join(docsDir.path, 'book_covers');
+          final coversDir = io.Directory(coversPath);
+          if (!await coversDir.exists()) {
+            await coversDir.create(recursive: true);
+          }
 
-        for (final file in archive) {
-          if (file.isFile && file.name.startsWith('covers/')) {
-            final filename = p.basename(file.name);
-            final destPath = p.join(coversPath, filename);
-            await io.File(destPath).writeAsBytes(file.content as List<int>);
+          for (final file in archive) {
+            if (file.isFile && file.name.startsWith('covers/')) {
+              final filename = p.basename(file.name);
+              final destPath = p.join(coversPath, filename);
+              await io.File(destPath).writeAsBytes(file.content as List<int>);
+            }
           }
         }
+
 
         if (!mounted) return;
         final db = context.read<AppDatabase>();
@@ -287,12 +272,12 @@ class _BackupScreenState extends State<BackupScreen> {
             String? newCoverPath;
             String? newOriginalCoverPath;
 
-            if (item['coverImage'] != null) {
-              newCoverPath = p.join(coversPath, p.basename(item['coverImage']));
+            if (!kIsWeb && item['coverImage'] != null) {
+              newCoverPath = p.join(coversPath!, p.basename(item['coverImage']));
             }
-            if (item['originalCoverImage'] != null) {
+            if (!kIsWeb && item['originalCoverImage'] != null) {
               newOriginalCoverPath = p.join(
-                coversPath,
+                coversPath!,
                 p.basename(item['originalCoverImage']),
               );
             }
@@ -342,18 +327,6 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 
   Future<void> _exportPublishers() async {
-    if (kIsWeb) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Web platformunda dışa aktarma henüz desteklenmiyor'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-      return;
-    }
-
     try {
       final db = context.read<AppDatabase>();
       final publishers = await db.select(db.publishers).get();
@@ -413,20 +386,6 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 
   Future<void> _importPublishers() async {
-    if (kIsWeb) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Web platformunda içeri aktarma henüz desteklenmiyor',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-      return;
-    }
-
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         dialogTitle: 'Yayıncı Ayarlarını İçeri Aktar',
@@ -434,10 +393,14 @@ class _BackupScreenState extends State<BackupScreen> {
         allowedExtensions: ['json'],
       );
 
-      if (result != null && result.files.single.path != null) {
-        final jsonString = await io.File(
-          result.files.single.path!,
-        ).readAsString();
+      if (result != null) {
+        final bytes = kIsWeb
+            ? result.files.single.bytes
+            : await io.File(result.files.single.path!).readAsBytes();
+
+        if (bytes == null) throw Exception('Dosya okunamadı');
+
+        final jsonString = utf8.decode(bytes);
         final List<dynamic> jsonList = jsonDecode(jsonString);
 
         if (!mounted) return;

@@ -83,11 +83,20 @@ class NavigationProvider extends ChangeNotifier {
 
   Future<void> _loadSettings() async {
     try {
-      final setting = await (_db.select(
-        _db.settings,
-      )..where((t) => t.key.equals('navigation_order'))).getSingleOrNull();
-      if (setting != null) {
-        final List<dynamic> decoded = jsonDecode(setting.value);
+      final initialSetting = await (_db.select(_db.settings)
+            ..where((t) => t.key.equals('navigation_initial_type')))
+          .getSingleOrNull();
+      if (initialSetting != null) {
+        final index = int.tryParse(initialSetting.value);
+        if (index != null && index < NavItemType.values.length) {
+          _initialType = NavItemType.values[index];
+        }
+      }
+      final orderSetting = await (_db.select(_db.settings)
+            ..where((t) => t.key.equals('navigation_order')))
+          .getSingleOrNull();
+      if (orderSetting != null) {
+        final List<dynamic> decoded = jsonDecode(orderSetting.value);
         List<NavItem> newOrder = [];
 
         final defaultItems = {
@@ -138,8 +147,8 @@ class NavigationProvider extends ChangeNotifier {
           }
         }
         _items = newOrder;
-        notifyListeners();
       }
+      notifyListeners();
     } catch (e) {
       debugPrint('Nav settings load error: $e');
     }

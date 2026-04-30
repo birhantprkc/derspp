@@ -155,49 +155,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               _buildSectionHeader(context, 'GÖRÜNÜM'),
               _buildAppearanceSection(context, themeProvider),
+              const SizedBox(height: 8),
+              _buildSectionHeader(context, 'OYNATICI'),
+              _buildPlayerSection(context, themeProvider),
+
+              if (kIsWeb) ...[
+                const SizedBox(height: 8),
+                _buildSectionHeader(context, 'WEB - CORS PROXY'),
+                _buildCorsProxySection(context),
+              ],
+
+              _buildSectionHeader(context, 'SİSTEM'),
               _buildMinimalActionTile(
                 context,
                 icon: Icons.format_list_bulleted_rounded,
                 title: 'Navigasyon Çubuğunu Düzenle',
                 subtitle: 'Sekme sırasını ve görünürlüğü ayarla',
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NavigationSettingsScreen(),
-                    ),
-                  );
+                  _pushScreen(context, const NavigationSettingsScreen());
                 },
               ),
-
-              const SizedBox(height: 32),
-              _buildSectionHeader(context, 'OYNATICI'),
-              _buildPlayerSection(context, themeProvider),
-
-              const SizedBox(height: 32),
-              _buildSectionHeader(context, 'TRANSKRİPSİYON'),
-              _buildTranscriptionSection(context),
-
-              if (kIsWeb) ...[
-                const SizedBox(height: 32),
-                _buildSectionHeader(context, 'WEB - CORS PROXY'),
-                _buildCorsProxySection(context),
-              ],
-
-              const SizedBox(height: 32),
-              _buildSectionHeader(context, 'SİSTEM'),
               _buildMinimalActionTile(
                 context,
                 icon: Icons.storage_rounded,
                 title: 'Veri & Yedekleme',
                 subtitle: 'İçe ve dışa aktarma işlemleri',
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const BackupScreen(),
-                    ),
-                  );
+                  _pushScreen(context, const BackupScreen());
                 },
               ),
 
@@ -207,14 +191,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Hakkında',
                 subtitle: 'Uygulama bilgileri ve versiyon',
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AboutScreen(),
-                    ),
-                  );
+                  _pushScreen(context, const AboutScreen());
                 },
               ),
+              _buildTranscriptionSection(context),
 
               const SizedBox(height: 50),
               Center(
@@ -236,7 +216,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 16),
+      padding: const EdgeInsets.only(left: 4, bottom: 8, top: 16),
       child: Text(
         title,
         style: TextStyle(
@@ -245,6 +225,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
           letterSpacing: 1.1,
         ),
+      ),
+    );
+  }
+
+  void _pushScreen(BuildContext context, Widget screen) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => screen,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 250),
       ),
     );
   }
@@ -294,10 +287,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         ),
-        Divider(
-          height: 32,
-          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
-        ),
+        const SizedBox(height: 4),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Column(
@@ -340,7 +330,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       height: 48,
       child: ListView(
         scrollDirection: Axis.horizontal,
-      children: [
+        children: [
           _buildColorOption(
             context,
             color: Theme.of(context).colorScheme.primary,
@@ -349,19 +339,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () => themeProvider.setUseDynamicColor(true),
           ),
           const SizedBox(width: 12),
-        ...seedColors.map(
-          (color) => _buildColorOption(
-            context,
-            color: color,
+          ...seedColors.map(
+            (color) => _buildColorOption(
+              context,
+              color: color,
               isSelected:
                   !themeProvider.useDynamicColor &&
-                themeProvider.customSeedColor.value == color.value,
-            onTap: () => themeProvider.setSeedColor(color),
+                  themeProvider.customSeedColor.value == color.value,
+              onTap: () => themeProvider.setSeedColor(color),
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        _buildCustomColorButton(context, themeProvider),
-      ],
+          const SizedBox(width: 12),
+          _buildCustomColorButton(context, themeProvider),
+        ],
       ),
     );
   }
@@ -408,15 +398,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           size: 18,
           color: isCustomSelected
               ? (themeProvider.customSeedColor.computeLuminance() > 0.5
-                  ? Colors.black
-                  : Colors.white)
+                    ? Colors.black
+                    : Colors.white)
               : Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
     );
   }
 
-  void _showColorPickerDialog(BuildContext context, ThemeProvider themeProvider) {
+  void _showColorPickerDialog(
+    BuildContext context,
+    ThemeProvider themeProvider,
+  ) {
     Color pickerColor = themeProvider.customSeedColor;
     showDialog(
       context: context,
@@ -478,7 +471,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).colorScheme.onSurfaceVariant,
                 size: 16,
-                  )
+              )
             : isSelected
             ? const Icon(Icons.check, color: Colors.white, size: 18)
             : null,
@@ -510,10 +503,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           value: themeProvider.playerContentDarkMode,
           onChanged: (value) => themeProvider.setPlayerContentDarkMode(value),
         ),
-        Divider(
-          height: 32,
-          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
-        ),
+        const SizedBox(height: 4),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Column(
@@ -525,10 +515,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Text(
                     'Varsayılan Hız',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
+                      ).colorScheme.onSurface.withOpacity(0.5),
                     ),
                   ),
                   Text(
@@ -559,8 +549,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Slider(
                   value: _defaultPlaybackSpeed,
                   min: 0.5,
-                  max: 4.0,
-                  divisions: 7,
+                  max: 2.0,
+                  divisions: 6,
                   onChanged: (value) => _saveDefaultPlaybackSpeed(value),
                 ),
               ),
@@ -577,15 +567,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         SwitchListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-          title: const Text('Parçalı Gönderim', style: TextStyle(fontSize: 15)),
+          title: const Text(
+            'Altyazı Parçalı Gönderim',
+            style: TextStyle(fontSize: 15),
+          ),
           subtitle: Text(
-            'Google sunucularına tek dosya yerine parçalar halinde gönderir.',
+            'Transkripsiyonda sorun yaşıyorsanız kapatın',
             style: TextStyle(
               fontSize: 13,
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             ),
           ),
-          secondary: const Icon(Icons.call_split_rounded, size: 20),
+          secondary: const Icon(Icons.subtitles, size: 20),
           value: _transcriptionAsChunks,
           onChanged: _saveTranscriptionAsChunks,
         ),
@@ -661,9 +654,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(width: 8),
                     TextButton(
                       onPressed: () {
-                        _corsProxyController.text =
-                            'https://corsproxy.io/?url=';
-                        _saveCorsProxyUrl('https://corsproxy.io/?url=');
+                        _corsProxyController.text = '';
+                        _saveCorsProxyUrl('');
                       },
                       child: const Text('Varsayılanı Kullan'),
                     ),

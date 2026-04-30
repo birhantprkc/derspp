@@ -52,6 +52,8 @@ dependencies:
       url: https://github.com/navidicted/youtube_explode_dart.git
       ref: master 
   flutter_colorpicker: ^1.1.0
+  url_launcher: ^6.3.2
+  fluttertoast: ^9.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
