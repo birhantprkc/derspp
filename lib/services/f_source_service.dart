@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import '../models/book_content.dart';
 import '../models/source_item.dart';
 import 'source_service.dart';
+import 'source_factory.dart';
+import 'youtube_source_service.dart';
 import 'cors_proxy_service.dart';
 
 class FSourceService implements SourceService {
@@ -196,5 +198,16 @@ class FSourceService implements SourceService {
   @override
   Future<String?> fetchAudioUrl(String? baseUrl, String questionId) async {
     return null;
+  }
+
+  @override
+  Future<String?> resolveVideoUrl(String? baseUrl, String videoUrl) async {
+    if (videoUrl.contains('youtube.com') || videoUrl.contains('youtu.be')) {
+      final ytService = SourceFactory.getSourceService('youtube');
+      if (ytService is YoutubeSourceService) {
+        return ytService.resolveStreamUrl(videoUrl);
+      }
+    }
+    return videoUrl;
   }
 }

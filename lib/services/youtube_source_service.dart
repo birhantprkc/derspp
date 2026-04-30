@@ -148,5 +148,10 @@ class YoutubeSourceService implements SourceService {
   @override
   Future<String?> fetchAudioUrl(String? b, String q) async => null;
 
+  @override
+  Future<String?> resolveVideoUrl(String? baseUrl, String videoUrl) async {
+    return resolveStreamUrl(videoUrl);
+  }
+
   void dispose() => _yt.close();
 }

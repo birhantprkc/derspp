@@ -625,16 +625,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
           question.videoUrl != null &&
           (question.videoUrl!.contains('youtube.com') ||
               question.videoUrl!.contains('youtu.be'))) {
-        String? finalVideoUrl = question.videoUrl;
-
-        if (sourceService is YoutubeSourceService) {
-          final streamUrl = await (sourceService).resolveStreamUrl(
-            finalVideoUrl!,
-          );
-          if (streamUrl != null) {
-            finalVideoUrl = streamUrl;
-          }
-        }
+        final finalVideoUrl = await sourceService.resolveVideoUrl(
+          sq.baseUrl,
+          question.videoUrl!,
+        );
 
         animationData = AnimationModel(
           objects: [],

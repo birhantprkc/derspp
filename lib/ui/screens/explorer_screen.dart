@@ -9,7 +9,6 @@ import '../../models/animation_model.dart';
 import '../../services/download_service.dart';
 import '../../services/source_factory.dart';
 import '../../services/f2_source_service.dart';
-import '../../services/youtube_source_service.dart';
 import '../../providers/source_provider.dart';
 import '../../providers/book_provider.dart';
 import 'player_screen.dart';
@@ -151,15 +150,60 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
       if (question.videoUrl != null &&
           (question.videoUrl!.contains('youtube.com') ||
               question.videoUrl!.contains('youtu.be'))) {
-        String? finalVideoUrl = question.videoUrl;
-        if (sourceService is YoutubeSourceService) {
-          final streamUrl = await (sourceService).resolveStreamUrl(
-            question.videoUrl!,
-          );
-          if (streamUrl != null) {
-            finalVideoUrl = streamUrl;
+        final finalVideoUrl = await sourceService.resolveVideoUrl(
+          provider.baseUrl,
+          question.videoUrl!,
+        );
+
+        double? extractedStartTime;
+        try {
+          var urlStr = question.videoUrl!;
+          if (!urlStr.startsWith('http')) {
+            urlStr = 'https://$urlStr';
           }
+          final uri = Uri.parse(urlStr);
+
+          String? tParam = uri.queryParameters['t'];
+
+          if (tParam == null && uri.fragment.isNotEmpty) {
+            final fragment = uri.fragment;
+            if (fragment.contains('t=')) {
+              final reg = RegExp(r't=([^&]+)');
+              final match = reg.firstMatch(fragment);
+              if (match != null) {
+                tParam = match.group(1);
+              }
+            }
+          }
+
+          if (tParam != null) {
+            extractedStartTime = _parseYoutubeTimestamp(tParam);
+            debugPrint(
+              '[YT] Extracted startTime from URL: $extractedStartTime',
+            );
+          }
+        } catch (e) {
+          debugPrint('[YT] Parse hatası: $e');
         }
+
+        final startTimeToUse = extractedStartTime ?? question.startTime;
+        debugPrint(
+          '[YT] Final startTime to use: $startTimeToUse (Original: ${question.startTime})',
+        );
+
+        final effectiveQuestion =
+            (startTimeToUse != null && startTimeToUse != question.startTime)
+            ? Question(
+                id: question.id,
+                name: question.name,
+                swfUrl: question.swfUrl,
+                videoUrl: question.videoUrl,
+                audioUrl: question.audioUrl,
+                order: question.order,
+                startTime: startTimeToUse,
+                endTime: question.endTime,
+              )
+            : question;
 
         if (mounted) {
           Navigator.pop(context);
@@ -176,7 +220,7 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
 
           final player = PlayerScreen(
             animationData: animationData,
-            question: question,
+            question: effectiveQuestion,
             hasNextVideo: hasNext,
             hasPreviousVideo: hasPrevious,
             onNextVideo: hasNext
@@ -259,6 +303,34 @@ class _ExplorerScreenState extends State<ExplorerScreen> {
         );
       }
     }
+  }
+
+  double? _parseYoutubeTimestamp(String t) {
+    final cleanT = t.toLowerCase().replaceAll('s', '');
+    final seconds = double.tryParse(cleanT);
+    if (seconds != null) return seconds;
+
+    double total = 0;
+    bool found = false;
+
+    final hMatch = RegExp(r'(\d+)h').firstMatch(t);
+    final mMatch = RegExp(r'(\d+)m').firstMatch(t);
+    final sMatch = RegExp(r'(\d+)s').firstMatch(t);
+
+    if (hMatch != null) {
+      total += int.parse(hMatch.group(1)!) * 3600;
+      found = true;
+    }
+    if (mMatch != null) {
+      total += int.parse(mMatch.group(1)!) * 60;
+      found = true;
+    }
+    if (sMatch != null) {
+      total += int.parse(sMatch.group(1)!);
+      found = true;
+    }
+
+    return found ? total : null;
   }
 
   Future<void> _saveAsBook() async {

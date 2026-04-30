@@ -16,4 +16,5 @@ abstract class SourceService {
     double y,
   );
   Future<String?> fetchAudioUrl(String? baseUrl, String questionId);
+  Future<String?> resolveVideoUrl(String? baseUrl, String videoUrl);
 }

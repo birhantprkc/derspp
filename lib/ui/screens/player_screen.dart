@@ -195,6 +195,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
         }
 
         await _player.open(Media(url, start: startPos, end: endPos));
+
+        // seek try
+        if (startPos != null && startPos != Duration.zero) {
+          debugPrint('[Player] Explicit seek to $startPos');
+          await _player.seek(startPos);
+        }
       } else {
         await _player.open(Media(url));
       }
