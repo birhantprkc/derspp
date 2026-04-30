@@ -166,6 +166,29 @@ class SavedQuestionsProvider extends ChangeNotifier {
 
   Future<void> deleteFolder(int id) async {
     final allIds = await _getAllFolderIdsRecursive(id);
+    
+    final questions = await (_db.select(
+      _db.savedQuestions,
+    )..where((t) => t.folderId.isIn(allIds))).get();
+    
+    for (final sq in questions) {
+      if (sq.scraperType == 'custom_question') {
+        try {
+          final questionData = jsonDecode(sq.rawJson);
+          final question = Question.fromJson(questionData);
+          final url = question.videoUrl;
+          if (url != null && !url.startsWith('http') && !url.startsWith('data:')) {
+             final file = File(url);
+             if (await file.exists()) {
+               await file.delete();
+             }
+          }
+        } catch (e) {
+          debugPrint('Dosya silinirken hata: $e');
+        }
+      }
+    }
+
     await (_db.delete(
       _db.savedQuestions,
     )..where((t) => t.folderId.isIn(allIds))).go();
@@ -282,6 +305,23 @@ class SavedQuestionsProvider extends ChangeNotifier {
   }
 
   Future<void> deleteSavedQuestion(int id, int folderId) async {
+    final sq = await (_db.select(_db.savedQuestions)..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (sq != null && sq.scraperType == 'custom_question') {
+      try {
+        final questionData = jsonDecode(sq.rawJson);
+        final question = Question.fromJson(questionData);
+        final url = question.videoUrl;
+        if (url != null && !url.startsWith('http') && !url.startsWith('data:')) {
+           final file = File(url);
+           if (await file.exists()) {
+             await file.delete();
+           }
+        }
+      } catch (e) {
+        debugPrint('Dosya silinirken hata: $e');
+      }
+    }
+
     await (_db.delete(_db.savedQuestions)..where((t) => t.id.equals(id))).go();
     await loadQuestionsByFolder(folderId);
     await _loadActivityLogs();

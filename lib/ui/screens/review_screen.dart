@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/saved_questions_provider.dart';
@@ -12,6 +13,7 @@ import '../../services/youtube_source_service.dart';
 import '../../models/animation_model.dart';
 import '../../models/source_item.dart';
 import '../widgets/activity_heatmap.dart';
+import 'package:file_picker/file_picker.dart';
 import 'player_screen.dart';
 import 'explorer_screen.dart';
 
@@ -443,6 +445,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.add_to_photos_outlined),
+            title: const Text('Özel Soru Ekle'),
+            onTap: () {
+              Navigator.pop(context);
+              _showAddCustomQuestionDialog(context, provider, folder);
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.create_new_folder_outlined),
             title: const Text('Alt Klasör Ekle'),
             onTap: () {
@@ -598,9 +608,33 @@ class _ReviewScreenState extends State<ReviewScreen> {
     try {
       final questionData = jsonDecode(sq.rawJson);
       final question = Question.fromJson(questionData);
-      final sourceService = SourceFactory.getSourceService(sq.scraperType);
-
+      
       AnimationModel? animationData;
+
+      if (sq.scraperType == 'custom_question') {
+        final isImage = question.videoUrl?.endsWith('.png') == true ||
+            question.videoUrl?.endsWith('.jpg') == true ||
+            question.videoUrl?.endsWith('.jpeg') == true ||
+            (question.videoUrl?.startsWith('data:image/') == true);
+        
+        String? finalVideoUrl = question.videoUrl;
+        if (!isImage && finalVideoUrl != null && (finalVideoUrl.contains('youtube.com') || finalVideoUrl.contains('youtu.be'))) {
+           final youtubeService = SourceFactory.getSourceService('youtube');
+           finalVideoUrl = await youtubeService.resolveVideoUrl('custom', finalVideoUrl);
+        }
+
+        animationData = AnimationModel(
+          objects: [],
+          totalDuration: Duration.zero,
+          videoUrl: isImage ? null : finalVideoUrl,
+          backgroundJpgUrl: isImage ? question.videoUrl : null,
+          canvasWidth: 1920,
+          canvasHeight: 1080,
+          pdfDefaultScale: 1.0,
+          pdfOffset: Offset.zero,
+        );
+      } else {
+        final sourceService = SourceFactory.getSourceService(sq.scraperType);
 
       if (sq.scraperType == 'f2source' && sourceService is F2SourceService) {
         final contentType = await sourceService.detectContentType(
@@ -647,6 +681,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         sq.baseUrl,
         true,
       );
+      }
 
       if (context.mounted) {
         Navigator.pop(context);
@@ -749,6 +784,158 @@ class _ReviewScreenState extends State<ReviewScreen> {
               Navigator.pop(context);
             },
             child: const Text('Sil'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddCustomQuestionDialog(
+    BuildContext context,
+    SavedQuestionsProvider provider,
+    QuestionFolder folder,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Özel Soru Ekle'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.link),
+              title: const Text('Video Linki Ekle'),
+              onTap: () {
+                Navigator.pop(context);
+                _showAddVideoLinkDialog(context, provider, folder);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.image),
+              title: const Text('Resim/Video Seç'),
+              onTap: () async {
+                Navigator.pop(context);
+                await _pickCustomImage(context, provider, folder);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickCustomImage(
+    BuildContext context,
+    SavedQuestionsProvider provider,
+    QuestionFolder folder,
+  ) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.media,
+      withData: kIsWeb,
+    );
+
+    if (result != null) {
+      String? fileDataOrPath;
+      bool isImage = false;
+
+      if (kIsWeb) {
+        final ext = result.files.single.extension?.toLowerCase() ?? 'png';
+        isImage = ['png', 'jpg', 'jpeg'].contains(ext);
+        
+        if (isImage && result.files.single.bytes != null) {
+          final bytes = result.files.single.bytes!;
+          final base64Str = base64Encode(bytes);
+          fileDataOrPath = 'data:image/$ext;base64,$base64Str';
+        } else {
+          fileDataOrPath = result.files.single.path;
+        }
+      } else {
+        if (result.files.single.path != null) {
+          fileDataOrPath = result.files.single.path;
+          final ext = result.files.single.extension?.toLowerCase() ?? '';
+          isImage = ['png', 'jpg', 'jpeg'].contains(ext);
+        }
+      }
+
+      if (fileDataOrPath != null) {
+        final question = Question(
+          id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+          name: isImage ? 'Özel Soru (Resim)' : 'Özel Soru (Video)',
+          videoUrl: fileDataOrPath,
+          order: '0',
+        );
+
+        await provider.saveQuestion(
+          folderId: folder.id,
+          baseUrl: 'custom',
+          scraperType: 'custom_question',
+          bookId: 'custom',
+          chapterId: 'custom',
+          breadcrumbs: 'Özel Sorular',
+          question: question,
+        );
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Soru eklendi')),
+          );
+          provider.loadQuestionsByFolder(folder.id);
+        }
+      }
+    }
+  }
+
+  void _showAddVideoLinkDialog(
+    BuildContext context,
+    SavedQuestionsProvider provider,
+    QuestionFolder folder,
+  ) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Video Linki'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'https://...'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (controller.text.isNotEmpty) {
+                final link = controller.text.trim();
+                final question = Question(
+                  id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                  name: 'Özel Soru (Video)',
+                  videoUrl: link,
+                  order: '0',
+                );
+
+                await provider.saveQuestion(
+                  folderId: folder.id,
+                  baseUrl: 'custom',
+                  scraperType: 'custom_question',
+                  bookId: 'custom',
+                  chapterId: 'custom',
+                  breadcrumbs: 'Özel Sorular',
+                  question: question,
+                );
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Soru eklendi')),
+                  );
+                  provider.loadQuestionsByFolder(folder.id);
+                }
+              }
+            },
+            child: const Text('Ekle'),
           ),
         ],
       ),

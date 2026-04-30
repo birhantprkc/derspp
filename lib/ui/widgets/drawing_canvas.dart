@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -345,13 +347,22 @@ class DrawingCanvasState extends State<DrawingCanvas> {
         widget.animationData.swfHeight ??
         widget.animationData.canvasHeight;
 
+    final url = widget.animationData.backgroundJpgUrl!;
+    Widget imageWidget;
+    if (url.startsWith('http') || url.startsWith('https')) {
+      imageWidget = Image.network(url, fit: BoxFit.fill);
+    } else if (url.startsWith('data:image/')) {
+      final base64Str = url.split(',').last;
+      final bytes = base64Decode(base64Str);
+      imageWidget = Image.memory(bytes, fit: BoxFit.fill);
+    } else {
+      imageWidget = Image.file(File(url), fit: BoxFit.fill);
+    }
+
     return SizedBox(
       width: swfWidth * widget.animationData.pdfDefaultScale * _userScale,
       height: swfHeight * widget.animationData.pdfDefaultScale * _userScale,
-      child: Image.network(
-        widget.animationData.backgroundJpgUrl!,
-        fit: BoxFit.fill,
-      ),
+      child: imageWidget,
     );
   }
 
