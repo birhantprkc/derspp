@@ -86,17 +86,15 @@ class F2SourceService implements SourceService {
     final html = response.body;
     final List<SourceItem> items = [];
 
-    final decoResult = _decodeHtml(html);
-
     if (id == 'root' || id == '-1' || !id.contains('_')) {
       final regExp = RegExp(
-        r"classClick\(\{\s*classId:\s*(\d+),\s*title:\s*'([^']+)'\}\)",
+        r"classClick\(\{\s*classId:\s*(\d+),\s*title:\s*'((?:\\.|[^'])*)'\}\)",
       );
-      for (final match in regExp.allMatches(decoResult)) {
+      for (final match in regExp.allMatches(html)) {
         items.add(
           SourceItem(
             id: 'class_${match.group(1)}',
-            name: match.group(2)!,
+            name: _decodeHtml(match.group(2)!),
             isParent: true,
             parentId: id,
           ),
@@ -104,13 +102,13 @@ class F2SourceService implements SourceService {
       }
     } else if (id.startsWith('class_')) {
       final regExp = RegExp(
-        r"lessonClick\(\{\s*lessonId:\s*(\d+),classId:\s*(\d+),\s*title:\s*'([^']+)'\}\)",
+        r"lessonClick\(\{\s*lessonId:\s*(\d+),classId:\s*(\d+),\s*title:\s*'((?:\\.|[^'])*)'\}\)",
       );
-      for (final match in regExp.allMatches(decoResult)) {
+      for (final match in regExp.allMatches(html)) {
         items.add(
           SourceItem(
             id: 'lesson_${match.group(1)}_${match.group(2)}',
-            name: match.group(3)!,
+            name: _decodeHtml(match.group(3)!),
             isParent: true,
             parentId: id,
           ),
@@ -118,13 +116,13 @@ class F2SourceService implements SourceService {
       }
     } else if (id.startsWith('lesson_')) {
       final regExp = RegExp(
-        r"bookClick\(\{bookId:(\d+),classId:(\d+),lessonId:(\d+),isGroup:\s*(true|false),title:'([^']+)'\}\)",
+        r"bookClick\(\{bookId:(\d+),classId:(\d+),lessonId:(\d+),isGroup:\s*(true|false),title:'((?:\\.|[^'])*)'\}\)",
       );
-      for (final match in regExp.allMatches(decoResult)) {
+      for (final match in regExp.allMatches(html)) {
         items.add(
           SourceItem(
             id: 'book_${match.group(1)}',
-            name: match.group(5)!,
+            name: _decodeHtml(match.group(5)!),
             isParent: true,
             parentId: id,
           ),
@@ -132,27 +130,27 @@ class F2SourceService implements SourceService {
       }
     } else if (id.startsWith('book_') || id.startsWith('content_')) {
       final regExp = RegExp(
-        r"contentClick\(\{\s*contentId:\s*(\d+),\s*bookId:\s*(\d+),\s*isTest:\s*(true|false),\s*title:\s*'([^']+)'\}\)",
+        r"contentClick\(\{\s*contentId:\s*(\d+),\s*bookId:\s*(\d+),\s*isTest:\s*(true|false),\s*title:\s*'((?:\\.|[^'])*)'\}\)",
       );
-      for (final match in regExp.allMatches(decoResult)) {
+      for (final match in regExp.allMatches(html)) {
         final isTest = match.group(3) == 'true';
         final bid = match.group(2);
         items.add(
           SourceItem(
             id: '${isTest ? 'test_' : 'content_'}${match.group(1)!}_$bid',
-            name: match.group(4)!,
+            name: _decodeHtml(match.group(4)!),
             isParent: !isTest,
             parentId: id,
           ),
         );
       }
     } else if (id.startsWith('test_')) {
-      final regExp = RegExp(r"showSolution\('([^']+)',(\d+)\)");
-      for (final match in regExp.allMatches(decoResult)) {
+      final regExp = RegExp(r"showSolution\('((?:\\.|[^'])*)',\s*(\d+)\)");
+      for (final match in regExp.allMatches(html)) {
         items.add(
           SourceItem(
             id: 'question_${match.group(2)}',
-            name: match.group(1)!,
+            name: _decodeHtml(match.group(1)!),
             isParent: false,
             parentId: id,
           ),
@@ -202,7 +200,7 @@ class F2SourceService implements SourceService {
 
     final match = RegExp(r'data-xaml="([^"]+)"').firstMatch(html);
     if (match != null) {
-      final xamlUrl = match.group(1)!;
+      final xamlUrl = _decodeHtml(match.group(1)!);
       final xamlResponse = await _client.get(_proxied(xamlUrl));
       if (xamlResponse.statusCode == 200) return xamlResponse.body;
     }
@@ -233,7 +231,7 @@ class F2SourceService implements SourceService {
   ) async {
     final html = await _getSolutionHtml(baseUrl, pdfUrl);
     final match = RegExp(r'data-png="([^"]+)"').firstMatch(html);
-    if (match != null) return match.group(1);
+    if (match != null) return _decodeHtml(match.group(1)!);
     return null;
   }
 
@@ -241,7 +239,7 @@ class F2SourceService implements SourceService {
   Future<String?> fetchAudioUrl(String? baseUrl, String questionId) async {
     final html = await _getSolutionHtml(baseUrl, questionId);
     final match = RegExp(r'data-sound="([^"]+)"').firstMatch(html);
-    if (match != null) return match.group(1);
+    if (match != null) return _decodeHtml(match.group(1)!);
     return null;
   }
 
@@ -251,15 +249,15 @@ class F2SourceService implements SourceService {
     final sourceMatch = RegExp(
       r'<source[^>]+src="([^"]+\.mp4)"[^>]*type="video/mp4"',
     ).firstMatch(html);
-    if (sourceMatch != null) return sourceMatch.group(1);
+    if (sourceMatch != null) return _decodeHtml(sourceMatch.group(1)!);
 
     final videoMatch = RegExp(
       r'<video[^>]+src="([^"]+\.mp4)"',
     ).firstMatch(html);
-    if (videoMatch != null) return videoMatch.group(1);
+    if (videoMatch != null) return _decodeHtml(videoMatch.group(1)!);
 
     final anyMp4Match = RegExp(r'"(https?://[^"]+\.mp4)"').firstMatch(html);
-    if (anyMp4Match != null) return anyMp4Match.group(1);
+    if (anyMp4Match != null) return _decodeHtml(anyMp4Match.group(1)!);
 
     return null;
   }
@@ -272,33 +270,81 @@ class F2SourceService implements SourceService {
 
     final mp4Match = RegExp(r'"(https?://[^"]+\.mp4)"').firstMatch(html);
     if (mp4Match != null) {
-      return {'type': 'mp4', 'url': mp4Match.group(1)};
+      return {'type': 'mp4', 'url': _decodeHtml(mp4Match.group(1)!)};
     }
 
     final xamlMatch = RegExp(r'data-xaml="([^"]+)"').firstMatch(html);
     if (xamlMatch != null) {
-      return {'type': 'xaml', 'url': xamlMatch.group(1)};
+      return {'type': 'xaml', 'url': _decodeHtml(xamlMatch.group(1)!)};
     }
 
     return {'type': 'unknown', 'url': null};
   }
 
   String _decodeHtml(String input) {
-    return input
-        .replaceAll(r'\u0131', 'ı')
-        .replaceAll(r'\u0130', 'İ')
-        .replaceAll(r'\u00FC', 'ü')
-        .replaceAll(r'\u00DC', 'Ü')
-        .replaceAll(r'\u00F6', 'ö')
-        .replaceAll(r'\u00D6', 'Ö')
-        .replaceAll(r'\u00E7', 'ç')
-        .replaceAll(r'\u00C7', 'Ç')
-        .replaceAll(r'\u015F', 'ş')
-        .replaceAll(r'\u015E', 'Ş')
-        .replaceAll(r'\u011F', 'ğ')
-        .replaceAll(r'\u011E', 'Ğ')
-        .replaceAll('&#252;', 'ü')
-        .replaceAll('&uml;', 'ü')
-        .replaceAll('\t', ' ');
+    if (input.isEmpty) return input;
+
+    String result = input;
+
+    // 1. Handle Unicode escape sequences \uXXXX
+    result = result.replaceAllMapped(RegExp(r'\\u([0-9a-fA-F]{4})'), (match) {
+      try {
+        final code = int.parse(match.group(1)!, radix: 16);
+        return String.fromCharCode(code);
+      } catch (_) {
+        return match.group(0)!;
+      }
+    });
+
+    // 2. Handle JS-style escaped characters
+    result = result.replaceAll(r"\'", "'")
+        .replaceAll(r'\"', '"')
+        .replaceAll(r'\\', r'\')
+        .replaceAll(r'\n', '\n')
+        .replaceAll(r'\r', '\r')
+        .replaceAll(r'\t', ' ');
+
+    // 3. Handle HTML Entities (Numeric: &#123; or &#xABC;)
+    result = result.replaceAllMapped(RegExp(r'&#(?:x([0-9a-fA-F]+)|(\d+));'),
+        (match) {
+      try {
+        if (match.group(1) != null) {
+          return String.fromCharCode(int.parse(match.group(1)!, radix: 16));
+        } else {
+          return String.fromCharCode(int.parse(match.group(2)!));
+        }
+      } catch (_) {
+        return match.group(0)!;
+      }
+    });
+
+    // 4. Handle Common Named HTML Entities
+    final Map<String, String> commonEntities = {
+      '&quot;': '"',
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&apos;': "'",
+      '&nbsp;': ' ',
+      '&uuml;': 'ü',
+      '&Uuml;': 'Ü',
+      '&ouml;': 'ö',
+      '&Ouml;': 'Ö',
+      '&ccedil;': 'ç',
+      '&Ccedil;': 'Ç',
+      '&icirc;': 'î',
+      '&Icirc;': 'Î',
+      '&rsquo;': "'",
+      '&lsquo;': "'",
+      '&ldquo;': '"',
+      '&rdquo;': '"',
+      '&middot;': '·',
+    };
+
+    commonEntities.forEach((entity, replacement) {
+      result = result.replaceAll(entity, replacement);
+    });
+
+    return result.trim();
   }
 }
