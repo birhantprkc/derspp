@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:universal_io/io.dart';
 import '../database/database.dart';
 import '../models/question.dart';
 
@@ -346,7 +346,7 @@ class SavedQuestionsProvider extends ChangeNotifier {
       bytes: utf8.encode(jsonString),
     );
 
-    if (outputFile != null && (Platform.isAndroid || Platform.isIOS)) {
+    if (!kIsWeb && outputFile != null) {
       final file = File(outputFile);
       await file.writeAsString(jsonString);
     }
@@ -356,13 +356,22 @@ class SavedQuestionsProvider extends ChangeNotifier {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json'],
+      withData: true,
     );
 
-    if (result == null || result.files.single.path == null) return false;
+    if (result == null) return false;
 
     try {
-      final file = File(result.files.single.path!);
-      final jsonString = await file.readAsString();
+      final String jsonString;
+      if (kIsWeb) {
+        final bytes = result.files.single.bytes;
+        if (bytes == null) return false;
+        jsonString = utf8.decode(bytes);
+      } else {
+        final path = result.files.single.path;
+        if (path == null) return false;
+        jsonString = await File(path).readAsString();
+      }
       final data = jsonDecode(jsonString) as Map<String, dynamic>;
 
       if (data['version'] != 1) throw Exception('Uyumsuz yedekleme versiyonu');

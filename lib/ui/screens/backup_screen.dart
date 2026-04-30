@@ -191,8 +191,9 @@ class _BackupScreenState extends State<BackupScreen> {
         bytes: Uint8List.fromList(zipData),
       );
 
-      if (outputFile != null) {
+      if (outputFile != null || kIsWeb) {
         if (!kIsWeb &&
+            outputFile != null &&
             (defaultTargetPlatform == TargetPlatform.windows ||
                 defaultTargetPlatform == TargetPlatform.linux ||
                 defaultTargetPlatform == TargetPlatform.macOS)) {
@@ -228,6 +229,7 @@ class _BackupScreenState extends State<BackupScreen> {
         dialogTitle: 'Kitapları İçeri Aktar',
         type: FileType.custom,
         allowedExtensions: ['zip'],
+        withData: true,
       );
 
       if (result != null) {
@@ -261,7 +263,6 @@ class _BackupScreenState extends State<BackupScreen> {
             }
           }
         }
-
 
         if (!mounted) return;
         final db = context.read<AppDatabase>();
@@ -354,8 +355,9 @@ class _BackupScreenState extends State<BackupScreen> {
         bytes: Uint8List.fromList(bytes),
       );
 
-      if (outputFile != null) {
+      if (outputFile != null || kIsWeb) {
         if (!kIsWeb &&
+            outputFile != null &&
             (defaultTargetPlatform == TargetPlatform.windows ||
                 defaultTargetPlatform == TargetPlatform.linux ||
                 defaultTargetPlatform == TargetPlatform.macOS)) {
@@ -391,6 +393,7 @@ class _BackupScreenState extends State<BackupScreen> {
         dialogTitle: 'Yayıncı Ayarlarını İçeri Aktar',
         type: FileType.custom,
         allowedExtensions: ['json'],
+        withData: true,
       );
 
       if (result != null) {
