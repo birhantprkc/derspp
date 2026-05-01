@@ -81,10 +81,7 @@ class _AboutScreenState extends State<AboutScreen> {
                     _clickCount++;
                     if (_clickCount >= 1 && _clickCount < 7) {
                       final remaining = 7 - _clickCount;
-                      _notify(
-                        'Keep going son, $remaining more times left',
-                        theme,
-                      );
+                      _notify('Keep going, $remaining more times left', theme);
                     } else if (_clickCount >= 7) {
                       _showEasterEgg = true;
                       _notify(
@@ -131,7 +128,7 @@ class _AboutScreenState extends State<AboutScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'larp forever.',
+                      'uma version 3.0',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.5),
                         letterSpacing: 0.5,
@@ -159,7 +156,7 @@ class _AboutScreenState extends State<AboutScreen> {
                     context,
                     icon: Icons.language_rounded,
                     title: 'Web Sitesi',
-                    onTap: () => _launchUrl(''),
+                    onTap: () => _launchUrl('derspp.navidicted.workers.dev'),
                   ),
                   _buildLinkTile(
                     context,
@@ -174,6 +171,14 @@ class _AboutScreenState extends State<AboutScreen> {
                     icon: Icons.language_rounded,
                     title: 'Github',
                     onTap: () => _launchUrl('https://github.com/navidicted/'),
+                  ),
+                  _buildLinkTile(
+                    context,
+                    icon: Icons.language_rounded,
+                    title: 'Güncelleme tespit et',
+                    onTap: () => _launchUrl(
+                      'https://github.com/navidicted/derspp/releases/latest',
+                    ),
                   ),
                   const SizedBox(height: 24),
                   if (_showEasterEgg)
@@ -195,9 +200,51 @@ class _AboutScreenState extends State<AboutScreen> {
                           icon: Icons.science_rounded,
                           title: 'low cortisol mention to',
                           subtitle: 'Agnes Tachyon',
-                          onTap: () => _launchUrl(
-                            'https://umamusume.com/characters/agnestachyon/',
-                          ),
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => Dialog(
+                                backgroundColor: Colors.transparent,
+                                elevation: 0,
+                                insetPadding: const EdgeInsets.all(20),
+                                child: GestureDetector(
+                                  onTap: () => Navigator.pop(context),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(24),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          blurRadius: 30,
+                                          spreadRadius: 10,
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(24),
+                                      child: Image.network(
+                                        'https://raw.githubusercontent.com/navidicted/navi-assets/main/assets/lowcortisol.gif',
+                                        loadingBuilder:
+                                            (context, child, loadingProgress) {
+                                              if (loadingProgress == null) {
+                                                return child;
+                                              }
+                                              return const SizedBox(
+                                                width: 200,
+                                                height: 200,
+                                                child: Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                ),
+                                              );
+                                            },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                         _buildBadgeTile(
                           context,
@@ -221,7 +268,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 children: [
                   const SizedBox(height: 8),
                   Text(
-                    'version AgnesTachyon',
+                    'larp forever.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurface.withOpacity(0.2),
                       fontSize: 10,

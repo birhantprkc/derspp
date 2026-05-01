@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -90,7 +91,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         child: IgnorePointer(
                           ignoring: _currentPage == _totalPages - 1,
                           child: TextButton(
-                            onPressed: _finishWelcome,
+                            onPressed: () async {
+                              await _finishWelcome();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('holy yap')),
+                              );
+                            },
                             child: Text(
                               'Atla',
                               style: TextStyle(
@@ -151,7 +157,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     _currentPage == _totalPages - 1 ? "Bitir" : 'Devam Et',
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),
@@ -174,6 +180,39 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (kIsWeb) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: colorScheme.errorContainer.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: colorScheme.error.withOpacity(0.1)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.public_rounded,
+                    size: 20,
+                    color: colorScheme.secondary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      "Şu anda web sürümünü kullanıyorsun. Uygulamanın bazı özelliklerinde hatalar olabilir.",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSecondaryContainer.withOpacity(
+                          0.8,
+                        ),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           Center(
             child: Image.asset(
@@ -323,7 +362,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     mode: LaunchMode.externalApplication,
                   );
                 },
-                icon: const Icon(Icons.error_outline),
+                icon: const Icon(Icons.bug_report),
                 label: const Text('Hata Bildir'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
