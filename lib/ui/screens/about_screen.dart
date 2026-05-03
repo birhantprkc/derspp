@@ -172,14 +172,6 @@ class _AboutScreenState extends State<AboutScreen> {
                     title: 'Github',
                     onTap: () => _launchUrl('https://github.com/navidicted/'),
                   ),
-                  _buildLinkTile(
-                    context,
-                    icon: Icons.language_rounded,
-                    title: 'Güncelleme tespit et',
-                    onTap: () => _launchUrl(
-                      'https://github.com/navidicted/derspp/releases/latest',
-                    ),
-                  ),
                   const SizedBox(height: 24),
                   if (_showEasterEgg)
                     Wrap(

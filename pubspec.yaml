@@ -1,5 +1,5 @@
 name: derspp
-description: "ultimate ders app"
+description: "A study application able to play vector videos with a lot of features."
 
 publish_to: 'none' 
 
@@ -55,6 +55,13 @@ dependencies:
   fluttertoast: ^9.0.0
   webview_flutter: ^4.13.1
   pdfrx: ^2.2.24
+  
+  package_info_plus: ^8.1.2
+  open_file: ^3.5.10
+  permission_handler: ^11.3.1
+  flutter_markdown_plus: ^1.0.1
+  flutter_local_notifications: ^17.2.2
+  device_info_plus: ^12.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

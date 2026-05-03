@@ -19,6 +19,8 @@ import 'providers/navigation_provider.dart';
 import 'database/database.dart';
 import 'ui/navi_bar.dart';
 import 'ui/screens/welcome_screen.dart';
+import 'ui/widgets/update_checker_wrapper.dart';
+import 'services/update_service.dart';
 
 import 'services/cors_proxy_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -49,6 +51,7 @@ Future<void> main() async {
 
   final database = AppDatabase();
   await CorsProxyService.instance.init(database);
+  await UpdateService.initialize();
 
   final prefs = await SharedPreferences.getInstance();
   final welcomeShown = prefs.getBool('welcome_shown') ?? false;
@@ -103,7 +106,9 @@ class MainApp extends StatelessWidget {
           themeMode: themeProvider.themeMode,
           theme: themeProvider.buildTheme(Brightness.light, lightDynamic),
           darkTheme: themeProvider.buildTheme(Brightness.dark, darkDynamic),
-          home: const WelcomeScreen(),
+          home: welcomeShown
+              ? UpdateCheckerWrapper(child: NaviBar())
+              : const WelcomeScreen(),
         );
       },
     );

@@ -17,6 +17,8 @@ import 'backup_screen.dart';
 import 'about_screen.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:universal_io/io.dart' as io;
+import '../../services/update_service.dart';
+import 'update_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -130,6 +132,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
   }
 
+  Future<void> _checkUpdate() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final updateData = await UpdateService.checkUpdate();
+
+    if (mounted) Navigator.pop(context);
+
+    if (mounted) {
+      _pushScreen(context, UpdateScreen(releaseData: updateData));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -195,12 +213,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _pushScreen(context, const AboutScreen());
                 },
               ),
+              _buildMinimalActionTile(
+                context,
+                icon: Icons.update_rounded,
+                title: 'Güncelleştirmeleri Denetle',
+                subtitle: 'Yeni bir sürüm olup olmadığını kontrol et',
+                onTap: _checkUpdate,
+              ),
               _buildTranscriptionSection(context),
 
               const SizedBox(height: 50),
               Center(
                 child: Text(
-                  'Versiyon: uma version 3.0',
+                  'uma version 3.0',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.3),
                     letterSpacing: 0.5,

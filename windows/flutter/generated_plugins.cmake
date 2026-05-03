@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_windows
   media_kit_libs_windows_video
   media_kit_video
+  permission_handler_windows
   screen_retriever_windows
   sqlite3_flutter_libs
   url_launcher_windows

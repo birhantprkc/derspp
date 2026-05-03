@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../navi_bar.dart';
 import '../../providers/theme_provider.dart';
 import '../widgets/theme_widget.dart';
+import '../widgets/permission_settings_widget.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -17,7 +18,7 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  final int _totalPages = 3;
+  final int _totalPages = 4;
 
   @override
   void dispose() {
@@ -138,6 +139,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   _buildFirstPage(context, themeProvider, colorScheme),
                   _buildSecondPage(colorScheme),
                   _buildThirdPage(colorScheme),
+                  _buildFourthPage(colorScheme),
                 ],
               ),
             ),
@@ -395,6 +397,68 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFourthPage(ColorScheme colorScheme) {
+    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 36),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 24),
+          Text(
+            'İzinleri Yönet',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurface,
+              height: 1.1,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "Uygulamanın tam performanslı çalışabilmesi ve güncellemeleri yönetebilmesi için aşağıdaki izinler gereklidir.",
+            style: TextStyle(
+              fontSize: 16,
+              color: colorScheme.onSurface.withOpacity(0.65),
+              height: 1.6,
+            ),
+          ),
+          const SizedBox(height: 32),
+          const PermissionSettingsWidget(),
+          const SizedBox(height: 40),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colorScheme.primary.withOpacity(0.1)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: colorScheme.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "Bu izinleri daha sonra Ayarlar -> Güncelleştirmeleri Denetle sayfasından da yönetebilirsiniz.",
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
