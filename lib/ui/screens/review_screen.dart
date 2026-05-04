@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import '../../providers/saved_questions_provider.dart';
 import '../../providers/source_provider.dart';
@@ -608,19 +611,26 @@ class _ReviewScreenState extends State<ReviewScreen> {
     try {
       final questionData = jsonDecode(sq.rawJson);
       final question = Question.fromJson(questionData);
-      
+
       AnimationModel? animationData;
 
       if (sq.scraperType == 'custom_question') {
-        final isImage = question.videoUrl?.endsWith('.png') == true ||
+        final isImage =
+            question.videoUrl?.endsWith('.png') == true ||
             question.videoUrl?.endsWith('.jpg') == true ||
             question.videoUrl?.endsWith('.jpeg') == true ||
             (question.videoUrl?.startsWith('data:image/') == true);
-        
+
         String? finalVideoUrl = question.videoUrl;
-        if (!isImage && finalVideoUrl != null && (finalVideoUrl.contains('youtube.com') || finalVideoUrl.contains('youtu.be'))) {
-           final youtubeService = SourceFactory.getSourceService('youtube');
-           finalVideoUrl = await youtubeService.resolveVideoUrl('custom', finalVideoUrl);
+        if (!isImage &&
+            finalVideoUrl != null &&
+            (finalVideoUrl.contains('youtube.com') ||
+                finalVideoUrl.contains('youtu.be'))) {
+          final youtubeService = SourceFactory.getSourceService('youtube');
+          finalVideoUrl = await youtubeService.resolveVideoUrl(
+            'custom',
+            finalVideoUrl,
+          );
         }
 
         animationData = AnimationModel(
@@ -636,51 +646,51 @@ class _ReviewScreenState extends State<ReviewScreen> {
       } else {
         final sourceService = SourceFactory.getSourceService(sq.scraperType);
 
-      if (sq.scraperType == 'f2source' && sourceService is F2SourceService) {
-        final contentType = await sourceService.detectContentType(
-          sq.baseUrl,
-          question.videoUrl ?? question.id,
-        );
+        if (sq.scraperType == 'f2source' && sourceService is F2SourceService) {
+          final contentType = await sourceService.detectContentType(
+            sq.baseUrl,
+            question.videoUrl ?? question.id,
+          );
 
-        if (contentType['type'] == 'mp4' && contentType['url'] != null) {
+          if (contentType['type'] == 'mp4' && contentType['url'] != null) {
+            animationData = AnimationModel(
+              objects: [],
+              totalDuration: Duration.zero,
+              videoUrl: contentType['url'],
+              canvasWidth: 0,
+              canvasHeight: 0,
+              pdfDefaultScale: 1.0,
+              pdfOffset: Offset.zero,
+            );
+          }
+        }
+
+        if (animationData == null &&
+            question.videoUrl != null &&
+            (question.videoUrl!.contains('youtube.com') ||
+                question.videoUrl!.contains('youtu.be'))) {
+          final finalVideoUrl = await sourceService.resolveVideoUrl(
+            sq.baseUrl,
+            question.videoUrl!,
+          );
+
           animationData = AnimationModel(
             objects: [],
             totalDuration: Duration.zero,
-            videoUrl: contentType['url'],
-            canvasWidth: 0,
-            canvasHeight: 0,
+            videoUrl: finalVideoUrl,
+            canvasWidth: 1920,
+            canvasHeight: 1080,
             pdfDefaultScale: 1.0,
             pdfOffset: Offset.zero,
           );
         }
-      }
 
-      if (animationData == null &&
-          question.videoUrl != null &&
-          (question.videoUrl!.contains('youtube.com') ||
-              question.videoUrl!.contains('youtu.be'))) {
-        final finalVideoUrl = await sourceService.resolveVideoUrl(
+        animationData ??= await DownloadService.prepareQuestionData(
+          question,
+          sourceService,
           sq.baseUrl,
-          question.videoUrl!,
+          true,
         );
-
-        animationData = AnimationModel(
-          objects: [],
-          totalDuration: Duration.zero,
-          videoUrl: finalVideoUrl,
-          canvasWidth: 1920,
-          canvasHeight: 1080,
-          pdfDefaultScale: 1.0,
-          pdfOffset: Offset.zero,
-        );
-      }
-
-      animationData ??= await DownloadService.prepareQuestionData(
-        question,
-        sourceService,
-        sq.baseUrl,
-        true,
-      );
       }
 
       if (context.mounted) {
@@ -841,7 +851,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       if (kIsWeb) {
         final ext = result.files.single.extension?.toLowerCase() ?? 'png';
         isImage = ['png', 'jpg', 'jpeg'].contains(ext);
-        
+
         if (isImage && result.files.single.bytes != null) {
           final bytes = result.files.single.bytes!;
           final base64Str = base64Encode(bytes);
@@ -851,9 +861,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
         }
       } else {
         if (result.files.single.path != null) {
+          final originalPath = result.files.single.path!;
           fileDataOrPath = result.files.single.path;
           final ext = result.files.single.extension?.toLowerCase() ?? '';
           isImage = ['png', 'jpg', 'jpeg'].contains(ext);
+          final appDir = await getApplicationSupportDirectory();
+          final customDir = Directory(p.join(appDir.path, 'custom_questions'));
+          if (!await customDir.exists()) {
+            await customDir.create(recursive: true);
+          }
+          final fileName =
+              'custom_${DateTime.now().millisecondsSinceEpoch}.${ext.isNotEmpty ? ext : 'dat'}';
+          final newPath = p.join(customDir.path, fileName);
+          await File(originalPath).copy(newPath);
+          fileDataOrPath = newPath;
         }
       }
 
@@ -876,9 +897,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
         );
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Soru eklendi')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Soru eklendi')));
           provider.loadQuestionsByFolder(folder.id);
         }
       }
@@ -928,9 +949,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
                 if (context.mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Soru eklendi')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Soru eklendi')));
                   provider.loadQuestionsByFolder(folder.id);
                 }
               }
