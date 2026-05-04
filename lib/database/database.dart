@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 
 part 'database.g.dart';
 
@@ -80,6 +79,7 @@ class Tasks extends Table {
   DateTimeColumn get endDate => dateTime().nullable()();
   IntColumn get frequency => integer().withDefault(const Constant(0))();
 }
+
 class RoutineCompletions extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get taskId => integer().references(Tasks, #id)();
@@ -98,6 +98,7 @@ class StudySubjects extends Table {
   IntColumn get syncWithFolderId =>
       integer().nullable().references(QuestionFolders, #id)();
 }
+
 @DriftDatabase(
   tables: [
     Books,

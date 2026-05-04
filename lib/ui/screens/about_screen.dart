@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:universal_io/io.dart' as io;
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -339,7 +338,6 @@ class _AboutScreenState extends State<AboutScreen> {
     required String title,
     required VoidCallback onTap,
   }) {
-    final theme = Theme.of(context);
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
       leading: Icon(icon, size: 20),

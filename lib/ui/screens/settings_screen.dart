@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:drift/drift.dart' hide Column;
-import 'dart:convert';
-import 'package:archive/archive.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../../providers/theme_provider.dart';
 import '../../database/database.dart';
@@ -15,8 +9,6 @@ import '../widgets/theme_widget.dart';
 import 'navigation_settings_screen.dart';
 import 'backup_screen.dart';
 import 'about_screen.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:universal_io/io.dart' as io;
 import '../../services/update_service.dart';
 import 'update_screen.dart';
 
@@ -395,7 +387,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildCorsProxySection(BuildContext context) {
-    final theme = Theme.of(context);
     return _buildCard(
       context,
       children: [

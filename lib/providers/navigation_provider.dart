@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:drift/drift.dart' show Value;
 import '../database/database.dart';
 
 enum NavItemType { solution, tasks, review, subjects, settings }
@@ -83,18 +82,19 @@ class NavigationProvider extends ChangeNotifier {
 
   Future<void> _loadSettings() async {
     try {
-      final initialSetting = await (_db.select(_db.settings)
-            ..where((t) => t.key.equals('navigation_initial_type')))
-          .getSingleOrNull();
+      final initialSetting =
+          await (_db.select(_db.settings)
+                ..where((t) => t.key.equals('navigation_initial_type')))
+              .getSingleOrNull();
       if (initialSetting != null) {
         final index = int.tryParse(initialSetting.value);
         if (index != null && index < NavItemType.values.length) {
           _initialType = NavItemType.values[index];
         }
       }
-      final orderSetting = await (_db.select(_db.settings)
-            ..where((t) => t.key.equals('navigation_order')))
-          .getSingleOrNull();
+      final orderSetting = await (_db.select(
+        _db.settings,
+      )..where((t) => t.key.equals('navigation_order'))).getSingleOrNull();
       if (orderSetting != null) {
         final List<dynamic> decoded = jsonDecode(orderSetting.value);
         List<NavItem> newOrder = [];

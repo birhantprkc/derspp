@@ -1,9 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import '../../services/update_service.dart';
 import '../widgets/permission_settings_widget.dart';
-import 'dart:io';
 
 class UpdateScreen extends StatefulWidget {
   final Map<String, dynamic>? releaseData;

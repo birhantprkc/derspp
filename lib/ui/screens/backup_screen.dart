@@ -181,7 +181,7 @@ class _BackupScreenState extends State<BackupScreen> {
 
       final zipEncoder = ZipEncoder();
       final zipData = zipEncoder.encode(archive);
-      if (zipData == null) throw Exception('ZIP oluşturulamadı');
+      // if (zipData == null) throw Exception('ZIP oluşturulamadı');
 
       String? outputFile = await FilePicker.platform.saveFile(
         dialogTitle: 'Kitapları Dışa Aktar',
@@ -274,7 +274,10 @@ class _BackupScreenState extends State<BackupScreen> {
             String? newOriginalCoverPath;
 
             if (!kIsWeb && item['coverImage'] != null) {
-              newCoverPath = p.join(coversPath!, p.basename(item['coverImage']));
+              newCoverPath = p.join(
+                coversPath!,
+                p.basename(item['coverImage']),
+              );
             }
             if (!kIsWeb && item['originalCoverImage'] != null) {
               newOriginalCoverPath = p.join(
