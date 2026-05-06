@@ -152,7 +152,9 @@ class _UpdateScreenState extends State<UpdateScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isUpToDate ? 'Sistem Güncel' : 'Sürüm $tagName',
+                                isUpToDate
+                                    ? 'Uygulama Güncel'
+                                    : 'Sürüm $tagName',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
