@@ -14,12 +14,10 @@ import '../widgets/platform_image.dart';
 class _ImageProcessParams {
   final Uint8List bytes;
   final Rect? cropRect;
-  final int maxDimension;
 
   _ImageProcessParams({
     required this.bytes,
     this.cropRect,
-    this.maxDimension = 2000,
   });
 }
 
@@ -27,11 +25,12 @@ Future<Uint8List?> _processImageInBackground(_ImageProcessParams params) async {
   img.Image? image = img.decodeImage(params.bytes);
   if (image == null) return null;
 
-  if (image.width > params.maxDimension || image.height > params.maxDimension) {
+  const int maxDimension = 2000;
+  if (image.width > maxDimension || image.height > maxDimension) {
     image = img.copyResize(
       image,
-      width: image.width > image.height ? params.maxDimension : null,
-      height: image.height >= image.width ? params.maxDimension : null,
+      width: image.width > image.height ? maxDimension : null,
+      height: image.height >= image.width ? maxDimension : null,
       interpolation: img.Interpolation.average,
     );
   }

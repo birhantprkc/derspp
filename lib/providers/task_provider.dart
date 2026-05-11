@@ -53,6 +53,26 @@ class TaskProvider with ChangeNotifier {
     return weekStart.isAtSameMomentAs(nowWeekStart);
   }
 
+  bool get isPastWeek {
+    final now = DateTime.now();
+    final nowWeekStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1));
+    return weekStart.isBefore(nowWeekStart);
+  }
+
+  bool get isFutureWeek {
+    final now = DateTime.now();
+    final nowWeekStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1));
+    return weekStart.isAfter(nowWeekStart);
+  }
+
   void changeWeek(int weeks) {
     _focusedDate = _focusedDate.add(Duration(days: weeks * 7));
     notifyListeners();
@@ -142,11 +162,11 @@ class TaskProvider with ChangeNotifier {
     String category, {
     int frequency = 0,
   }) async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final taskDate = frequency == 0
-        ? weekStart.add(Duration(days: dayIndex))
-        : null;
+    final targetDay = weekStart.add(Duration(days: dayIndex));
+    final normalizedTarget =
+        DateTime(targetDay.year, targetDay.month, targetDay.day);
+
+    final taskDate = frequency == 0 ? normalizedTarget : null;
 
     await _db
         .into(_db.tasks)
@@ -156,7 +176,7 @@ class TaskProvider with ChangeNotifier {
             dayIndex: dayIndex,
             category: category,
             date: Value(taskDate),
-            startDate: Value(today),
+            startDate: Value(normalizedTarget),
             frequency: Value(frequency),
           ),
         );

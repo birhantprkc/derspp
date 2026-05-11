@@ -37,8 +37,20 @@ class _TasksScreenState extends State<TasksScreen> {
               },
               body: Column(
                 children: [
-                  if (!taskProvider.isCurrentWeek)
-                    _buildReadOnlyBanner(context),
+                  if (taskProvider.isPastWeek)
+                    _buildBanner(
+                      context,
+                      'Salt Okunur Modu',
+                      Icons.visibility_outlined,
+                      theme.colorScheme.primary,
+                    ),
+                  if (taskProvider.isFutureWeek)
+                    _buildBanner(
+                      context,
+                      'Düzenleme Modu',
+                      Icons.edit_calendar_outlined,
+                      theme.colorScheme.secondary,
+                    ),
                   Divider(
                     height: 1,
                     thickness: 1,
@@ -79,7 +91,7 @@ class _TasksScreenState extends State<TasksScreen> {
         fontWeight: FontWeight.w500,
       ),
       actions: [
-        if (taskProvider.isCurrentWeek)
+        if (!taskProvider.isPastWeek)
           IconButton(
             onPressed: () {
               setState(() {
@@ -190,68 +202,84 @@ class _TasksScreenState extends State<TasksScreen> {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left, size: 24),
-            onPressed: () => provider.changeWeek(-1),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          Column(
-            children: [
-              Text(
-                'HAFTA ${provider.weekNumber}',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
-                ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onHorizontalDragEnd: (details) {
+          if (details.primaryVelocity! > 0) {
+            provider.changeWeek(-1);
+          } else if (details.primaryVelocity! < 0) {
+            provider.changeWeek(1);
+          }
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chevron_left, size: 24),
+              onPressed: () {
+                provider.changeWeek(-1);
+              },
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  Text(
+                    'HAFTA ${provider.weekNumber}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    provider.weekRangeText,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: theme.colorScheme.onSurface.withOpacity(0.4),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                provider.weekRangeText,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: theme.colorScheme.onSurface.withOpacity(0.4),
-                ),
-              ),
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right, size: 24),
-            onPressed: () => provider.changeWeek(1),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right, size: 24),
+              onPressed: () {
+                provider.changeWeek(1);
+              },
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildReadOnlyBanner(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget _buildBanner(
+    BuildContext context,
+    String text,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      color: theme.colorScheme.primary.withOpacity(0.08),
+      color: color.withOpacity(0.08),
       child: Row(
         children: [
-          Icon(
-            Icons.visibility_outlined,
-            size: 16,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(icon, size: 16, color: color),
           const SizedBox(width: 12),
           Text(
-            'Salt Okunur Modu',
+            text,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: theme.colorScheme.primary,
+              color: color,
             ),
           ),
         ],
@@ -281,10 +309,10 @@ class _TasksScreenState extends State<TasksScreen> {
               context,
               task,
               isToday,
-              taskProvider.isCurrentWeek,
+              !taskProvider.isPastWeek,
             ),
           ),
-          if (_isEditMode && taskProvider.isCurrentWeek)
+          if (_isEditMode && !taskProvider.isPastWeek)
             _buildAddSmallButton(context, dayIndex, 'DERS'),
           const SizedBox(height: 32),
           _buildSectionHeader(context, 'KİŞİSEL', kisiselTasks.length),
@@ -295,10 +323,10 @@ class _TasksScreenState extends State<TasksScreen> {
               context,
               task,
               isToday,
-              taskProvider.isCurrentWeek,
+              !taskProvider.isPastWeek,
             ),
           ),
-          if (_isEditMode && taskProvider.isCurrentWeek)
+          if (_isEditMode && !taskProvider.isPastWeek)
             _buildAddSmallButton(context, dayIndex, 'KİŞİSEL'),
           const SizedBox(height: 60),
           _buildFooterQuote(context),
