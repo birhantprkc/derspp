@@ -8,6 +8,8 @@ class CorsProxyService {
   static CorsProxyService get instance => _instance ??= CorsProxyService._();
   CorsProxyService._();
 
+  static const String defaultProxyUrl = '';
+
   String? _proxyUrl;
   bool _isEnabled = true;
   bool _initialized = false;
@@ -18,6 +20,19 @@ class CorsProxyService {
       final settings = await db.select(db.settings).get();
       final map = {for (var s in settings) s.key: s.value};
       _proxyUrl = map['corsProxyUrl'];
+
+      if (kIsWeb && (_proxyUrl == null || _proxyUrl!.trim().isEmpty)) {
+        _proxyUrl = defaultProxyUrl;
+        await db
+            .into(db.settings)
+            .insertOnConflictUpdate(
+              SettingsCompanion.insert(
+                key: 'corsProxyUrl',
+                value: defaultProxyUrl,
+              ),
+            );
+      }
+
       if (map.containsKey('corsProxyEnabled')) {
         _isEnabled = map['corsProxyEnabled'] == 'true';
       }

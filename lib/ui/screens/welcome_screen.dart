@@ -424,7 +424,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            "Uygulamanın tam performanslı çalışabilmesi ve güncellemeleri yönetebilmesi için aşağıdaki izinler gereklidir.",
+            "Uygulama içi güncellemeler ve arkaplan indirmeleri için aşadaki izinler gereklidir.",
             style: TextStyle(
               fontSize: 16,
               color: colorScheme.onSurface.withOpacity(0.65),

@@ -53,6 +53,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (mounted && map.containsKey('corsProxyUrl')) {
       _corsProxyController.text = map['corsProxyUrl']!;
+    } else if (mounted && kIsWeb) {
+      _corsProxyController.text = CorsProxyService.defaultProxyUrl;
+      _saveCorsProxyUrl(CorsProxyService.defaultProxyUrl);
     }
     if (mounted && map.containsKey('corsProxyEnabled')) {
       setState(() {
@@ -453,8 +456,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(width: 8),
                     TextButton(
                       onPressed: () {
-                        _corsProxyController.text = '';
-                        _saveCorsProxyUrl('');
+                        _corsProxyController.text =
+                            CorsProxyService.defaultProxyUrl;
+                        _saveCorsProxyUrl(CorsProxyService.defaultProxyUrl);
                       },
                       child: const Text('Varsayılanı Kullan'),
                     ),
