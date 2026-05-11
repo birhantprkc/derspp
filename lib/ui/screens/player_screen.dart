@@ -445,6 +445,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       return;
     }
     final noteController = TextEditingController();
+    final answerController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) {
@@ -458,11 +459,21 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 TextField(
                   controller: noteController,
                   decoration: const InputDecoration(
-                    labelText: 'Not Ekle (Opsiyonel)',
-                    hintText: 'Soru ile ilgili bir not yazın...',
+                    labelText: 'Not Ekle',
+                    hintText: 'Notunuz...',
                     border: OutlineInputBorder(),
                   ),
                   maxLines: 2,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: answerController,
+                  decoration: const InputDecoration(
+                    labelText: 'Cevap',
+                    hintText: 'Sorunun cevabı...',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 1,
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -486,6 +497,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           sourceProvider,
                           question,
                           noteController,
+                          answerController,
                         ),
                       );
                     },
@@ -512,6 +524,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
     SourceProvider sourceProvider,
     Question question,
     TextEditingController noteController,
+    TextEditingController answerController,
   ) {
     final folders = provider.folders
         .where((f) => f.parentId == parentId)
@@ -541,6 +554,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 notes: noteController.text.trim().isNotEmpty
                     ? noteController.text.trim()
                     : null,
+                answer: answerController.text.trim().isNotEmpty
+                    ? answerController.text.trim()
+                    : null,
               );
               if (context.mounted) {
                 Navigator.pop(context);
@@ -567,6 +583,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   sourceProvider,
                   question,
                   noteController,
+                  answerController,
                 ),
               ),
           ],

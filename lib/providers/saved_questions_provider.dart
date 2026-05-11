@@ -284,6 +284,7 @@ class SavedQuestionsProvider extends ChangeNotifier {
     required String breadcrumbs,
     required Question question,
     String? notes,
+    String? answer,
   }) async {
     await _db
         .into(_db.savedQuestions)
@@ -298,6 +299,7 @@ class SavedQuestionsProvider extends ChangeNotifier {
             breadcrumbs: breadcrumbs,
             rawJson: jsonEncode(question.toJson()),
             notes: Value(notes),
+            answer: Value(answer),
           ),
         );
 
@@ -334,6 +336,13 @@ class SavedQuestionsProvider extends ChangeNotifier {
     await loadQuestionsByFolder(folderId);
   }
 
+  Future<void> updateQuestionAnswer(int id, String? newAnswer, int folderId) async {
+    await (_db.update(_db.savedQuestions)..where((t) => t.id.equals(id))).write(
+      SavedQuestionsCompanion(answer: Value(newAnswer)),
+    );
+    await loadQuestionsByFolder(folderId);
+  }
+
   Future<void> exportData() async {
     final folders = await _db.select(_db.questionFolders).get();
     final questions = await _db.select(_db.savedQuestions).get();
@@ -364,6 +373,7 @@ class SavedQuestionsProvider extends ChangeNotifier {
               'breadcrumbs': q.breadcrumbs,
               'rawJson': q.rawJson,
               'notes': q.notes,
+              'answer': q.answer,
               'savedAt': q.savedAt.toIso8601String(),
               'nextReviewDate': q.nextReviewDate.toIso8601String(),
               'reviewStep': q.reviewStep,
@@ -463,6 +473,7 @@ class SavedQuestionsProvider extends ChangeNotifier {
                     breadcrumbs: q['breadcrumbs'],
                     rawJson: q['rawJson'],
                     notes: Value(q['notes']),
+                    answer: Value(q['answer']),
                     savedAt: Value(DateTime.parse(q['savedAt'])),
                     nextReviewDate: Value(DateTime.parse(q['nextReviewDate'])),
                     reviewStep: Value(q['reviewStep']),

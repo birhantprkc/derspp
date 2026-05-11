@@ -1542,6 +1542,15 @@ class $SavedQuestionsTable extends SavedQuestions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _answerMeta = const VerificationMeta('answer');
+  @override
+  late final GeneratedColumn<String> answer = GeneratedColumn<String>(
+    'answer',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _savedAtMeta = const VerificationMeta(
     'savedAt',
   );
@@ -1601,6 +1610,7 @@ class $SavedQuestionsTable extends SavedQuestions
     breadcrumbs,
     rawJson,
     notes,
+    answer,
     savedAt,
     nextReviewDate,
     reviewStep,
@@ -1697,6 +1707,12 @@ class $SavedQuestionsTable extends SavedQuestions
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('answer')) {
+      context.handle(
+        _answerMeta,
+        answer.isAcceptableOrUnknown(data['answer']!, _answerMeta),
+      );
+    }
     if (data.containsKey('saved_at')) {
       context.handle(
         _savedAtMeta,
@@ -1776,6 +1792,10 @@ class $SavedQuestionsTable extends SavedQuestions
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      answer: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}answer'],
+      ),
       savedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}saved_at'],
@@ -1812,6 +1832,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
   final String breadcrumbs;
   final String rawJson;
   final String? notes;
+  final String? answer;
   final DateTime savedAt;
   final DateTime nextReviewDate;
   final int reviewStep;
@@ -1827,6 +1848,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     required this.breadcrumbs,
     required this.rawJson,
     this.notes,
+    this.answer,
     required this.savedAt,
     required this.nextReviewDate,
     required this.reviewStep,
@@ -1846,6 +1868,9 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     map['raw_json'] = Variable<String>(rawJson);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || answer != null) {
+      map['answer'] = Variable<String>(answer);
     }
     map['saved_at'] = Variable<DateTime>(savedAt);
     map['next_review_date'] = Variable<DateTime>(nextReviewDate);
@@ -1870,6 +1895,9 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      answer: answer == null && nullToAbsent
+          ? const Value.absent()
+          : Value(answer),
       savedAt: Value(savedAt),
       nextReviewDate: Value(nextReviewDate),
       reviewStep: Value(reviewStep),
@@ -1895,6 +1923,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
       breadcrumbs: serializer.fromJson<String>(json['breadcrumbs']),
       rawJson: serializer.fromJson<String>(json['rawJson']),
       notes: serializer.fromJson<String?>(json['notes']),
+      answer: serializer.fromJson<String?>(json['answer']),
       savedAt: serializer.fromJson<DateTime>(json['savedAt']),
       nextReviewDate: serializer.fromJson<DateTime>(json['nextReviewDate']),
       reviewStep: serializer.fromJson<int>(json['reviewStep']),
@@ -1915,6 +1944,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
       'breadcrumbs': serializer.toJson<String>(breadcrumbs),
       'rawJson': serializer.toJson<String>(rawJson),
       'notes': serializer.toJson<String?>(notes),
+      'answer': serializer.toJson<String?>(answer),
       'savedAt': serializer.toJson<DateTime>(savedAt),
       'nextReviewDate': serializer.toJson<DateTime>(nextReviewDate),
       'reviewStep': serializer.toJson<int>(reviewStep),
@@ -1933,6 +1963,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     String? breadcrumbs,
     String? rawJson,
     Value<String?> notes = const Value.absent(),
+    Value<String?> answer = const Value.absent(),
     DateTime? savedAt,
     DateTime? nextReviewDate,
     int? reviewStep,
@@ -1948,6 +1979,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     breadcrumbs: breadcrumbs ?? this.breadcrumbs,
     rawJson: rawJson ?? this.rawJson,
     notes: notes.present ? notes.value : this.notes,
+    answer: answer.present ? answer.value : this.answer,
     savedAt: savedAt ?? this.savedAt,
     nextReviewDate: nextReviewDate ?? this.nextReviewDate,
     reviewStep: reviewStep ?? this.reviewStep,
@@ -1973,6 +2005,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
           : this.breadcrumbs,
       rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
       notes: data.notes.present ? data.notes.value : this.notes,
+      answer: data.answer.present ? data.answer.value : this.answer,
       savedAt: data.savedAt.present ? data.savedAt.value : this.savedAt,
       nextReviewDate: data.nextReviewDate.present
           ? data.nextReviewDate.value
@@ -1999,6 +2032,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
           ..write('breadcrumbs: $breadcrumbs, ')
           ..write('rawJson: $rawJson, ')
           ..write('notes: $notes, ')
+          ..write('answer: $answer, ')
           ..write('savedAt: $savedAt, ')
           ..write('nextReviewDate: $nextReviewDate, ')
           ..write('reviewStep: $reviewStep, ')
@@ -2019,6 +2053,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
     breadcrumbs,
     rawJson,
     notes,
+    answer,
     savedAt,
     nextReviewDate,
     reviewStep,
@@ -2038,6 +2073,7 @@ class SavedQuestion extends DataClass implements Insertable<SavedQuestion> {
           other.breadcrumbs == this.breadcrumbs &&
           other.rawJson == this.rawJson &&
           other.notes == this.notes &&
+          other.answer == this.answer &&
           other.savedAt == this.savedAt &&
           other.nextReviewDate == this.nextReviewDate &&
           other.reviewStep == this.reviewStep &&
@@ -2055,6 +2091,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
   final Value<String> breadcrumbs;
   final Value<String> rawJson;
   final Value<String?> notes;
+  final Value<String?> answer;
   final Value<DateTime> savedAt;
   final Value<DateTime> nextReviewDate;
   final Value<int> reviewStep;
@@ -2070,6 +2107,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     this.breadcrumbs = const Value.absent(),
     this.rawJson = const Value.absent(),
     this.notes = const Value.absent(),
+    this.answer = const Value.absent(),
     this.savedAt = const Value.absent(),
     this.nextReviewDate = const Value.absent(),
     this.reviewStep = const Value.absent(),
@@ -2086,6 +2124,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     required String breadcrumbs,
     required String rawJson,
     this.notes = const Value.absent(),
+    this.answer = const Value.absent(),
     this.savedAt = const Value.absent(),
     this.nextReviewDate = const Value.absent(),
     this.reviewStep = const Value.absent(),
@@ -2109,6 +2148,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     Expression<String>? breadcrumbs,
     Expression<String>? rawJson,
     Expression<String>? notes,
+    Expression<String>? answer,
     Expression<DateTime>? savedAt,
     Expression<DateTime>? nextReviewDate,
     Expression<int>? reviewStep,
@@ -2125,6 +2165,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
       if (breadcrumbs != null) 'breadcrumbs': breadcrumbs,
       if (rawJson != null) 'raw_json': rawJson,
       if (notes != null) 'notes': notes,
+      if (answer != null) 'answer': answer,
       if (savedAt != null) 'saved_at': savedAt,
       if (nextReviewDate != null) 'next_review_date': nextReviewDate,
       if (reviewStep != null) 'review_step': reviewStep,
@@ -2144,6 +2185,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     Value<String>? breadcrumbs,
     Value<String>? rawJson,
     Value<String?>? notes,
+    Value<String?>? answer,
     Value<DateTime>? savedAt,
     Value<DateTime>? nextReviewDate,
     Value<int>? reviewStep,
@@ -2160,6 +2202,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
       breadcrumbs: breadcrumbs ?? this.breadcrumbs,
       rawJson: rawJson ?? this.rawJson,
       notes: notes ?? this.notes,
+      answer: answer ?? this.answer,
       savedAt: savedAt ?? this.savedAt,
       nextReviewDate: nextReviewDate ?? this.nextReviewDate,
       reviewStep: reviewStep ?? this.reviewStep,
@@ -2200,6 +2243,9 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (answer.present) {
+      map['answer'] = Variable<String>(answer.value);
+    }
     if (savedAt.present) {
       map['saved_at'] = Variable<DateTime>(savedAt.value);
     }
@@ -2228,6 +2274,7 @@ class SavedQuestionsCompanion extends UpdateCompanion<SavedQuestion> {
           ..write('breadcrumbs: $breadcrumbs, ')
           ..write('rawJson: $rawJson, ')
           ..write('notes: $notes, ')
+          ..write('answer: $answer, ')
           ..write('savedAt: $savedAt, ')
           ..write('nextReviewDate: $nextReviewDate, ')
           ..write('reviewStep: $reviewStep, ')
@@ -4951,6 +4998,7 @@ typedef $$SavedQuestionsTableCreateCompanionBuilder =
       required String breadcrumbs,
       required String rawJson,
       Value<String?> notes,
+      Value<String?> answer,
       Value<DateTime> savedAt,
       Value<DateTime> nextReviewDate,
       Value<int> reviewStep,
@@ -4968,6 +5016,7 @@ typedef $$SavedQuestionsTableUpdateCompanionBuilder =
       Value<String> breadcrumbs,
       Value<String> rawJson,
       Value<String?> notes,
+      Value<String?> answer,
       Value<DateTime> savedAt,
       Value<DateTime> nextReviewDate,
       Value<int> reviewStep,
@@ -5053,6 +5102,11 @@ class $$SavedQuestionsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get answer => $composableBuilder(
+    column: $table.answer,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5154,6 +5208,11 @@ class $$SavedQuestionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get answer => $composableBuilder(
+    column: $table.answer,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get savedAt => $composableBuilder(
     column: $table.savedAt,
     builder: (column) => ColumnOrderings(column),
@@ -5240,6 +5299,9 @@ class $$SavedQuestionsTableAnnotationComposer
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
+  GeneratedColumn<String> get answer =>
+      $composableBuilder(column: $table.answer, builder: (column) => column);
+
   GeneratedColumn<DateTime> get savedAt =>
       $composableBuilder(column: $table.savedAt, builder: (column) => column);
 
@@ -5322,6 +5384,7 @@ class $$SavedQuestionsTableTableManager
                 Value<String> breadcrumbs = const Value.absent(),
                 Value<String> rawJson = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> answer = const Value.absent(),
                 Value<DateTime> savedAt = const Value.absent(),
                 Value<DateTime> nextReviewDate = const Value.absent(),
                 Value<int> reviewStep = const Value.absent(),
@@ -5337,6 +5400,7 @@ class $$SavedQuestionsTableTableManager
                 breadcrumbs: breadcrumbs,
                 rawJson: rawJson,
                 notes: notes,
+                answer: answer,
                 savedAt: savedAt,
                 nextReviewDate: nextReviewDate,
                 reviewStep: reviewStep,
@@ -5354,6 +5418,7 @@ class $$SavedQuestionsTableTableManager
                 required String breadcrumbs,
                 required String rawJson,
                 Value<String?> notes = const Value.absent(),
+                Value<String?> answer = const Value.absent(),
                 Value<DateTime> savedAt = const Value.absent(),
                 Value<DateTime> nextReviewDate = const Value.absent(),
                 Value<int> reviewStep = const Value.absent(),
@@ -5369,6 +5434,7 @@ class $$SavedQuestionsTableTableManager
                 breadcrumbs: breadcrumbs,
                 rawJson: rawJson,
                 notes: notes,
+                answer: answer,
                 savedAt: savedAt,
                 nextReviewDate: nextReviewDate,
                 reviewStep: reviewStep,

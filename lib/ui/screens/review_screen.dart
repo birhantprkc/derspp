@@ -528,6 +528,43 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   ),
                 ),
               ],
+              if (sq.answer != null && sq.answer!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.check_circle_outline,
+                        size: 14,
+                        color: Colors.green,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'Cevap: ${sq.answer!}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.green,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
           trailing: Row(
@@ -535,10 +572,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
             children: [
               IconButton(
                 icon: const Icon(Icons.edit_note),
+                tooltip: 'Notu Düzenle',
                 onPressed: () => _showEditNoteDialog(context, provider, sq),
               ),
               IconButton(
+                icon: const Icon(Icons.spellcheck),
+                tooltip: 'Cevabı Düzenle',
+                onPressed: () => _showEditAnswerDialog(context, provider, sq),
+              ),
+              IconButton(
                 icon: const Icon(Icons.delete_outline),
+                tooltip: 'Sil',
                 onPressed: () =>
                     provider.deleteSavedQuestion(sq.id, sq.folderId),
               ),
@@ -578,6 +622,46 @@ class _ReviewScreenState extends State<ReviewScreen> {
           TextButton(
             onPressed: () {
               provider.updateQuestionNote(
+                sq.id,
+                controller.text.trim().isEmpty ? null : controller.text.trim(),
+                sq.folderId,
+              );
+              Navigator.pop(context);
+            },
+            child: const Text('Kaydet'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditAnswerDialog(
+    BuildContext context,
+    SavedQuestionsProvider provider,
+    SavedQuestion sq,
+  ) {
+    final controller = TextEditingController(text: sq.answer);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cevabı Düzenle'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Sorunun cevabı...',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 1,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          TextButton(
+            onPressed: () {
+              provider.updateQuestionAnswer(
                 sq.id,
                 controller.text.trim().isEmpty ? null : controller.text.trim(),
                 sq.folderId,
@@ -878,6 +962,35 @@ class _ReviewScreenState extends State<ReviewScreen> {
       }
 
       if (fileDataOrPath != null) {
+        final answerController = TextEditingController();
+        if (context.mounted) {
+          final shouldSave = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Soru Cevabı'),
+              content: TextField(
+                controller: answerController,
+                decoration: const InputDecoration(
+                  hintText: 'Sorunun cevabı (Opsiyonel)',
+                ),
+                autofocus: true,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Vazgeç'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Kaydet'),
+                ),
+              ],
+            ),
+          );
+
+          if (shouldSave != true) return;
+        }
+
         final question = Question(
           id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
           name: isImage ? 'Özel Soru (Resim)' : 'Özel Soru (Video)',
@@ -893,6 +1006,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
           chapterId: 'custom',
           breadcrumbs: 'Özel Sorular',
           question: question,
+          answer: answerController.text.trim().isNotEmpty
+              ? answerController.text.trim()
+              : null,
         );
 
         if (context.mounted) {
@@ -911,14 +1027,25 @@ class _ReviewScreenState extends State<ReviewScreen> {
     QuestionFolder folder,
   ) {
     final controller = TextEditingController();
+    final answerController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Video Linki'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: 'https://...'),
-          autofocus: true,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(hintText: 'https://...'),
+              autofocus: true,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: answerController,
+              decoration: const InputDecoration(hintText: 'Soru Cevabı (Opsiyonel)'),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -944,6 +1071,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   chapterId: 'custom',
                   breadcrumbs: 'Özel Sorular',
                   question: question,
+                  answer: answerController.text.trim().isNotEmpty
+                      ? answerController.text.trim()
+                      : null,
                 );
 
                 if (context.mounted) {

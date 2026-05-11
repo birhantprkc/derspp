@@ -54,6 +54,7 @@ class SavedQuestions extends Table {
   TextColumn get breadcrumbs => text()();
   TextColumn get rawJson => text()();
   TextColumn get notes => text().nullable()();
+  TextColumn get answer => text().nullable()();
   DateTimeColumn get savedAt => dateTime().withDefault(currentDateAndTime)();
 
   DateTimeColumn get nextReviewDate =>
@@ -116,7 +117,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -149,6 +150,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 6) {
           await m.addColumn(tasks, tasks.endDate);
+        }
+        if (from < 7) {
+          await m.addColumn(savedQuestions, savedQuestions.answer);
         }
       },
     );
