@@ -721,8 +721,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
           totalDuration: Duration.zero,
           videoUrl: isImage ? null : finalVideoUrl,
           backgroundJpgUrl: isImage ? question.videoUrl : null,
-          canvasWidth: 1920,
-          canvasHeight: 1080,
+          canvasWidth: question.width ?? (isImage ? 1920 : 1280),
+          canvasHeight: question.height ?? (isImage ? 1080 : 720),
           pdfDefaultScale: 1.0,
           pdfOffset: Offset.zero,
         );
@@ -963,6 +963,25 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
       if (fileDataOrPath != null) {
         final answerController = TextEditingController();
+        double? width;
+        double? height;
+
+        if (isImage) {
+          try {
+            final Uint8List bytes;
+            if (kIsWeb) {
+              bytes = result.files.single.bytes!;
+            } else {
+              bytes = await File(fileDataOrPath).readAsBytes();
+            }
+            final decodedImage = await decodeImageFromList(bytes);
+            width = decodedImage.width.toDouble();
+            height = decodedImage.height.toDouble();
+          } catch (e) {
+            debugPrint('Resim boyutları alınamadı: $e');
+          }
+        }
+
         if (context.mounted) {
           final shouldSave = await showDialog<bool>(
             context: context,
@@ -996,6 +1015,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
           name: isImage ? 'Özel Soru (Resim)' : 'Özel Soru (Video)',
           videoUrl: fileDataOrPath,
           order: '0',
+          width: width,
+          height: height,
         );
 
         await provider.saveQuestion(
