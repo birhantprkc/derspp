@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:media_kit/media_kit.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -608,7 +610,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(
-            hintText: 'Soru ile ilgili notunuz...',
+            hintText: 'Notunuz...',
             border: OutlineInputBorder(),
           ),
           maxLines: 3,
@@ -888,6 +890,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     SavedQuestionsProvider provider,
     QuestionFolder folder,
   ) {
+    final answerController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -895,20 +898,43 @@ class _ReviewScreenState extends State<ReviewScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            TextField(
+              controller: answerController,
+              decoration: const InputDecoration(
+                labelText: 'Sorunun Cevabı',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.spellcheck),
+              ),
+              maxLines: 1,
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.link),
               title: const Text('Video Linki Ekle'),
               onTap: () {
+                final answer = answerController.text.trim();
                 Navigator.pop(context);
-                _showAddVideoLinkDialog(context, provider, folder);
+                _showAddVideoLinkDialog(
+                  context,
+                  provider,
+                  folder,
+                  initialAnswer: answer.isEmpty ? null : answer,
+                );
               },
             ),
             ListTile(
               leading: const Icon(Icons.image),
               title: const Text('Resim/Video Seç'),
               onTap: () async {
+                final answer = answerController.text.trim();
                 Navigator.pop(context);
-                await _pickCustomImage(context, provider, folder);
+                await _pickCustomImage(
+                  context,
+                  provider,
+                  folder,
+                  initialAnswer: answer.isEmpty ? null : answer,
+                );
               },
             ),
           ],
@@ -920,8 +946,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
   Future<void> _pickCustomImage(
     BuildContext context,
     SavedQuestionsProvider provider,
-    QuestionFolder folder,
-  ) async {
+    QuestionFolder folder, {
+    String? initialAnswer,
+  }) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.media,
       withData: kIsWeb,
@@ -962,7 +989,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
       }
 
       if (fileDataOrPath != null) {
-        final answerController = TextEditingController();
         double? width;
         double? height;
 
@@ -980,34 +1006,35 @@ class _ReviewScreenState extends State<ReviewScreen> {
           } catch (e) {
             debugPrint('Resim boyutları alınamadı: $e');
           }
-        }
+        } else if (!kIsWeb) {
+          try {
+            final player = Player();
+            final completer = Completer<void>();
+            player.stream.width.listen((w) {
+              if (w != null && w > 0) {
+                width = w.toDouble();
+                if (width != null && height != null && !completer.isCompleted) {
+                  completer.complete();
+                }
+              }
+            });
+            player.stream.height.listen((h) {
+              if (h != null && h > 0) {
+                height = h.toDouble();
+                if (width != null && height != null && !completer.isCompleted) {
+                  completer.complete();
+                }
+              }
+            });
 
-        if (context.mounted) {
-          final shouldSave = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Soru Cevabı'),
-              content: TextField(
-                controller: answerController,
-                decoration: const InputDecoration(
-                  hintText: 'Sorunun cevabı (Opsiyonel)',
-                ),
-                autofocus: true,
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Vazgeç'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Kaydet'),
-                ),
-              ],
-            ),
-          );
-
-          if (shouldSave != true) return;
+            await player.open(Media(fileDataOrPath), play: false);
+            await completer.future
+                .timeout(const Duration(seconds: 2))
+                .catchError((_) {});
+            await player.dispose();
+          } catch (e) {
+            debugPrint('Video boyutları alınamadı: $e');
+          }
         }
 
         final question = Question(
@@ -1027,9 +1054,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           chapterId: 'custom',
           breadcrumbs: 'Özel Sorular',
           question: question,
-          answer: answerController.text.trim().isNotEmpty
-              ? answerController.text.trim()
-              : null,
+          answer: initialAnswer,
         );
 
         if (context.mounted) {
@@ -1045,10 +1070,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
   void _showAddVideoLinkDialog(
     BuildContext context,
     SavedQuestionsProvider provider,
-    QuestionFolder folder,
-  ) {
+    QuestionFolder folder, {
+    String? initialAnswer,
+  }) {
     final controller = TextEditingController();
-    final answerController = TextEditingController();
+    final answerController = TextEditingController(text: initialAnswer);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1064,7 +1090,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: answerController,
-              decoration: const InputDecoration(hintText: 'Soru Cevabı (Opsiyonel)'),
+              decoration: const InputDecoration(hintText: 'Soru Cevabı'),
             ),
           ],
         ),

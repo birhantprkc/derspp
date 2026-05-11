@@ -460,7 +460,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   controller: noteController,
                   decoration: const InputDecoration(
                     labelText: 'Not Ekle',
-                    hintText: 'Notunuz...',
+                    hintText: '',
                     border: OutlineInputBorder(),
                   ),
                   maxLines: 2,
@@ -470,7 +470,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   controller: answerController,
                   decoration: const InputDecoration(
                     labelText: 'Cevap',
-                    hintText: 'Sorunun cevabı...',
+                    hintText: '',
                     border: OutlineInputBorder(),
                   ),
                   maxLines: 1,
