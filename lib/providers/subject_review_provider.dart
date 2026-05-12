@@ -117,4 +117,46 @@ class SubjectReviewProvider extends ChangeNotifier {
     }
     return totalProgress / children.length;
   }
+
+  List<StudySubject> get dueSubjects {
+    return _subjects.where((s) =>
+        s.isLeaf &&
+        s.isKnown &&
+        s.nextReviewDate != null &&
+        s.nextReviewDate!.isBefore(DateTime.now())).toList();
+  }
+
+  List<StudySubject> get upcomingSubjects {
+    final now = DateTime.now();
+    final list = _subjects.where((s) =>
+        s.isLeaf &&
+        s.isKnown &&
+        s.nextReviewDate != null &&
+        s.nextReviewDate!.isAfter(now)).toList();
+    list.sort((a, b) => a.nextReviewDate!.compareTo(b.nextReviewDate!));
+    return list;
+  }
+
+  int getDueCount(int id) {
+    final node = _subjects.firstWhere((s) => s.id == id);
+    return _getDueCountRecursive(node);
+  }
+
+  int _getDueCountRecursive(StudySubject node) {
+    if (node.isLeaf) {
+      if (node.isKnown &&
+          node.nextReviewDate != null &&
+          node.nextReviewDate!.isBefore(DateTime.now())) {
+        return 1;
+      }
+      return 0;
+    }
+
+    final children = getChildren(node.id);
+    int count = 0;
+    for (final child in children) {
+      count += _getDueCountRecursive(child);
+    }
+    return count;
+  }
 }

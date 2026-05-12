@@ -26,15 +26,22 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
           fontSize: 20,
         ),
       ),
-      body: _buildFolderTree(provider, null),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: _buildFolderTree(provider, null),
+          ),
+          _buildStatsPanel(context, provider),
+        ],
+      ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80.0),
+        padding: const EdgeInsets.only(bottom: 100.0),
         child: FloatingActionButton.small(
-          elevation: 0,
-          highlightElevation: 0,
+          elevation: 2,
           backgroundColor: Theme.of(
             context,
-          ).colorScheme.surfaceContainerHighest,
+          ).colorScheme.surfaceVariant,
           foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
           onPressed: () {
             showModalBottomSheet(
@@ -69,6 +76,244 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
     );
   }
 
+  Widget _buildStatsPanel(
+    BuildContext context,
+    SubjectReviewProvider provider,
+  ) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.12,
+      minChildSize: 0.12,
+      maxChildSize: 0.9,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              top: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 8),
+                    child: Container(
+                      width: 32,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ),
+                _buildSummaryRow(context, provider),
+                const SizedBox(height: 16),
+                _buildDueSection(context, provider),
+                _buildUpcomingSection(context, provider),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSummaryRow(BuildContext context, SubjectReviewProvider provider) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.menu_book_outlined),
+              label: const Text('Konu Çalış'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildSummaryStat(
+                context,
+                'TOPLAM KONU',
+                '${provider.subjects.where((s) => s.isLeaf).length}',
+                Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 32),
+              _buildSummaryStat(
+                context,
+                'TEKRARDA',
+                '${provider.dueSubjects.length}',
+                Theme.of(context).colorScheme.error,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryStat(BuildContext context, String label, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+            letterSpacing: 0.8,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w300,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDueSection(BuildContext context, SubjectReviewProvider provider) {
+    final dueSubjects = provider.dueSubjects;
+    if (dueSubjects.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+          child: Text(
+            'TEKRAR EDİLECEKLER',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+              letterSpacing: 1.1,
+            ),
+          ),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: dueSubjects.length,
+          itemBuilder: (context, index) {
+            final subject = dueSubjects[index];
+            return ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: Icon(
+                Icons.history,
+                size: 18,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(
+                subject.name,
+                style: const TextStyle(fontSize: 14),
+              ),
+              subtitle: Text(
+                'Zamanı geçti',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+              onTap: () => _showIntervalDialog(context, provider, subject),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUpcomingSection(BuildContext context, SubjectReviewProvider provider) {
+    final upcoming = provider.upcomingSubjects;
+    if (upcoming.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          child: Text(
+            'TEKRARI YAKLAŞANLAR',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+              letterSpacing: 1.1,
+            ),
+          ),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: upcoming.length,
+          itemBuilder: (context, index) {
+            final subject = upcoming[index];
+            return ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: Icon(
+                Icons.schedule,
+                size: 18,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: Text(
+                subject.name,
+                style: const TextStyle(fontSize: 14),
+              ),
+              subtitle: Text(
+                _formatRelativeDate(subject.nextReviewDate),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              onTap: () => _showIntervalDialog(context, provider, subject),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSquareBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
   Widget _buildFolderTree(SubjectReviewProvider provider, int? parentId) {
     final items = provider.getChildren(parentId);
 
@@ -90,6 +335,7 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
       itemBuilder: (context, index) {
         final subject = items[index];
         final progress = provider.calculateProgress(subject.id);
+        final dueCount = provider.getDueCount(subject.id);
         final isExpired =
             subject.isLeaf &&
             subject.isKnown &&
@@ -135,30 +381,29 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
                 ],
               ),
             ),
-            title: Text(
-              subject.name,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.normal,
-                decoration: progress == 1.0 ? TextDecoration.lineThrough : null,
-                color: progress == 1.0
-                    ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
-                    : Theme.of(context).colorScheme.onSurface,
-              ),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    subject.name,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.normal,
+                      decoration: progress == 1.0 ? TextDecoration.lineThrough : null,
+                      color: progress == 1.0
+                          ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                if (isExpired)
+                  _buildSquareBadge(
+                    'TEKRAR',
+                    Theme.of(context).colorScheme.error,
+                  ),
+              ],
             ),
-            // subtitle: subject.isKnown
-            //     ? Text(
-            //         isExpired
-            //             ? 'Tekrar zamanı geldi!'
-            //             : 'Tekrar: ${_formatDate(subject.nextReviewDate)}',
-            //         style: TextStyle(
-            //           fontSize: 12,
-            //           color: isExpired
-            //               ? Colors.red
-            //               : Theme.of(context).colorScheme.primary,
-            //         ),
-            //       )
-            //     : null,
+            subtitle: null,
             trailing: IconButton(
               icon: const Icon(Icons.more_vert, size: 20),
               onPressed: () => _showOptionsDialog(context, provider, subject),
@@ -195,15 +440,26 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
                 Icon(
                   Icons.folder_open,
                   size: 16,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.7),
+                  color: dueCount > 0
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 ),
               ],
             ),
-            title: Text(
-              subject.name,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    subject.name,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                  ),
+                ),
+                if (dueCount > 0)
+                  _buildSquareBadge(
+                    '$dueCount TEKRAR',
+                    Theme.of(context).colorScheme.error,
+                  ),
+              ],
             ),
             trailing: IconButton(
               icon: const Icon(Icons.more_vert, size: 20),
@@ -216,10 +472,19 @@ class _SubjectReviewScreenState extends State<SubjectReviewScreen> {
     );
   }
 
-  // String _formatDate(DateTime? date) {
-  //   if (date == null) return '';
-  //   return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-  // }
+  String _formatRelativeDate(DateTime? date) {
+    if (date == null) return '';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(date.year, date.month, date.day);
+    final diffDays = target.difference(today).inDays;
+
+    if (diffDays == 0) return 'Bugün';
+    if (diffDays == 1) return 'Yarın';
+    if (diffDays > 1) return '$diffDays gün sonra';
+    if (diffDays == -1) return 'Dün';
+    return '${diffDays.abs()} gün önce';
+  }
 
   void _showAddDialog(
     BuildContext context,
