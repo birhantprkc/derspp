@@ -55,6 +55,7 @@ dependencies:
   fluttertoast: ^9.0.0
   webview_flutter: ^4.13.1
   pdfrx: ^2.2.24
+  pdf: ^3.10.0
   
   package_info_plus: ^8.1.2
   open_file: ^3.5.10
@@ -76,6 +77,15 @@ flutter:
 
   assets:
     - assets/images/logo.png
+    - assets/fonts/NotoSans-Regular.ttf
+    - assets/fonts/NotoSans-Bold.ttf
+
+  fonts:
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/NotoSans-Regular.ttf
+        - asset: assets/fonts/NotoSans-Bold.ttf
+          weight: 700
 
 flutter_launcher_icons:
   web:

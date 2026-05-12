@@ -13,6 +13,7 @@ import 'providers/task_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/source_provider.dart';
 import 'providers/saved_questions_provider.dart';
+import 'providers/pdf_export_provider.dart';
 import 'providers/transcription_provider.dart';
 import 'providers/subject_review_provider.dart';
 import 'providers/navigation_provider.dart';
@@ -73,6 +74,9 @@ Future<void> main() async {
         ),
         ChangeNotifierProvider(
           create: (context) => NavigationProvider(database),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => PdfExportProvider(database),
         ),
       ],
       child: MainApp(welcomeShown: welcomeShown),

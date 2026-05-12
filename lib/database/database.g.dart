@@ -3846,6 +3846,512 @@ class StudySubjectsCompanion extends UpdateCompanion<StudySubject> {
   }
 }
 
+class $GeneratedPdfsTable extends GeneratedPdfs
+    with TableInfo<$GeneratedPdfsTable, GeneratedPdf> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GeneratedPdfsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _filePathMeta = const VerificationMeta(
+    'filePath',
+  );
+  @override
+  late final GeneratedColumn<String> filePath = GeneratedColumn<String>(
+    'file_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _folderIdsMeta = const VerificationMeta(
+    'folderIds',
+  );
+  @override
+  late final GeneratedColumn<String> folderIds = GeneratedColumn<String>(
+    'folder_ids',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _questionDbIdsMeta = const VerificationMeta(
+    'questionDbIds',
+  );
+  @override
+  late final GeneratedColumn<String> questionDbIds = GeneratedColumn<String>(
+    'question_db_ids',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _questionCountMeta = const VerificationMeta(
+    'questionCount',
+  );
+  @override
+  late final GeneratedColumn<int> questionCount = GeneratedColumn<int>(
+    'question_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _columnsMeta = const VerificationMeta(
+    'columns',
+  );
+  @override
+  late final GeneratedColumn<int> columns = GeneratedColumn<int>(
+    'columns',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    filePath,
+    folderIds,
+    questionDbIds,
+    questionCount,
+    createdAt,
+    columns,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'generated_pdfs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GeneratedPdf> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('file_path')) {
+      context.handle(
+        _filePathMeta,
+        filePath.isAcceptableOrUnknown(data['file_path']!, _filePathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_filePathMeta);
+    }
+    if (data.containsKey('folder_ids')) {
+      context.handle(
+        _folderIdsMeta,
+        folderIds.isAcceptableOrUnknown(data['folder_ids']!, _folderIdsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_folderIdsMeta);
+    }
+    if (data.containsKey('question_db_ids')) {
+      context.handle(
+        _questionDbIdsMeta,
+        questionDbIds.isAcceptableOrUnknown(
+          data['question_db_ids']!,
+          _questionDbIdsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_questionDbIdsMeta);
+    }
+    if (data.containsKey('question_count')) {
+      context.handle(
+        _questionCountMeta,
+        questionCount.isAcceptableOrUnknown(
+          data['question_count']!,
+          _questionCountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_questionCountMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('columns')) {
+      context.handle(
+        _columnsMeta,
+        columns.isAcceptableOrUnknown(data['columns']!, _columnsMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GeneratedPdf map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeneratedPdf(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      filePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_path'],
+      )!,
+      folderIds: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}folder_ids'],
+      )!,
+      questionDbIds: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}question_db_ids'],
+      )!,
+      questionCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}question_count'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      columns: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}columns'],
+      )!,
+    );
+  }
+
+  @override
+  $GeneratedPdfsTable createAlias(String alias) {
+    return $GeneratedPdfsTable(attachedDatabase, alias);
+  }
+}
+
+class GeneratedPdf extends DataClass implements Insertable<GeneratedPdf> {
+  final int id;
+  final String name;
+  final String filePath;
+  final String folderIds;
+  final String questionDbIds;
+  final int questionCount;
+  final DateTime createdAt;
+  final int columns;
+  const GeneratedPdf({
+    required this.id,
+    required this.name,
+    required this.filePath,
+    required this.folderIds,
+    required this.questionDbIds,
+    required this.questionCount,
+    required this.createdAt,
+    required this.columns,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['file_path'] = Variable<String>(filePath);
+    map['folder_ids'] = Variable<String>(folderIds);
+    map['question_db_ids'] = Variable<String>(questionDbIds);
+    map['question_count'] = Variable<int>(questionCount);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['columns'] = Variable<int>(columns);
+    return map;
+  }
+
+  GeneratedPdfsCompanion toCompanion(bool nullToAbsent) {
+    return GeneratedPdfsCompanion(
+      id: Value(id),
+      name: Value(name),
+      filePath: Value(filePath),
+      folderIds: Value(folderIds),
+      questionDbIds: Value(questionDbIds),
+      questionCount: Value(questionCount),
+      createdAt: Value(createdAt),
+      columns: Value(columns),
+    );
+  }
+
+  factory GeneratedPdf.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeneratedPdf(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      filePath: serializer.fromJson<String>(json['filePath']),
+      folderIds: serializer.fromJson<String>(json['folderIds']),
+      questionDbIds: serializer.fromJson<String>(json['questionDbIds']),
+      questionCount: serializer.fromJson<int>(json['questionCount']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      columns: serializer.fromJson<int>(json['columns']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'filePath': serializer.toJson<String>(filePath),
+      'folderIds': serializer.toJson<String>(folderIds),
+      'questionDbIds': serializer.toJson<String>(questionDbIds),
+      'questionCount': serializer.toJson<int>(questionCount),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'columns': serializer.toJson<int>(columns),
+    };
+  }
+
+  GeneratedPdf copyWith({
+    int? id,
+    String? name,
+    String? filePath,
+    String? folderIds,
+    String? questionDbIds,
+    int? questionCount,
+    DateTime? createdAt,
+    int? columns,
+  }) => GeneratedPdf(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    filePath: filePath ?? this.filePath,
+    folderIds: folderIds ?? this.folderIds,
+    questionDbIds: questionDbIds ?? this.questionDbIds,
+    questionCount: questionCount ?? this.questionCount,
+    createdAt: createdAt ?? this.createdAt,
+    columns: columns ?? this.columns,
+  );
+  GeneratedPdf copyWithCompanion(GeneratedPdfsCompanion data) {
+    return GeneratedPdf(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      filePath: data.filePath.present ? data.filePath.value : this.filePath,
+      folderIds: data.folderIds.present ? data.folderIds.value : this.folderIds,
+      questionDbIds: data.questionDbIds.present
+          ? data.questionDbIds.value
+          : this.questionDbIds,
+      questionCount: data.questionCount.present
+          ? data.questionCount.value
+          : this.questionCount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      columns: data.columns.present ? data.columns.value : this.columns,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeneratedPdf(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('filePath: $filePath, ')
+          ..write('folderIds: $folderIds, ')
+          ..write('questionDbIds: $questionDbIds, ')
+          ..write('questionCount: $questionCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('columns: $columns')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    filePath,
+    folderIds,
+    questionDbIds,
+    questionCount,
+    createdAt,
+    columns,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeneratedPdf &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.filePath == this.filePath &&
+          other.folderIds == this.folderIds &&
+          other.questionDbIds == this.questionDbIds &&
+          other.questionCount == this.questionCount &&
+          other.createdAt == this.createdAt &&
+          other.columns == this.columns);
+}
+
+class GeneratedPdfsCompanion extends UpdateCompanion<GeneratedPdf> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String> filePath;
+  final Value<String> folderIds;
+  final Value<String> questionDbIds;
+  final Value<int> questionCount;
+  final Value<DateTime> createdAt;
+  final Value<int> columns;
+  const GeneratedPdfsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.filePath = const Value.absent(),
+    this.folderIds = const Value.absent(),
+    this.questionDbIds = const Value.absent(),
+    this.questionCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.columns = const Value.absent(),
+  });
+  GeneratedPdfsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required String filePath,
+    required String folderIds,
+    required String questionDbIds,
+    required int questionCount,
+    this.createdAt = const Value.absent(),
+    this.columns = const Value.absent(),
+  }) : name = Value(name),
+       filePath = Value(filePath),
+       folderIds = Value(folderIds),
+       questionDbIds = Value(questionDbIds),
+       questionCount = Value(questionCount);
+  static Insertable<GeneratedPdf> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? filePath,
+    Expression<String>? folderIds,
+    Expression<String>? questionDbIds,
+    Expression<int>? questionCount,
+    Expression<DateTime>? createdAt,
+    Expression<int>? columns,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (filePath != null) 'file_path': filePath,
+      if (folderIds != null) 'folder_ids': folderIds,
+      if (questionDbIds != null) 'question_db_ids': questionDbIds,
+      if (questionCount != null) 'question_count': questionCount,
+      if (createdAt != null) 'created_at': createdAt,
+      if (columns != null) 'columns': columns,
+    });
+  }
+
+  GeneratedPdfsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String>? filePath,
+    Value<String>? folderIds,
+    Value<String>? questionDbIds,
+    Value<int>? questionCount,
+    Value<DateTime>? createdAt,
+    Value<int>? columns,
+  }) {
+    return GeneratedPdfsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      filePath: filePath ?? this.filePath,
+      folderIds: folderIds ?? this.folderIds,
+      questionDbIds: questionDbIds ?? this.questionDbIds,
+      questionCount: questionCount ?? this.questionCount,
+      createdAt: createdAt ?? this.createdAt,
+      columns: columns ?? this.columns,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (filePath.present) {
+      map['file_path'] = Variable<String>(filePath.value);
+    }
+    if (folderIds.present) {
+      map['folder_ids'] = Variable<String>(folderIds.value);
+    }
+    if (questionDbIds.present) {
+      map['question_db_ids'] = Variable<String>(questionDbIds.value);
+    }
+    if (questionCount.present) {
+      map['question_count'] = Variable<int>(questionCount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (columns.present) {
+      map['columns'] = Variable<int>(columns.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeneratedPdfsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('filePath: $filePath, ')
+          ..write('folderIds: $folderIds, ')
+          ..write('questionDbIds: $questionDbIds, ')
+          ..write('questionCount: $questionCount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('columns: $columns')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3861,6 +4367,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RoutineCompletionsTable routineCompletions =
       $RoutineCompletionsTable(this);
   late final $StudySubjectsTable studySubjects = $StudySubjectsTable(this);
+  late final $GeneratedPdfsTable generatedPdfs = $GeneratedPdfsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3875,6 +4382,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     tasks,
     routineCompletions,
     studySubjects,
+    generatedPdfs,
   ];
 }
 
@@ -6793,6 +7301,261 @@ typedef $$StudySubjectsTableProcessedTableManager =
       StudySubject,
       PrefetchHooks Function({bool parentId, bool syncWithFolderId})
     >;
+typedef $$GeneratedPdfsTableCreateCompanionBuilder =
+    GeneratedPdfsCompanion Function({
+      Value<int> id,
+      required String name,
+      required String filePath,
+      required String folderIds,
+      required String questionDbIds,
+      required int questionCount,
+      Value<DateTime> createdAt,
+      Value<int> columns,
+    });
+typedef $$GeneratedPdfsTableUpdateCompanionBuilder =
+    GeneratedPdfsCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String> filePath,
+      Value<String> folderIds,
+      Value<String> questionDbIds,
+      Value<int> questionCount,
+      Value<DateTime> createdAt,
+      Value<int> columns,
+    });
+
+class $$GeneratedPdfsTableFilterComposer
+    extends Composer<_$AppDatabase, $GeneratedPdfsTable> {
+  $$GeneratedPdfsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get filePath => $composableBuilder(
+    column: $table.filePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get folderIds => $composableBuilder(
+    column: $table.folderIds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get questionDbIds => $composableBuilder(
+    column: $table.questionDbIds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get questionCount => $composableBuilder(
+    column: $table.questionCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get columns => $composableBuilder(
+    column: $table.columns,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GeneratedPdfsTableOrderingComposer
+    extends Composer<_$AppDatabase, $GeneratedPdfsTable> {
+  $$GeneratedPdfsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get filePath => $composableBuilder(
+    column: $table.filePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get folderIds => $composableBuilder(
+    column: $table.folderIds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get questionDbIds => $composableBuilder(
+    column: $table.questionDbIds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get questionCount => $composableBuilder(
+    column: $table.questionCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get columns => $composableBuilder(
+    column: $table.columns,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GeneratedPdfsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GeneratedPdfsTable> {
+  $$GeneratedPdfsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get filePath =>
+      $composableBuilder(column: $table.filePath, builder: (column) => column);
+
+  GeneratedColumn<String> get folderIds =>
+      $composableBuilder(column: $table.folderIds, builder: (column) => column);
+
+  GeneratedColumn<String> get questionDbIds => $composableBuilder(
+    column: $table.questionDbIds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get questionCount => $composableBuilder(
+    column: $table.questionCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get columns =>
+      $composableBuilder(column: $table.columns, builder: (column) => column);
+}
+
+class $$GeneratedPdfsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GeneratedPdfsTable,
+          GeneratedPdf,
+          $$GeneratedPdfsTableFilterComposer,
+          $$GeneratedPdfsTableOrderingComposer,
+          $$GeneratedPdfsTableAnnotationComposer,
+          $$GeneratedPdfsTableCreateCompanionBuilder,
+          $$GeneratedPdfsTableUpdateCompanionBuilder,
+          (
+            GeneratedPdf,
+            BaseReferences<_$AppDatabase, $GeneratedPdfsTable, GeneratedPdf>,
+          ),
+          GeneratedPdf,
+          PrefetchHooks Function()
+        > {
+  $$GeneratedPdfsTableTableManager(_$AppDatabase db, $GeneratedPdfsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GeneratedPdfsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GeneratedPdfsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GeneratedPdfsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> filePath = const Value.absent(),
+                Value<String> folderIds = const Value.absent(),
+                Value<String> questionDbIds = const Value.absent(),
+                Value<int> questionCount = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> columns = const Value.absent(),
+              }) => GeneratedPdfsCompanion(
+                id: id,
+                name: name,
+                filePath: filePath,
+                folderIds: folderIds,
+                questionDbIds: questionDbIds,
+                questionCount: questionCount,
+                createdAt: createdAt,
+                columns: columns,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required String filePath,
+                required String folderIds,
+                required String questionDbIds,
+                required int questionCount,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> columns = const Value.absent(),
+              }) => GeneratedPdfsCompanion.insert(
+                id: id,
+                name: name,
+                filePath: filePath,
+                folderIds: folderIds,
+                questionDbIds: questionDbIds,
+                questionCount: questionCount,
+                createdAt: createdAt,
+                columns: columns,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GeneratedPdfsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GeneratedPdfsTable,
+      GeneratedPdf,
+      $$GeneratedPdfsTableFilterComposer,
+      $$GeneratedPdfsTableOrderingComposer,
+      $$GeneratedPdfsTableAnnotationComposer,
+      $$GeneratedPdfsTableCreateCompanionBuilder,
+      $$GeneratedPdfsTableUpdateCompanionBuilder,
+      (
+        GeneratedPdf,
+        BaseReferences<_$AppDatabase, $GeneratedPdfsTable, GeneratedPdf>,
+      ),
+      GeneratedPdf,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6815,4 +7578,6 @@ class $AppDatabaseManager {
       $$RoutineCompletionsTableTableManager(_db, _db.routineCompletions);
   $$StudySubjectsTableTableManager get studySubjects =>
       $$StudySubjectsTableTableManager(_db, _db.studySubjects);
+  $$GeneratedPdfsTableTableManager get generatedPdfs =>
+      $$GeneratedPdfsTableTableManager(_db, _db.generatedPdfs);
 }

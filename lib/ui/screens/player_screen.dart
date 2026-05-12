@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -14,6 +16,7 @@ import '../../providers/theme_provider.dart';
 import '../../providers/saved_questions_provider.dart';
 import '../../providers/source_provider.dart';
 import '../../providers/transcription_provider.dart';
+import './image_cropper_screen.dart';
 
 class PlayerScreen extends StatefulWidget {
   final AnimationModel animationData;
@@ -23,6 +26,7 @@ class PlayerScreen extends StatefulWidget {
   final VoidCallback? onPreviousVideo;
   final bool hasNextVideo;
   final bool hasPreviousVideo;
+  final bool isCaptureMode;
   const PlayerScreen({
     super.key,
     required this.animationData,
@@ -32,6 +36,7 @@ class PlayerScreen extends StatefulWidget {
     this.onPreviousVideo,
     this.hasNextVideo = false,
     this.hasPreviousVideo = false,
+    this.isCaptureMode = false,
   });
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
@@ -57,6 +62,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   DateTime? _lastSyncTime;
   Duration _lastSyncPos = Duration.zero;
   final GlobalKey<DrawingCanvasState> _canvasKey = GlobalKey();
+  final GlobalKey _boundaryKey = GlobalKey();
   TranscriptionProvider? _transcriptionProvider;
 
   double? _customPanelSize;
@@ -435,6 +441,38 @@ class _PlayerScreenState extends State<PlayerScreen> {
     });
   }
 
+  Future<void> _captureAndCrop() async {
+    try {
+      final RenderRepaintBoundary? boundary =
+          _boundaryKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+      if (boundary == null) return;
+
+      final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+      if (byteData == null) return;
+
+      final pngBytes = byteData.buffer.asUint8List();
+
+      if (!mounted) return;
+
+      final cropped = await Navigator.push<Uint8List>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ImageCropperScreen(image: pngBytes),
+        ),
+      );
+
+      if (cropped != null && mounted) {
+        Navigator.pop(context, cropped);
+      }
+    } catch (e) {
+      debugPrint('Kırpma hatası: $e');
+    }
+  }
+
   void _showSaveDialog(BuildContext context) {
     final sourceProvider = context.read<SourceProvider>();
     final question = widget.question;
@@ -742,13 +780,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   onHorizontalDragEnd: _isLocked ? (_) => _onSeekEnd() : null,
                   child: Container(
                     color: isDarkMode ? Colors.black : Colors.white,
-                    child: DrawingCanvas(
-                      key: _canvasKey,
-                      objects: widget.animationData.getActiveObjects(),
-                      animationData: widget.animationData,
-                      enableInteraction: !_isLocked,
-                      videoController: _videoController,
-                      isDarkMode: isDarkMode,
+                    child: RepaintBoundary(
+                      key: _boundaryKey,
+                      child: DrawingCanvas(
+                        key: _canvasKey,
+                        objects: widget.animationData.getActiveObjects(),
+                        animationData: widget.animationData,
+                        enableInteraction: !_isLocked,
+                        videoController: _videoController,
+                        isDarkMode: isDarkMode,
+                      ),
                     ),
                   ),
                 ),
@@ -908,6 +949,29 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         onInteraction: _resetControlsHideTimer,
                       ),
                     ),
+                    if (widget.isCaptureMode)
+                      Positioned(
+                        bottom: 100,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: ElevatedButton.icon(
+                            onPressed: _captureAndCrop,
+                            icon: const Icon(Icons.crop),
+                            label: const Text('Görüntüyü Kırp ve Ekle'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              foregroundColor:
+                                  Theme.of(context).colorScheme.onPrimary,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

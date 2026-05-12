@@ -299,7 +299,8 @@ class F2SourceService implements SourceService {
     });
 
     // 2. Handle JS-style escaped characters
-    result = result.replaceAll(r"\'", "'")
+    result = result
+        .replaceAll(r"\'", "'")
         .replaceAll(r'\"', '"')
         .replaceAll(r'\\', r'\')
         .replaceAll(r'\n', '\n')
@@ -307,8 +308,9 @@ class F2SourceService implements SourceService {
         .replaceAll(r'\t', ' ');
 
     // 3. Handle HTML Entities (Numeric: &#123; or &#xABC;)
-    result = result.replaceAllMapped(RegExp(r'&#(?:x([0-9a-fA-F]+)|(\d+));'),
-        (match) {
+    result = result.replaceAllMapped(RegExp(r'&#(?:x([0-9a-fA-F]+)|(\d+));'), (
+      match,
+    ) {
       try {
         if (match.group(1) != null) {
           return String.fromCharCode(int.parse(match.group(1)!, radix: 16));

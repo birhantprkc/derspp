@@ -100,6 +100,17 @@ class StudySubjects extends Table {
       integer().nullable().references(QuestionFolders, #id)();
 }
 
+class GeneratedPdfs extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get filePath => text()();
+  TextColumn get folderIds => text()();
+  TextColumn get questionDbIds => text()();
+  IntColumn get questionCount => integer()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get columns => integer().withDefault(const Constant(2))();
+}
+
 @DriftDatabase(
   tables: [
     Books,
@@ -111,13 +122,14 @@ class StudySubjects extends Table {
     Tasks,
     RoutineCompletions,
     StudySubjects,
+    GeneratedPdfs,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -153,6 +165,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 7) {
           await m.addColumn(savedQuestions, savedQuestions.answer);
+        }
+        if (from < 8) {
+          await m.createTable(generatedPdfs);
         }
       },
     );
