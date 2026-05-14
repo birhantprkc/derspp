@@ -633,7 +633,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 icon: const Icon(Icons.delete_outline),
                 tooltip: 'Sil',
                 onPressed: () =>
-                    provider.deleteSavedQuestion(sq.id, sq.folderId),
+                    _confirmDeleteQuestion(context, provider, sq),
               ),
             ],
           ),
@@ -1035,13 +1035,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
             context,
             Icons.delete_outline,
             'Sil',
-            () => pdfProvider.deletePdf(pdf.id),
+            () => _confirmDeletePdf(context, pdfProvider, pdf),
           ),
           _pdfActionButton(
             context,
             Icons.check_circle_outline,
             'Review Adımlarını İlerlet ve Sil',
-            () => pdfProvider.markAsCompleted(pdf.id),
+            () => _confirmMarkAsCompleted(context, pdfProvider, pdf),
           ),
         ],
       ),
@@ -1852,6 +1852,92 @@ class _ReviewScreenState extends State<ReviewScreen> {
               }
             },
             child: const Text('Ekle'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteQuestion(
+    BuildContext context,
+    SavedQuestionsProvider provider,
+    SavedQuestion sq,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Soruyu Sil'),
+        content: const Text('Bu soruyu silmek istediğinize emin misiniz?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          TextButton(
+            onPressed: () {
+              provider.deleteSavedQuestion(sq.id, sq.folderId);
+              Navigator.pop(context);
+            },
+            child: const Text('Sil'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeletePdf(
+    BuildContext context,
+    PdfExportProvider pdfProvider,
+    GeneratedPdf pdf,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('PDF\'i Sil'),
+        content: Text('${pdf.name} PDF\'ini silmek istediğinize emin misiniz?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          TextButton(
+            onPressed: () {
+              pdfProvider.deletePdf(pdf.id);
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Sil'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmMarkAsCompleted(
+    BuildContext context,
+    PdfExportProvider pdfProvider,
+    GeneratedPdf pdf,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('İlerlet ve Sil'),
+        content: Text(
+          'Bu PDF\'in review adımlarını ilerletip silmek istediğinize emin misiniz?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          TextButton(
+            onPressed: () {
+              pdfProvider.markAsCompleted(pdf.id);
+              Navigator.pop(context);
+            },
+            child: const Text('Onayla'),
           ),
         ],
       ),
