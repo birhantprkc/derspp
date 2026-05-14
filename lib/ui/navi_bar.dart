@@ -121,6 +121,16 @@ class _NaviBarState extends State<NaviBar> {
   }
 
   Widget _buildMobileLayout(List<NavItem> visibleItems) {
+    final width = MediaQuery.of(context).size.width;
+    final itemCount = visibleItems.length;
+
+    final estimatedItemWidth = width / itemCount;
+
+    double fontSize = 12;
+
+    if (estimatedItemWidth < 80) {
+      fontSize = 10;
+    }
     return Scaffold(
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
@@ -141,6 +151,9 @@ class _NaviBarState extends State<NaviBar> {
           ),
           NavigationBarTheme(
             data: NavigationBarThemeData(
+              labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                return TextStyle(fontSize: fontSize);
+              }),
               backgroundColor: Colors.transparent,
               indicatorShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
