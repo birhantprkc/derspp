@@ -1635,10 +1635,10 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "2277b3b433c3761477633f2812fe47164289f2a2"
+      resolved-ref: "7fe96143579aca9fd48e34f0e24f0f461a1cee9e"
       url: "https://github.com/navidicted/youtube_explode_dart.git"
     source: git
-    version: "3.0.5"
+    version: "3.1.0"
 sdks:
   dart: ">=3.10.7 <4.0.0"
   flutter: ">=3.38.4"

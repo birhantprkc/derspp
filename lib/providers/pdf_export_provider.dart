@@ -190,6 +190,8 @@ class PdfExportProvider extends ChangeNotifier {
 
   Future<bool> _isQuestionVideo(SavedQuestion sq) async {
     try {
+      if (sq.scraperType == 'youtube') return true;
+
       final data = jsonDecode(sq.rawJson);
       final videoUrl = data['videoUrl'] as String?;
 
@@ -207,10 +209,7 @@ class PdfExportProvider extends ChangeNotifier {
       if (videoUrl == null || videoUrl.isEmpty) return false;
 
       final url = videoUrl.toLowerCase();
-      return url.contains('youtube.com') ||
-          url.contains('youtu.be') ||
-          url.endsWith('.mp4') ||
-          url.contains('.mp4?');
+      return url.endsWith('.mp4') || url.contains('.mp4?');
     } catch (_) {
       return false;
     }

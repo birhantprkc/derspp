@@ -256,6 +256,10 @@ class PdfExportService {
                       maxLines: 1,
                     ),
                   ),
+                  pw.Text(
+                    'DERSPP DAĞITIM YAPMAZ İÇERİĞİN TAMAMI KULLANICI CİHAZINDA OLUŞTURULUR',
+                    style: _textStyle(fontSize: 9, bold: false),
+                  ),
                   pw.SizedBox(width: 10),
                   pw.Text('$pageNum', style: _textStyle(fontSize: 9)),
                 ],
@@ -310,9 +314,6 @@ class PdfExportService {
                   ),
                   decoration: pw.BoxDecoration(
                     border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
-                    borderRadius: const pw.BorderRadius.all(
-                      pw.Radius.circular(2),
-                    ),
                   ),
                   child: pw.Row(
                     mainAxisSize: pw.MainAxisSize.min,
@@ -335,33 +336,28 @@ class PdfExportService {
   }
 
   static pw.Widget _buildWatermark() {
-    final rows = <pw.Widget>[];
-    for (int i = 0; i < 7; i++) {
-      final cols = <pw.Widget>[];
-      for (int j = 0; j < 3; j++) {
-        cols.add(
-          pw.Transform.rotate(
-            angle: -pi / 8,
-            child: pw.Text(
-              'Soru hakları dersppye ait değildir sadece derspp ile ',
-              style: _textStyle(fontSize: 10, color: PdfColors.grey300),
+    return pw.Opacity(
+      opacity: 0.6,
+      child: pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        children: List.generate(8, (i) {
+          return pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(vertical: 80),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+              children: List.generate(3, (j) {
+                return pw.Transform.rotate(
+                  angle: -pi / 8,
+                  child: pw.Text(
+                    '',
+                    style: _textStyle(fontSize: 10, color: PdfColors.grey300),
+                  ),
+                );
+              }),
             ),
-          ),
-        );
-      }
-      rows.add(
-        pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 80),
-          child: pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-            children: cols,
-          ),
-        ),
-      );
-    }
-    return pw.Column(
-      mainAxisAlignment: pw.MainAxisAlignment.center,
-      children: rows,
+          );
+        }),
+      ),
     );
   }
 
@@ -495,7 +491,8 @@ class PdfExportService {
 
     final pdfUrl = question.pdfUrl;
     if (pdfUrl == null || pdfUrl.isEmpty) {
-      return (null, _isVideoUrl(question.videoUrl));
+      if (_isVideoUrl(question.videoUrl)) return (null, true);
+      return (null, false);
     }
     final result = await _handlePdfQuestion(pdfUrl, sq.id);
     return (result, false);
