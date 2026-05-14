@@ -220,7 +220,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 50),
               Center(
                 child: Text(
-                  'uma version 3.0',
+                  'uma version 3.39',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.3),
                     letterSpacing: 0.5,

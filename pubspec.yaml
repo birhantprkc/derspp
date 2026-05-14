@@ -3,7 +3,7 @@ description: "A study application able to play vector videos with a lot of featu
 
 publish_to: 'none' 
 
-version: 3.0.0
+version: 3.39.0
 
 environment:
   sdk: ^3.10.0
