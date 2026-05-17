@@ -1,12 +1,16 @@
-# Kullanım Kılavuzu
 
-Derspp uygulamasını kullanırken aşağıdaki adımları takip edebilirsiniz.
+## Soru Çözümü
+Uygulama içinde "Video Çözüm" ekranında "Yayınlar" sekmesinden yeni yayını doğru kaynak tipini seçerek ardından url yazarak ekleyebilirsiniz. Eklediğiniz yayınların üstüne basarak dilediğiniz sayfaya gidip o kısmı kitap olarak kütüphanenize ekleyebilirsiniz.
 
-## Soru Çözümü Oynatma
-Uygulama içerisinden desteklenen yayınları seçerek soru çözümlerine ulaşabilirsiniz.
+## Planlama
+Haftalık şekilde todolist olarak DERS ve KİŞİSEL görevlerinizi kaydedebilirsiniz isterseniz tekrarlanma sıklığını da ayarlayarak rutin oluşturabilirsiniz.
 
-## Görev Planlama
-Rutinlerinizi ve günlük görevlerinizi planlama sekmesinden yönetebilirsiniz.
+## Kaydedilenler
+Kaydettiğiniz sorulara bu bölümden ulaşıp Test oluşturma, aralıklı tekrar etme yapabilirsiniz
 
-## Arşiv ve Tekrar
-Kaydettiğiniz sorulara arşiv bölümünden ulaşabilir, aralıklı tekrar yöntemiyle bilginizi tazeleyebilirsiniz.
+## Konular
+Konu eksiklerinizi girip tekrar edebileceğiniz ve aralıklı bir şekilde konularınızı tekrar edebileceğiniz ekran. Konu çalışma butonu şuanda işe yaramamaktadır.
+
+## Ayarlar
+Uygulama ayarlarınızı buradan kişiselleştirebilir, verilerinizi yedekleyebilir, uygulama güncellemelerini ve versiyon numarasını bu ekrandan görebilirsiniz 
+
