@@ -18,7 +18,8 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  final int _totalPages = 4;
+  int _totalPages = 5;
+  bool _licenseAccepted = false;
 
   @override
   void dispose() {
@@ -37,6 +38,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void _nextPage() {
+    if (_currentPage == 0 && !_licenseAccepted) {
+      return;
+    }
     if (_currentPage < _totalPages - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 339),
@@ -88,9 +92,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ),
                       Opacity(
-                        opacity: _currentPage < _totalPages - 1 ? 1.0 : 0.0,
+                        opacity: _currentPage > 0 ? 1.0 : 0.0,
                         child: IgnorePointer(
-                          ignoring: _currentPage == _totalPages - 1,
+                          ignoring: _currentPage <= 0,
                           child: TextButton(
                             onPressed: () async {
                               await _finishWelcome();
@@ -136,6 +140,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 onPageChanged: (i) => setState(() => _currentPage = i),
                 children: [
+                  _buildLicensePage(colorScheme),
                   _buildFirstPage(context, themeProvider, colorScheme),
                   _buildSecondPage(colorScheme),
                   _buildThirdPage(colorScheme),
@@ -156,10 +161,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                   ),
                   child: Text(
-                    _currentPage == _totalPages - 1 ? "Bitir" : 'Devam Et',
-                    style: const TextStyle(
+                    _currentPage == 0
+                        ? "Kabul Et ve Devam Et"
+                        : _currentPage == _totalPages - 1
+                        ? "Bitir"
+                        : 'Devam Et',
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
+                      color: _currentPage == 0 && !_licenseAccepted
+                          ? colorScheme.onSurface.withOpacity(0.4)
+                          : null,
                     ),
                   ),
                 ),
@@ -168,6 +180,138 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLicensePage(ColorScheme colorScheme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 36),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 48),
+          Text(
+            "Lisans ve Yasal Bilgilendirme",
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurface,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "Aşağıda derspp uygulamasının Kullanım koşulları ve sorumluluk reddi bulunmaktadır. Lütfen dikkatle okuyunuz.",
+            style: TextStyle(
+              fontSize: 15,
+              color: colorScheme.onSurface.withOpacity(0.6),
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildPlainSection(
+            colorScheme,
+            title: "Kullanım Koşulları",
+            content:
+                "Uygulama, kullanıcıların eğitim içeriklerini, çalışma planlarını daha etkili bir şekilde yönetebilmesi için geliştirilmiş eğitim amaçlı uygulamadır. Kullanıcı; uygulama içerisinde var olan video çözüm izleme, test oluşturma, soru kaydetme gibi özellikleri kullanırken yasalara ve içerik sağlayıcılarının telif haklarına uygun hareket etmekle yükümlüdür.",
+          ),
+          const SizedBox(height: 16),
+          _buildPlainSection(
+            colorScheme,
+            title: "Sorumluluk Reddi",
+            content:
+                "Uygulama herhangi bir eğitim içeriğini barındırmaz, dağıtmaz veya sahiplenmez. Uygulama üzerinden gerçekleştirilen internet istekleri, standart bir web tarayıcısının gerçekleştirebildiği isteklerle sınırlıdır. Kullanıcıların uygulamayı kullanım şekli ve bu kullanımdan doğabilecek sonuçlar kendi sorumluluğundadır.",
+          ),
+          const SizedBox(height: 16),
+          TextButton.icon(
+            onPressed: () {
+              launchUrl(
+                Uri.parse(
+                  'https://github.com/navidicted/derspp/blob/main/LICENSE',
+                ),
+                mode: LaunchMode.externalApplication,
+              );
+            },
+            icon: const Icon(Icons.open_in_new_rounded, size: 18),
+            label: Text(
+              "Lisans Metnini Görüntüle",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.secondaryFixedDim,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: Checkbox(
+                  value: _licenseAccepted,
+                  onChanged: (value) {
+                    setState(() {
+                      _licenseAccepted = value ?? false;
+                    });
+                  },
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _licenseAccepted = !_licenseAccepted;
+                    });
+                  },
+                  child: Text(
+                    "Okudum, kabul ediyorum",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlainSection(
+    ColorScheme colorScheme, {
+    required String title,
+    required String content,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          content,
+          style: TextStyle(
+            fontSize: 14,
+            color: colorScheme.onSurface.withOpacity(0.6),
+            height: 1.5,
+          ),
+        ),
+      ],
     );
   }
 
