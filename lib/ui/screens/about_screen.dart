@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'welcome_screen.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -173,81 +175,86 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                   const SizedBox(height: 24),
                   if (_showEasterEgg)
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        _buildBadgeTile(
-                          context,
-                          icon: Icons.music_note,
-                          title: 'honorable mention to',
-                          subtitle: 'The Gunu Gurub',
-                          onTap: () => _launchUrl(
-                            'https://www.youtube.com/@GunuGurub39',
-                          ),
-                        ),
-                        _buildBadgeTile(
-                          context,
-                          icon: Icons.science_rounded,
-                          title: 'low cortisol mention to',
-                          subtitle: 'Agnes Tachyon',
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => Dialog(
-                                backgroundColor: Colors.transparent,
-                                elevation: 0,
-                                insetPadding: const EdgeInsets.all(20),
-                                child: GestureDetector(
-                                  onTap: () => Navigator.pop(context),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(24),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.3),
-                                          blurRadius: 30,
-                                          spreadRadius: 10,
-                                        ),
-                                      ],
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(24),
-                                      child: Image.network(
-                                        'https://raw.githubusercontent.com/navidicted/navi-assets/main/assets/lowcortisol.gif',
-                                        loadingBuilder:
-                                            (context, child, loadingProgress) {
-                                              if (loadingProgress == null) {
-                                                return child;
-                                              }
-                                              return const SizedBox(
-                                                width: 200,
-                                                height: 200,
-                                                child: Center(
-                                                  child:
-                                                      CircularProgressIndicator(),
-                                                ),
-                                              );
-                                            },
+                    _buildSettingsTile(
+                      context,
+                      icon: Icons.add_to_home_screen_outlined,
+                      title: 'Hoş geldin ekranını tekrar göster',
+                      onTap: _reopenWelcome,
+                    ),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      _buildBadgeTile(
+                        context,
+                        icon: Icons.music_note,
+                        title: 'honorable mention to',
+                        subtitle: 'The Gunu Gurub',
+                        onTap: () =>
+                            _launchUrl('https://www.youtube.com/@GunuGurub39'),
+                      ),
+                      _buildBadgeTile(
+                        context,
+                        icon: Icons.science_rounded,
+                        title: 'low cortisol mention to',
+                        subtitle: 'Agnes Tachyon',
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => Dialog(
+                              backgroundColor: Colors.transparent,
+                              elevation: 0,
+                              insetPadding: const EdgeInsets.all(20),
+                              child: GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.3),
+                                        blurRadius: 30,
+                                        spreadRadius: 10,
                                       ),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(24),
+                                    child: Image.network(
+                                      'https://raw.githubusercontent.com/navidicted/navi-assets/main/assets/lowcortisol.gif',
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                            if (loadingProgress == null) {
+                                              return child;
+                                            }
+                                            return const SizedBox(
+                                              width: 200,
+                                              height: 200,
+                                              child: Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                            );
+                                          },
                                     ),
                                   ),
                                 ),
                               ),
-                            );
-                          },
+                            ),
+                          );
+                        },
+                      ),
+                      _buildBadgeTile(
+                        context,
+                        icon: Icons.star,
+                        title: 'dear psjk please',
+                        subtitle: 'give my account BACK',
+                        onTap: () => _launchUrl(
+                          'https://sega.helpshift.com/hc/en/12-hatsune-miku-colorful-stage/',
                         ),
-                        _buildBadgeTile(
-                          context,
-                          icon: Icons.star,
-                          title: 'dear psjk please',
-                          subtitle: 'give my account BACK',
-                          onTap: () => _launchUrl(
-                            'https://sega.helpshift.com/hc/en/12-hatsune-miku-colorful-stage/',
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -412,5 +419,29 @@ class _AboutScreenState extends State<AboutScreen> {
     if (!await launchUrl(uri)) {
       throw Exception('Could not launch $url');
     }
+  }
+
+  Future<void> _reopenWelcome() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('welcome_shown', false);
+    if (!mounted) return;
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const WelcomeScreen()));
+  }
+
+  Widget _buildSettingsTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      leading: Icon(icon, size: 20),
+      title: Text(title, style: const TextStyle(fontSize: 15)),
+      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+      onTap: onTap,
+    );
   }
 }
