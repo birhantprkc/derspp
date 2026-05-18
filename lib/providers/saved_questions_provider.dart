@@ -140,8 +140,15 @@ class SavedQuestionsProvider extends ChangeNotifier {
     if (reviewDays.isEmpty) return 0;
 
     final today = DateTime.now();
+    final todayStart = DateTime(today.year, today.month, today.day);
+    final yesterday = todayStart.subtract(const Duration(days: 1));
+
+    if (!reviewDays.contains(todayStart) && !reviewDays.contains(yesterday)) {
+      return 0;
+    }
+
+    DateTime cursor = reviewDays.contains(todayStart) ? todayStart : yesterday;
     int streak = 0;
-    DateTime cursor = DateTime(today.year, today.month, today.day);
 
     while (reviewDays.contains(cursor)) {
       streak++;
@@ -166,22 +173,24 @@ class SavedQuestionsProvider extends ChangeNotifier {
 
   Future<void> deleteFolder(int id) async {
     final allIds = await _getAllFolderIdsRecursive(id);
-    
+
     final questions = await (_db.select(
       _db.savedQuestions,
     )..where((t) => t.folderId.isIn(allIds))).get();
-    
+
     for (final sq in questions) {
       if (sq.scraperType == 'custom_question') {
         try {
           final questionData = jsonDecode(sq.rawJson);
           final question = Question.fromJson(questionData);
           final url = question.videoUrl;
-          if (url != null && !url.startsWith('http') && !url.startsWith('data:')) {
-             final file = File(url);
-             if (await file.exists()) {
-               await file.delete();
-             }
+          if (url != null &&
+              !url.startsWith('http') &&
+              !url.startsWith('data:')) {
+            final file = File(url);
+            if (await file.exists()) {
+              await file.delete();
+            }
           }
         } catch (e) {
           debugPrint('Dosya silinirken hata: $e');
@@ -307,17 +316,21 @@ class SavedQuestionsProvider extends ChangeNotifier {
   }
 
   Future<void> deleteSavedQuestion(int id, int folderId) async {
-    final sq = await (_db.select(_db.savedQuestions)..where((t) => t.id.equals(id))).getSingleOrNull();
+    final sq = await (_db.select(
+      _db.savedQuestions,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (sq != null && sq.scraperType == 'custom_question') {
       try {
         final questionData = jsonDecode(sq.rawJson);
         final question = Question.fromJson(questionData);
         final url = question.videoUrl;
-        if (url != null && !url.startsWith('http') && !url.startsWith('data:')) {
-           final file = File(url);
-           if (await file.exists()) {
-             await file.delete();
-           }
+        if (url != null &&
+            !url.startsWith('http') &&
+            !url.startsWith('data:')) {
+          final file = File(url);
+          if (await file.exists()) {
+            await file.delete();
+          }
         }
       } catch (e) {
         debugPrint('Dosya silinirken hata: $e');
@@ -336,7 +349,11 @@ class SavedQuestionsProvider extends ChangeNotifier {
     await loadQuestionsByFolder(folderId);
   }
 
-  Future<void> updateQuestionAnswer(int id, String? newAnswer, int folderId) async {
+  Future<void> updateQuestionAnswer(
+    int id,
+    String? newAnswer,
+    int folderId,
+  ) async {
     await (_db.update(_db.savedQuestions)..where((t) => t.id.equals(id))).write(
       SavedQuestionsCompanion(answer: Value(newAnswer)),
     );
