@@ -171,90 +171,94 @@ class _AboutScreenState extends State<AboutScreen> {
                     context,
                     icon: Icons.language_rounded,
                     title: 'Github',
-                    onTap: () => _launchUrl('https://github.com/navidicted/'),
+                    onTap: () =>
+                        _launchUrl('https://github.com/navidicted/derspp'),
                   ),
                   const SizedBox(height: 24),
-                  if (_showEasterEgg)
+                  if (_showEasterEgg) ...[
                     _buildSettingsTile(
                       context,
                       icon: Icons.add_to_home_screen_outlined,
                       title: 'Hoş geldin ekranını tekrar göster',
                       onTap: _reopenWelcome,
                     ),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _buildBadgeTile(
-                        context,
-                        icon: Icons.music_note,
-                        title: 'honorable mention to',
-                        subtitle: 'The Gunu Gurub',
-                        onTap: () =>
-                            _launchUrl('https://www.youtube.com/@GunuGurub39'),
-                      ),
-                      _buildBadgeTile(
-                        context,
-                        icon: Icons.science_rounded,
-                        title: 'low cortisol mention to',
-                        subtitle: 'Agnes Tachyon',
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => Dialog(
-                              backgroundColor: Colors.transparent,
-                              elevation: 0,
-                              insetPadding: const EdgeInsets.all(20),
-                              child: GestureDetector(
-                                onTap: () => Navigator.pop(context),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(24),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.3),
-                                        blurRadius: 30,
-                                        spreadRadius: 10,
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        _buildBadgeTile(
+                          context,
+                          icon: Icons.music_note,
+                          title: 'honorable mention to',
+                          subtitle: 'The Gunu Gurub',
+                          onTap: () => _launchUrl(
+                            'https://www.youtube.com/@GunuGurub39',
+                          ),
+                        ),
+                        _buildBadgeTile(
+                          context,
+                          icon: Icons.science_rounded,
+                          title: 'low cortisol mention to',
+                          subtitle: 'Agnes Tachyon',
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => Dialog(
+                                backgroundColor: Colors.transparent,
+                                elevation: 0,
+                                insetPadding: const EdgeInsets.all(20),
+                                child: GestureDetector(
+                                  onTap: () => Navigator.pop(context),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(24),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          blurRadius: 30,
+                                          spreadRadius: 10,
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(24),
+                                      child: Image.network(
+                                        'https://raw.githubusercontent.com/navidicted/navi-assets/main/assets/lowcortisol.gif',
+                                        loadingBuilder:
+                                            (context, child, loadingProgress) {
+                                              if (loadingProgress == null) {
+                                                return child;
+                                              }
+                                              return const SizedBox(
+                                                width: 200,
+                                                height: 200,
+                                                child: Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                ),
+                                              );
+                                            },
                                       ),
-                                    ],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(24),
-                                    child: Image.network(
-                                      'https://raw.githubusercontent.com/navidicted/navi-assets/main/assets/lowcortisol.gif',
-                                      loadingBuilder:
-                                          (context, child, loadingProgress) {
-                                            if (loadingProgress == null) {
-                                              return child;
-                                            }
-                                            return const SizedBox(
-                                              width: 200,
-                                              height: 200,
-                                              child: Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              ),
-                                            );
-                                          },
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildBadgeTile(
-                        context,
-                        icon: Icons.star,
-                        title: 'dear psjk please',
-                        subtitle: 'give my account BACK',
-                        onTap: () => _launchUrl(
-                          'https://sega.helpshift.com/hc/en/12-hatsune-miku-colorful-stage/',
+                            );
+                          },
                         ),
-                      ),
-                    ],
-                  ),
+                        _buildBadgeTile(
+                          context,
+                          icon: Icons.star,
+                          title: 'dear psjk please',
+                          subtitle: 'give my account BACK',
+                          onTap: () => _launchUrl(
+                            'https://sega.helpshift.com/hc/en/12-hatsune-miku-colorful-stage/',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
