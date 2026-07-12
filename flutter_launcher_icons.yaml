@@ -7,3 +7,4 @@ flutter_launcher_icons:
     image_path: "assets/images/logo.png"
     background_color: "#hexcode"
     theme_color: "#hexcode"
+  ios: true
