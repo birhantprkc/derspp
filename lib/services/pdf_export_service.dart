@@ -32,9 +32,31 @@ class PdfExportService {
     Map<int, Uint8List>? manualCaptures,
     void Function(int current, int total)? progressCallback,
   }) async {
+    final pdfBytes = await buildPdfBytes(
+      questions: questions,
+      name: name,
+      columns: columns,
+      manualCaptures: manualCaptures,
+      progressCallback: progressCallback,
+    );
+
+    final dir = await _getOutputDir();
+    final fileName =
+        '${name.replaceAll(RegExp(r'[^\w\s\-ğüşiöçĞÜŞİÖÇ]'), '')}.pdf';
+    final filePath = p.join(dir.path, fileName);
+    await File(filePath).writeAsBytes(pdfBytes);
+    return filePath;
+  }
+
+  static Future<Uint8List> buildPdfBytes({
+    required List<SavedQuestion> questions,
+    required String name,
+    int columns = 2,
+    Map<int, Uint8List>? manualCaptures,
+    void Function(int current, int total)? progressCallback,
+  }) async {
     await _ensureFontsLoaded();
     final pdf = pw.Document();
-    final dir = await _getOutputDir();
     const pageFormat = PdfPageFormat.a4;
 
     final questionItems = <_QuestionData>[];
@@ -82,11 +104,7 @@ class PdfExportService {
       );
     }
 
-    final fileName =
-        '${name.replaceAll(RegExp(r'[^\w\s\-ğüşiöçĞÜŞİÖÇ]'), '')}.pdf';
-    final filePath = p.join(dir.path, fileName);
-    await File(filePath).writeAsBytes(await pdf.save());
-    return filePath;
+    return await pdf.save();
   }
 
   static List<List<List<_QuestionData>>> _paginateItems(
@@ -527,7 +545,7 @@ class PdfExportService {
       bytes = base64Decode(videoUrl.split(',').last);
     } else if (videoUrl.startsWith('http')) {
       bytes = await _downloadImageBytes(videoUrl);
-    } else {
+    } else if (!kIsWeb) {
       final file = File(videoUrl);
       if (await file.exists()) bytes = await file.readAsBytes();
     }
@@ -602,15 +620,20 @@ class PdfExportService {
     int questionId,
   ) async {
     File? tempFile;
+    pdfrx.PdfDocument? doc;
     try {
       final response = await _http.get(_proxiedUrl(pdfUrl));
       if (response.statusCode != 200) return null;
 
-      final tempDir = await getTemporaryDirectory();
-      tempFile = File(p.join(tempDir.path, 'q_$questionId.pdf'));
-      await tempFile.writeAsBytes(response.bodyBytes);
+      if (kIsWeb) {
+        doc = await pdfrx.PdfDocument.openData(response.bodyBytes);
+      } else {
+        final tempDir = await getTemporaryDirectory();
+        tempFile = File(p.join(tempDir.path, 'q_$questionId.pdf'));
+        await tempFile.writeAsBytes(response.bodyBytes);
 
-      final doc = await pdfrx.PdfDocument.openFile(tempFile.path);
+        doc = await pdfrx.PdfDocument.openFile(tempFile.path);
+      }
       if (doc.pages.isEmpty) {
         await doc.dispose();
         return null;
@@ -647,6 +670,9 @@ class PdfExportService {
       );
     } catch (e) {
       debugPrint('PDF render hatası: $e');
+      try {
+        await doc?.dispose();
+      } catch (_) {}
       return null;
     } finally {
       try {

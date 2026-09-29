@@ -1066,6 +1066,28 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   Future<void> _savePdfFile(GeneratedPdf pdf) async {
+    if (kIsWeb) {
+      final pdfProvider = context.read<PdfExportProvider>();
+      final bytes = pdfProvider.getWebPdfBytes(pdf.id);
+      if (bytes == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Web oturumunda PDF baytı yok, testi yeniden oluşturun'),
+            ),
+          );
+        }
+        return;
+      }
+      await FilePicker.platform.saveFile(
+        dialogTitle: 'PDF\'i kaydet',
+        fileName: '${pdf.name}.pdf',
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        bytes: bytes,
+      );
+      return;
+    }
     final file = File(pdf.filePath);
     if (!await file.exists()) {
       if (mounted) {
@@ -1093,6 +1115,28 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   Future<void> _openPdfFile(GeneratedPdf pdf) async {
+    if (kIsWeb) {
+      final pdfProvider = context.read<PdfExportProvider>();
+      final bytes = pdfProvider.getWebPdfBytes(pdf.id);
+      if (bytes == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Web\'de dosya açılamaz, Kaydet ile indirin'),
+            ),
+          );
+        }
+        return;
+      }
+      await FilePicker.platform.saveFile(
+        dialogTitle: 'PDF\'i kaydet',
+        fileName: '${pdf.name}.pdf',
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        bytes: bytes,
+      );
+      return;
+    }
     final file = File(pdf.filePath);
     if (!await file.exists()) {
       if (mounted) {
@@ -1415,7 +1459,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                               context,
                               listen: false,
                             );
-                            await pdfProvider.exportQuestions(
+                            final ok = await pdfProvider.exportQuestions(
                               questions: questions,
                               name: pdfName,
                               folderIds: folderIds,
@@ -1424,7 +1468,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
                                   _showManualCapturePlayer(sq),
                             );
                             messenger.showSnackBar(
-                              const SnackBar(content: Text('PDF oluşturuldu')),
+                              SnackBar(
+                                content: Text(
+                                  ok
+                                      ? (kIsWeb
+                                            ? 'PDF oluşturuldu ve indirildi'
+                                            : 'PDF oluşturuldu')
+                                      : 'PDF oluşturulamadı: ${pdfProvider.exportStatus}',
+                                ),
+                              ),
                             );
                           }
                         : null,

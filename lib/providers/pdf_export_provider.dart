@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart';
 import '../database/database.dart';
@@ -23,6 +24,9 @@ class PdfExportProvider extends ChangeNotifier {
   String get exportStatus => _exportStatus;
   double get exportProgress => _exportProgress;
 
+  final Map<int, Uint8List> _webPdfBytes = {};
+  Uint8List? getWebPdfBytes(int pdfId) => _webPdfBytes[pdfId];
+
   Future<void> loadGeneratedPdfs() async {
     _generatedPdfs =
         await (_db.select(_db.generatedPdfs)..orderBy([
@@ -35,14 +39,14 @@ class PdfExportProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> exportQuestions({
+  Future<bool> exportQuestions({
     required List<SavedQuestion> questions,
     required String name,
     required List<int> folderIds,
     int columns = 2,
     Future<Uint8List?> Function(SavedQuestion)? onCaptureRequired,
   }) async {
-    if (questions.isEmpty) return;
+    if (questions.isEmpty) return false;
 
     _isExporting = true;
     _exportStatus = 'PDF oluşturuluyor...';
@@ -65,39 +69,75 @@ class PdfExportProvider extends ChangeNotifier {
         }
       }
 
-      final filePath = await PdfExportService.exportQuestions(
-        questions: questions,
-        name: name,
-        columns: columns,
-        manualCaptures: manualCaptures,
-        progressCallback: (current, total) {
-          _exportProgress = current / total;
-          _exportStatus = '$current / $total soru hazırlanıyor...';
-          notifyListeners();
-        },
-      );
-
       final questionDbIds = questions.map((q) => q.id).toList();
       final questionCount = questions.length;
 
-      await _db
-          .into(_db.generatedPdfs)
-          .insert(
-            GeneratedPdfsCompanion.insert(
-              name: name,
-              filePath: filePath,
-              folderIds: jsonEncode(folderIds),
-              questionDbIds: jsonEncode(questionDbIds),
-              questionCount: questionCount,
-              columns: Value(columns),
-            ),
-          );
+      String filePath;
+      if (kIsWeb) {
+        final pdfBytes = await PdfExportService.buildPdfBytes(
+          questions: questions,
+          name: name,
+          columns: columns,
+          manualCaptures: manualCaptures,
+          progressCallback: (current, total) {
+            _exportProgress = current / total;
+            _exportStatus = '$current / $total soru hazırlanıyor...';
+            notifyListeners();
+          },
+        );
+
+        await FilePicker.platform.saveFile(
+          dialogTitle: 'PDF\'i kaydet',
+          fileName: '$name.pdf',
+          type: FileType.custom,
+          allowedExtensions: ['pdf'],
+          bytes: pdfBytes,
+        );
+
+        filePath = 'web';
+        final pdfId = await _db.into(_db.generatedPdfs).insert(
+          GeneratedPdfsCompanion.insert(
+            name: name,
+            filePath: filePath,
+            folderIds: jsonEncode(folderIds),
+            questionDbIds: jsonEncode(questionDbIds),
+            questionCount: questionCount,
+            columns: Value(columns),
+          ),
+        );
+        _webPdfBytes[pdfId] = pdfBytes;
+      } else {
+        filePath = await PdfExportService.exportQuestions(
+          questions: questions,
+          name: name,
+          columns: columns,
+          manualCaptures: manualCaptures,
+          progressCallback: (current, total) {
+            _exportProgress = current / total;
+            _exportStatus = '$current / $total soru hazırlanıyor...';
+            notifyListeners();
+          },
+        );
+
+        await _db.into(_db.generatedPdfs).insert(
+          GeneratedPdfsCompanion.insert(
+            name: name,
+            filePath: filePath,
+            folderIds: jsonEncode(folderIds),
+            questionDbIds: jsonEncode(questionDbIds),
+            questionCount: questionCount,
+            columns: Value(columns),
+          ),
+        );
+      }
 
       _exportStatus = 'PDF oluşturuldu!';
       await loadGeneratedPdfs();
+      return true;
     } catch (e) {
       _exportStatus = 'Hata: $e';
       debugPrint('PDF export hatası: $e');
+      return false;
     } finally {
       _isExporting = false;
       notifyListeners();
@@ -161,10 +201,13 @@ class PdfExportProvider extends ChangeNotifier {
       _db.generatedPdfs,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (pdf != null) {
-      try {
-        final file = File(pdf.filePath);
-        if (await file.exists()) await file.delete();
-      } catch (_) {}
+      _webPdfBytes.remove(id);
+      if (!kIsWeb && pdf.filePath != 'web') {
+        try {
+          final file = File(pdf.filePath);
+          if (await file.exists()) await file.delete();
+        } catch (_) {}
+      }
       await (_db.delete(_db.generatedPdfs)..where((t) => t.id.equals(id))).go();
       await loadGeneratedPdfs();
     }
